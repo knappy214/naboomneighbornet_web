@@ -5,7 +5,11 @@
         <h1 class="text-2xl font-bold">{{ $t('app.title') }}</h1>
         <span class="badge">daisyUI</span>
       </div>
-      <LanguageSwitcher />
+      <div class="flex gap-2 items-center">
+        <LanguageSwitcher />
+        <router-link class="btn btn-ghost" to="/login">{{ $t('app.login') }}</router-link>
+        <router-link class="btn btn-primary" to="/register">{{ $t('app.register') }}</router-link>
+      </div>
     </div>
     <RouterView />
   </main>
