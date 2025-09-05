@@ -7,26 +7,35 @@
   prefersdark: false;
   color-scheme: light;
 
-  --color-base-100: #ffffff;
-  --color-base-200: #f9fafb;
-  --color-base-300: #f3f4f6;
-  --color-base-content: #374151;
-  --color-primary: #4b6bfb;
-  --color-primary-content: #ffffff;
-  --color-secondary: #047aff;
-  --color-secondary-content: #ffffff;
-  --color-accent: #f97316;
-  --color-accent-content: #ffffff;
-  --color-neutral: #374151;
-  --color-neutral-content: #ffffff;
-  --color-info: #0ea5e9;
-  --color-info-content: #ffffff;
-  --color-success: #10b981;
-  --color-success-content: #ffffff;
-  --color-warning: #f59e0b;
-  --color-warning-content: #ffffff;
-  --color-error: #dc2626;
-  --color-error-content: #ffffff;
+  /* Agricultural Color Palette - Optimized for farming communities */
+  --color-base-100: #ffffff; /* Cloud-White - Maximum contrast under bright sun */
+  --color-base-200: #f5f5f4; /* Light earth tone for subtle backgrounds */
+  --color-base-300: #e7e5e4; /* Medium earth tone for borders and dividers */
+  --color-base-content: #6b4f2a; /* Land color for text - high contrast on white */
+
+  --color-primary: #6b4f2a; /* Land - Familiar, trustworthy; echoes ploughed soil */
+  --color-primary-content: #ffffff; /* Cloud-White for text on Land */
+
+  --color-secondary: #3a7d44; /* Crop-Green - Symbolises growth & safety; good daylight legibility */
+  --color-secondary-content: #ffffff; /* Cloud-White for text on Crop-Green */
+
+  --color-accent: #f6b40e; /* Sun-Gold - Draws attention to CTA buttons; 68% associate with alert/readiness */
+  --color-accent-content: #6b4f2a; /* Land color for text on Sun-Gold */
+
+  --color-neutral: #6b4f2a; /* Land color for neutral elements */
+  --color-neutral-content: #ffffff; /* Cloud-White for text on neutral */
+
+  --color-info: #3a7d44; /* Crop-Green for informational messages */
+  --color-info-content: #ffffff; /* Cloud-White for text on info */
+
+  --color-success: #3a7d44; /* Crop-Green for success states */
+  --color-success-content: #ffffff; /* Cloud-White for text on success */
+
+  --color-warning: #f6b40e; /* Sun-Gold for warnings */
+  --color-warning-content: #6b4f2a; /* Land color for text on warning */
+
+  --color-error: #c0392b; /* Signal-Red - WCAG-AA contrast on white & brown */
+  --color-error-content: #ffffff; /* Cloud-White for text on error */
 
   --radius-selector: 0.5rem;
   --radius-field: 0.25rem;
@@ -46,26 +55,35 @@
   prefersdark: true;
   color-scheme: dark;
 
-  --color-base-100: #0f172a;
-  --color-base-200: #1e293b;
-  --color-base-300: #334155;
-  --color-base-content: #e2e8f0;
-  --color-primary: #60a5fa;
-  --color-primary-content: #0f172a;
-  --color-secondary: #38bdf8;
-  --color-secondary-content: #0f172a;
-  --color-accent: #fb923c;
-  --color-accent-content: #0f172a;
-  --color-neutral: #64748b;
-  --color-neutral-content: #f1f5f9;
-  --color-info: #7dd3fc;
-  --color-info-content: #0f172a;
-  --color-success: #4ade80;
-  --color-success-content: #0f172a;
-  --color-warning: #fbbf24;
-  --color-warning-content: #0f172a;
-  --color-error: #f87171;
-  --color-error-content: #0f172a;
+  /* Agricultural Dark Theme - Optimized for low-light farming environments */
+  --color-base-100: #2d1b0a; /* Dark earth tone - reminiscent of rich soil at night */
+  --color-base-200: #3d2814; /* Medium dark earth tone for subtle backgrounds */
+  --color-base-300: #4d331e; /* Lighter dark earth tone for borders and dividers */
+  --color-base-content: #f5f5f4; /* Light earth tone for text - high contrast on dark */
+
+  --color-primary: #8b6f4a; /* Lighter Land - Maintains earth tone but visible in dark */
+  --color-primary-content: #2d1b0a; /* Dark earth for text on primary */
+
+  --color-secondary: #4a8b5a; /* Lighter Crop-Green - Maintains growth symbolism in dark */
+  --color-secondary-content: #2d1b0a; /* Dark earth for text on secondary */
+
+  --color-accent: #f6b40e; /* Sun-Gold - Same as light theme for consistency */
+  --color-accent-content: #2d1b0a; /* Dark earth for text on accent */
+
+  --color-neutral: #8b6f4a; /* Lighter Land for neutral elements */
+  --color-neutral-content: #f5f5f4; /* Light earth for text on neutral */
+
+  --color-info: #4a8b5a; /* Lighter Crop-Green for informational messages */
+  --color-info-content: #2d1b0a; /* Dark earth for text on info */
+
+  --color-success: #4a8b5a; /* Lighter Crop-Green for success states */
+  --color-success-content: #2d1b0a; /* Dark earth for text on success */
+
+  --color-warning: #f6b40e; /* Sun-Gold for warnings - same as light theme */
+  --color-warning-content: #2d1b0a; /* Dark earth for text on warning */
+
+  --color-error: #e74c3c; /* Lighter Signal-Red - Better visibility in dark mode */
+  --color-error-content: #f5f5f4; /* Light earth for text on error */
 
   --radius-selector: 0.5rem;
   --radius-field: 0.25rem;

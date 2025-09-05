@@ -23,13 +23,17 @@ onMounted(async () => {
     <div class="hero bg-gradient-to-r from-primary/10 to-secondary/10">
       <div class="hero-content text-center">
         <div class="max-w-md">
-          <h1 class="text-5xl font-bold text-primary">Welcome Home</h1>
+          <div class="flex justify-center mb-4">
+            <img src="/logo.png" alt="Naboom NeighborNet Logo" class="w-16 h-16 object-contain" />
+          </div>
+          <h1 class="text-5xl font-bold text-primary">Welcome to Your Farm Community</h1>
           <p class="py-6 text-base-content">
-            Your community security dashboard is ready. Stay connected and stay safe.
+            Your agricultural community security dashboard is ready. Stay connected, stay safe, and
+            protect your harvest.
           </p>
           <div class="join">
-            <button class="btn btn-primary join-item">View Alerts</button>
-            <button class="btn btn-secondary join-item">Report Incident</button>
+            <button class="btn btn-accent join-item">🚨 Emergency Alert</button>
+            <button class="btn btn-secondary join-item">📊 Farm Status</button>
           </div>
         </div>
       </div>
@@ -38,12 +42,12 @@ onMounted(async () => {
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Pages Card -->
+        <!-- Farm Community Card -->
         <div class="card bg-base-100 shadow-lg border border-base-300">
           <div class="card-body">
             <h2 class="card-title text-secondary">
-              <span class="text-2xl">📄</span>
-              Community Pages
+              <span class="text-2xl">🌾</span>
+              Farm Community
             </h2>
             <div class="space-y-2">
               <div v-if="pages.length === 0" class="text-base-content/70">
@@ -62,22 +66,22 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Security Status Card -->
+        <!-- Farm Security Card -->
         <div class="card bg-base-100 shadow-lg border border-base-300">
           <div class="card-body">
             <h2 class="card-title text-accent">
-              <span class="text-2xl">🛡️</span>
-              Security Status
+              <span class="text-2xl">🚨</span>
+              Farm Security
             </h2>
             <div class="stats stats-vertical">
               <div class="stat">
-                <div class="stat-title">Active Patrols</div>
-                <div class="stat-value text-primary">3</div>
-                <div class="stat-desc">Currently monitoring</div>
+                <div class="stat-title">Active Farms</div>
+                <div class="stat-value text-primary">12</div>
+                <div class="stat-desc">Connected neighbors</div>
               </div>
               <div class="stat">
-                <div class="stat-title">Recent Alerts</div>
-                <div class="stat-value text-warning">1</div>
+                <div class="stat-title">Security Alerts</div>
+                <div class="stat-value text-warning">0</div>
                 <div class="stat-desc">Last 24 hours</div>
               </div>
             </div>
@@ -115,8 +119,12 @@ onMounted(async () => {
 
     <!-- Footer -->
     <footer class="footer footer-center p-10 bg-base-200 text-base-content">
-      <div>
-        <p>© 2024 Naboom NeighborNet - Community Security Platform</p>
+      <div class="flex flex-col items-center gap-2">
+        <div class="flex items-center gap-2">
+          <img src="/logo.png" alt="Naboom NeighborNet Logo" class="w-8 h-8 object-contain" />
+          <span class="font-semibold text-lg">Naboom NeighborNet</span>
+        </div>
+        <p>© 2024 Agricultural Community Security Platform</p>
       </div>
     </footer>
   </div>

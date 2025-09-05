@@ -57,8 +57,10 @@ async function reset() {
         <!-- Header -->
         <div class="text-center mb-6">
           <div class="avatar placeholder mb-4">
-            <div class="bg-accent text-accent-content rounded-full w-16">
-              <span class="text-2xl">🔒</span>
+            <div
+              class="bg-accent text-accent-content rounded-full w-16 flex items-center justify-center"
+            >
+              <img src="/logo.png" alt="Naboom NeighborNet Logo" class="w-10 h-10 object-contain" />
             </div>
           </div>
           <h1 class="text-3xl font-bold text-base-content">{{ t('auth.resetPassword') }}</h1>
@@ -112,6 +114,7 @@ async function reset() {
               type="password"
               :placeholder="t('auth.newPassword')"
               class="input input-bordered w-full focus:input-primary"
+              autocomplete="new-password"
               required
             />
           </div>
@@ -125,6 +128,7 @@ async function reset() {
               type="password"
               placeholder="Confirm your new password"
               class="input input-bordered w-full focus:input-primary"
+              autocomplete="new-password"
               required
             />
           </div>

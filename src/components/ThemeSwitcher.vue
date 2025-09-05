@@ -2,24 +2,24 @@
 import { ref, onMounted } from 'vue'
 
 const themes = [
-  { name: 'community-security', label: 'Community Security (Light)', icon: '☀️' },
-  { name: 'community-security-dark', label: 'Community Security (Dark)', icon: '🌙' },
+  { name: 'community-security', label: 'Agricultural Light', icon: '🌾' },
+  { name: 'community-security-dark', label: 'Agricultural Dark', icon: '🌙' },
   { name: 'light', label: 'DaisyUI Light', icon: '💡' },
 ]
 
 const currentThemeIndex = ref(0)
-const currentTheme = ref(themes[currentThemeIndex.value])
+const currentTheme = ref(themes[currentThemeIndex.value]!)
 
 const cycleTheme = () => {
   currentThemeIndex.value = (currentThemeIndex.value + 1) % themes.length
-  currentTheme.value = themes[currentThemeIndex.value]
+  currentTheme.value = themes[currentThemeIndex.value]!
   document.documentElement.setAttribute('data-theme', currentTheme.value.name)
   localStorage.setItem('theme', currentTheme.value.name)
 }
 
 const selectTheme = (index: number) => {
   currentThemeIndex.value = index
-  currentTheme.value = themes[index]
+  currentTheme.value = themes[index]!
   document.documentElement.setAttribute('data-theme', currentTheme.value.name)
   localStorage.setItem('theme', currentTheme.value.name)
 }
@@ -30,7 +30,7 @@ onMounted(() => {
     const themeIndex = themes.findIndex((t) => t.name === savedTheme)
     if (themeIndex !== -1) {
       currentThemeIndex.value = themeIndex
-      currentTheme.value = themes[themeIndex]
+      currentTheme.value = themes[themeIndex]!
       document.documentElement.setAttribute('data-theme', currentTheme.value.name)
     }
   }

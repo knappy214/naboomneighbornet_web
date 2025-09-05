@@ -1,0 +1,116 @@
+{
+  "app": {
+    "title": "Naboom NeighborNet",
+    "language": "Language",
+    "english": "English",
+    "afrikaans": "Afrikaans",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "demo": "Demo",
+    "themeDemo": "Theme Demo",
+    "theme": "Theme",
+    "localeRouting": "Locale Routing",
+    "safenaboom": "SafeNaboom",
+    "storeDemo": "Store Demo"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "forgot": "Forgot password?",
+    "haveAccount": "Have an account?",
+    "needAccount": "Need an account?",
+    "sendLink": "Send reset link",
+    "resetPassword": "Reset Password",
+    "newPassword": "New Password",
+    "confirm": "Confirm"
+  },
+  "$vuetify": {
+    "dataIterator": {
+      "noResultsText": "No matching records found",
+      "loadingText": "Loading items..."
+    },
+    "dataTable": {
+      "itemsPerPageText": "Rows per page:",
+      "ariaLabel": {
+        "sortDesc": "Sorted descending.",
+        "sortAsc": "Sorted ascending.",
+        "sortNone": "Not sorted.",
+        "activateNone": "Activate to remove sorting.",
+        "activateDesc": "Activate to sort descending.",
+        "activateAsc": "Activate to sort ascending."
+      },
+      "sortBy": "Sort by"
+    },
+    "noDataText": "No data available",
+    "carousel": {
+      "prev": "Previous visual",
+      "next": "Next visual",
+      "ariaLabel": {
+        "delimiter": "Carousel slide {0} of {1}"
+      }
+    },
+    "calendar": {
+      "moreEvents": "{0} more"
+    },
+    "fileInput": {
+      "counter": "{0} files",
+      "counterSize": "{0} files ({1} in total)"
+    },
+    "timePicker": {
+      "am": "AM",
+      "pm": "PM"
+    },
+    "pagination": {
+      "ariaLabel": {
+        "wrapper": "Pagination Navigation",
+        "next": "Next page",
+        "previous": "Previous page",
+        "page": "Go to page {0}",
+        "currentPage": "Page {0}, Current page"
+      }
+    },
+    "rating": {
+      "ariaLabel": {
+        "item": "Rating {0} of {1}"
+      }
+    },
+    "loading": "Loading...",
+    "infiniteLoading": {
+      "loadMore": "Load more",
+      "empty": "No more data"
+    }
+  },
+  "storeDemo": {
+    "title": "Store Demo",
+    "subtitle": "Demonstration of i18n-aware Pinia stores with locale-sensitive caching",
+    "mockData": "Mock Data",
+    "localeManagement": "Locale Management",
+    "currentLocale": "Current Locale",
+    "localeInfo": "Locale Info",
+    "availableLocales": "Available Locales",
+    "isLocaleChanging": "Is Locale Changing",
+    "cacheManagement": "Cache Management",
+    "cacheSize": "Cache Size",
+    "memoryUsage": "Memory Usage",
+    "hitRate": "Hit Rate",
+    "clearCache": "Clear Cache",
+    "optimizeCache": "Optimize Cache",
+    "dataStores": "Data Stores",
+    "loading": "Loading",
+    "yes": "Yes",
+    "no": "No",
+    "error": "Error",
+    "hasData": "Has Data",
+    "isStale": "Is Stale",
+    "lastFetched": "Last Fetched",
+    "refresh": "Refresh",
+    "apiTesting": "API Testing",
+    "endpoint": "Endpoint",
+    "testApi": "Test API",
+    "apiResult": "API Result",
+    "success": "Success",
+    "errorOccurred": "An error occurred"
+  }
+}

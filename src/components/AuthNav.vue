@@ -20,8 +20,12 @@ const logout = () => {
 <template>
   <div class="navbar bg-base-100/80 backdrop-blur-sm shadow-sm">
     <div class="navbar-start">
-      <router-link to="/" class="btn btn-ghost text-xl font-bold text-primary">
-        🛡️ Naboom NeighborNet
+      <router-link
+        to="/"
+        class="btn btn-ghost text-xl font-bold text-primary flex items-center gap-3"
+      >
+        <img src="/logo.png" alt="Naboom NeighborNet Logo" class="w-8 h-8 object-contain" />
+        Naboom NeighborNet
       </router-link>
     </div>
     <div class="navbar-end">

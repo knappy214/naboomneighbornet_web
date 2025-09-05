@@ -1,0 +1,116 @@
+{
+  "app": {
+    "title": "Naboom BuurNet",
+    "language": "Taal",
+    "english": "Engels",
+    "afrikaans": "Afrikaans",
+    "login": "Meld aan",
+    "register": "Registreer",
+    "logout": "Teken uit",
+    "dashboard": "Dashboard",
+    "demo": "Demo",
+    "themeDemo": "Tema Demo",
+    "theme": "Tema",
+    "localeRouting": "Taal Roete",
+    "safenaboom": "SafeNaboom",
+    "storeDemo": "Stoor Demo"
+  },
+  "auth": {
+    "email": "E-pos",
+    "password": "Wagwoord",
+    "forgot": "Wagwoord vergeet?",
+    "haveAccount": "Het jy 'n rekening?",
+    "needAccount": "Benodig 'n rekening?",
+    "sendLink": "Stuur herstel skakel",
+    "resetPassword": "Herstel Wagwoord",
+    "newPassword": "Nuwe Wagwoord",
+    "confirm": "Bevestig"
+  },
+  "$vuetify": {
+    "dataIterator": {
+      "noResultsText": "Geen ooreenstemmende rekords gevind nie",
+      "loadingText": "Laai items..."
+    },
+    "dataTable": {
+      "itemsPerPageText": "Rye per bladsy:",
+      "ariaLabel": {
+        "sortDesc": "Gesorteer dalend.",
+        "sortAsc": "Gesorteer stygend.",
+        "sortNone": "Nie gesorteer nie.",
+        "activateNone": "Aktiveer om sortering te verwyder.",
+        "activateDesc": "Aktiveer om dalend te sorteer.",
+        "activateAsc": "Aktiveer om stygend te sorteer."
+      },
+      "sortBy": "Sorteer volgens"
+    },
+    "noDataText": "Geen data beskikbaar nie",
+    "carousel": {
+      "prev": "Vorige visuele",
+      "next": "Volgende visuele",
+      "ariaLabel": {
+        "delimiter": "Carousel skyf {0} van {1}"
+      }
+    },
+    "calendar": {
+      "moreEvents": "{0} meer"
+    },
+    "fileInput": {
+      "counter": "{0} lêers",
+      "counterSize": "{0} lêers ({1} totaal)"
+    },
+    "timePicker": {
+      "am": "VM",
+      "pm": "NM"
+    },
+    "pagination": {
+      "ariaLabel": {
+        "wrapper": "Bladsy Navigasie",
+        "next": "Volgende bladsy",
+        "previous": "Vorige bladsy",
+        "page": "Gaan na bladsy {0}",
+        "currentPage": "Bladsy {0}, Huidige bladsy"
+      }
+    },
+    "rating": {
+      "ariaLabel": {
+        "item": "Gradering {0} van {1}"
+      }
+    },
+    "loading": "Laai...",
+    "infiniteLoading": {
+      "loadMore": "Laai meer",
+      "empty": "Geen meer data nie"
+    }
+  },
+  "storeDemo": {
+    "title": "Stoor Demo",
+    "subtitle": "Demonstrasie van i18n-bewuste Pinia stores met lokaal-sensitiewe kas",
+    "mockData": "Mock Data",
+    "localeManagement": "Lokaal Bestuur",
+    "currentLocale": "Huidige Lokaal",
+    "localeInfo": "Lokaal Inligting",
+    "availableLocales": "Beskikbare Lokale",
+    "isLocaleChanging": "Is Lokaal Besig Om Te Verander",
+    "cacheManagement": "Kas Bestuur",
+    "cacheSize": "Kas Grootte",
+    "memoryUsage": "Geheue Gebruik",
+    "hitRate": "Treffer Koers",
+    "clearCache": "Maak Kas Skoon",
+    "optimizeCache": "Optimaliseer Kas",
+    "dataStores": "Data Stores",
+    "loading": "Laai",
+    "yes": "Ja",
+    "no": "Nee",
+    "error": "Fout",
+    "hasData": "Het Data",
+    "isStale": "Is Verouderd",
+    "lastFetched": "Laaste Gehaal",
+    "refresh": "Verfris",
+    "apiTesting": "API Toetsing",
+    "endpoint": "Eindpunt",
+    "testApi": "Toets API",
+    "apiResult": "API Resultaat",
+    "success": "Sukses",
+    "errorOccurred": "N Fout het voorgekom"
+  }
+}

@@ -34,8 +34,10 @@ async function sendLink() {
         <!-- Header -->
         <div class="text-center mb-6">
           <div class="avatar placeholder mb-4">
-            <div class="bg-warning text-warning-content rounded-full w-16">
-              <span class="text-2xl">🔑</span>
+            <div
+              class="bg-warning text-warning-content rounded-full w-16 flex items-center justify-center"
+            >
+              <img src="/logo.png" alt="Naboom NeighborNet Logo" class="w-10 h-10 object-contain" />
             </div>
           </div>
           <h1 class="text-3xl font-bold text-base-content">{{ t('auth.forgot') }}</h1>
@@ -89,6 +91,7 @@ async function sendLink() {
               type="email"
               :placeholder="t('auth.email')"
               class="input input-bordered w-full focus:input-primary"
+              autocomplete="email"
               required
             />
           </div>
