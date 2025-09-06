@@ -20,7 +20,7 @@ async function submit() {
   isLoading.value = true
 
   try {
-    const { data } = await api.post('/auth/jwt/create', {
+    const { data } = await api.post('/auth/jwt/create/', {
       email: email.value,
       password: password.value,
     })

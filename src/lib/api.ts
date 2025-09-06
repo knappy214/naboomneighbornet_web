@@ -44,7 +44,7 @@ api.interceptors.response.use(undefined, async (error) => {
   if (error.response?.status === 401 && store.refreshToken) {
     try {
       const { data } = await axios.post(
-        (import.meta.env.VITE_API_BASE || '/api') + '/auth/jwt/refresh',
+        (import.meta.env.VITE_API_BASE || '/api') + '/auth/jwt/refresh/',
         {
           refresh: store.refreshToken,
         },

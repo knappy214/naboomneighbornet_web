@@ -28,7 +28,7 @@ async function submit() {
   isLoading.value = true
 
   try {
-    await api.post('/auth/register', {
+    await api.post('/auth/register/', {
       email: email.value,
       username: username.value,
       password: password.value,

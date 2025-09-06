@@ -17,7 +17,7 @@ async function sendLink() {
   isLoading.value = true
 
   try {
-    await api.post('/auth/password-reset', { email: email.value })
+    await api.post('/auth/password-reset/', { email: email.value })
     message.value = 'Password reset link sent! Check your email.'
   } catch (e: any) {
     error.value = e?.response?.data?.detail || 'Failed to send reset link'
