@@ -46,10 +46,10 @@ const logout = () => {
             <span>Account</span>
           </li>
           <li>
-            <a class="flex items-center gap-2">
+            <router-link to="/profile" class="flex items-center gap-2">
               <span class="text-lg">👤</span>
               <span>Profile</span>
-            </a>
+            </router-link>
           </li>
           <li>
             <a class="flex items-center gap-2">

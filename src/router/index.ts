@@ -27,6 +27,7 @@ const ThemeLocaleSwitcher = () => import('@/components/ThemeLocaleSwitcher.vue')
 const LocaleRoutingDemo = () => import('@/pages/LocaleRoutingDemo.vue')
 const SafeNaboom = () => import('@/pages/SafeNaboom.vue')
 const StoreDemo = () => import('@/components/StoreDemo.vue')
+const Profile = () => import('@/pages/Profile.vue')
 
 // Generate locale-prefixed routes
 const createLocaleRoutes = (): RouteRecordRaw[] => {
@@ -144,6 +145,17 @@ const createLocaleRoutes = (): RouteRecordRaw[] => {
             locale,
             title: 'Store Demo',
             description: 'Pinia store management demonstration',
+          },
+        },
+        {
+          path: 'profile',
+          name: `profile-${locale}`,
+          component: Profile,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Profile',
+            description: 'User profile management',
           },
         },
       ],

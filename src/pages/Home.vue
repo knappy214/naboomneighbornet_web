@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { i18n } from '@/plugins/i18n'
 import AuthNav from '@/components/AuthNav.vue'
+import ProfileDemo from '@/components/ProfileDemo.vue'
 
 const pages = ref<any[]>([])
 const locale = computed(() => (i18n.global.locale.value === 'af' ? 'af' : 'en'))
@@ -41,6 +42,11 @@ onMounted(async () => {
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
+      <!-- Profile Demo Section -->
+      <div class="mb-8">
+        <ProfileDemo />
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Farm Community Card -->
         <div class="card bg-base-100 shadow-lg border border-base-300">
