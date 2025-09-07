@@ -1,82 +1,120 @@
 <template>
   <div>
-    <v-form @submit.prevent="handleSubmit" ref="form">
-      <v-row>
-        <v-col cols="12" md="6">
-          <v-text-field
-            v-model="formData.phone"
-            :label="$t('profile.phone')"
-            variant="outlined"
-            density="comfortable"
+    <form @submit.prevent="handleSubmit" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Phone Number -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Phone Number</span>
+          </label>
+          <input
+            v-model="formData.phone_number"
             type="tel"
-            :placeholder="$t('profile.phonePlaceholder')"
+            class="input input-bordered w-full"
+            placeholder="Enter your phone number"
           />
-        </v-col>
+        </div>
 
-        <v-col cols="12" md="6">
-          <v-text-field
-            v-model="formData.timezone"
-            :label="$t('profile.timezone')"
-            variant="outlined"
-            density="comfortable"
-            readonly
+        <!-- Mobile Number -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Mobile Number</span>
+          </label>
+          <input
+            v-model="formData.mobile_number"
+            type="tel"
+            class="input input-bordered w-full"
+            placeholder="Enter your mobile number"
           />
-        </v-col>
+        </div>
 
-        <v-col cols="12">
-          <v-text-field
+        <!-- Address -->
+        <div class="form-control md:col-span-2">
+          <label class="label">
+            <span class="label-text font-medium">Address</span>
+          </label>
+          <textarea
             v-model="formData.address"
-            :label="$t('profile.address')"
-            variant="outlined"
-            density="comfortable"
-            :placeholder="$t('profile.addressPlaceholder')"
-          />
-        </v-col>
+            class="textarea textarea-bordered w-full"
+            rows="3"
+            placeholder="Enter your address"
+          ></textarea>
+        </div>
 
-        <v-col cols="12" md="4">
-          <v-text-field
+        <!-- City -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">City</span>
+          </label>
+          <input
             v-model="formData.city"
-            :label="$t('profile.city')"
-            variant="outlined"
-            density="comfortable"
+            type="text"
+            class="input input-bordered w-full"
+            placeholder="Enter your city"
           />
-        </v-col>
+        </div>
 
-        <v-col cols="12" md="4">
-          <v-text-field
-            v-model="formData.province"
-            :label="$t('profile.province')"
-            variant="outlined"
-            density="comfortable"
+        <!-- State/Province -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">State/Province</span>
+          </label>
+          <input
+            v-model="formData.state"
+            type="text"
+            class="input input-bordered w-full"
+            placeholder="Enter your state or province"
           />
-        </v-col>
+        </div>
 
-        <v-col cols="12" md="4">
-          <v-text-field
+        <!-- Postal Code -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Postal Code</span>
+          </label>
+          <input
             v-model="formData.postal_code"
-            :label="$t('profile.postalCode')"
-            variant="outlined"
-            density="comfortable"
-            :placeholder="$t('profile.postalCodePlaceholder')"
+            type="text"
+            class="input input-bordered w-full"
+            placeholder="Enter your postal code"
           />
-        </v-col>
-      </v-row>
+        </div>
 
-      <v-row class="mt-4">
-        <v-col cols="12" class="d-flex justify-end">
-          <v-btn type="submit" color="primary" :loading="loading" :disabled="!hasChanges">
-            <v-icon start>mdi-content-save</v-icon>
-            {{ $t('common.save') }}
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-form>
+        <!-- Country -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Country</span>
+          </label>
+          <select v-model="formData.country" class="select select-bordered w-full">
+            <option value="">Select country</option>
+            <option value="South Africa">South Africa</option>
+            <option value="United States">United States</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Canada">Canada</option>
+            <option value="Australia">Australia</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <div class="flex justify-end">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          :class="{ loading: loading }"
+          :disabled="!hasChanges || loading"
+        >
+          <span v-if="!loading" class="text-lg">💾</span>
+          {{ loading ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+    </form>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import type { UserProfile } from '@/stores/profile'
 
 interface Props {
@@ -90,17 +128,16 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const { t } = useI18n()
-
 // State
 const loading = ref(false)
 const formData = ref({
-  phone: '',
-  timezone: '',
+  phone_number: '',
+  mobile_number: '',
   address: '',
   city: '',
-  province: '',
+  state: '',
   postal_code: '',
+  country: '',
 })
 
 const originalData = ref({ ...formData.value })
@@ -113,12 +150,13 @@ const hasChanges = computed(() => {
 // Methods
 const initializeForm = () => {
   formData.value = {
-    phone: props.profile.phone || '',
-    timezone: props.profile.timezone || '',
+    phone_number: props.profile.phone_number || '',
+    mobile_number: props.profile.mobile_number || '',
     address: props.profile.address || '',
     city: props.profile.city || '',
-    province: props.profile.province || '',
+    state: props.profile.state || '',
     postal_code: props.profile.postal_code || '',
+    country: props.profile.country || '',
   }
   originalData.value = { ...formData.value }
 }

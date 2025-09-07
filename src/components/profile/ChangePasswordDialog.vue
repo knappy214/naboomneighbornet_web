@@ -1,89 +1,113 @@
 <template>
-  <v-dialog v-model="dialog" max-width="500px" persistent>
-    <v-card>
-      <v-card-title class="d-flex align-center">
-        <v-icon class="me-2">mdi-key</v-icon>
-        {{ $t('profile.changePassword') }}
-      </v-card-title>
+  <!-- Modal -->
+  <div v-if="isOpen" class="modal modal-open">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+        <span class="text-2xl">🔐</span>
+        Change Password
+      </h3>
 
-      <v-card-text>
-        <v-form @submit.prevent="handleSubmit" ref="form">
-          <v-text-field
+      <form @submit.prevent="handleSubmit" class="space-y-4">
+        <!-- Current Password -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Current Password *</span>
+          </label>
+          <input
             v-model="formData.current_password"
-            :label="$t('profile.currentPassword')"
-            :type="showCurrentPassword ? 'text' : 'password'"
-            variant="outlined"
-            density="comfortable"
-            :rules="[rules.required]"
-            :error-messages="errors.current_password"
-            :append-inner-icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'"
-            @click:append-inner="showCurrentPassword = !showCurrentPassword"
+            type="password"
+            class="input input-bordered w-full"
+            :class="{ 'input-error': errors.current_password }"
+            placeholder="Enter your current password"
+            required
           />
+          <label v-if="errors.current_password" class="label">
+            <span class="label-text-alt text-error">{{ errors.current_password }}</span>
+          </label>
+        </div>
 
-          <v-text-field
+        <!-- New Password -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">New Password *</span>
+          </label>
+          <input
             v-model="formData.new_password"
-            :label="$t('profile.newPassword')"
-            :type="showNewPassword ? 'text' : 'password'"
-            variant="outlined"
-            density="comfortable"
-            :rules="[rules.required, rules.passwordStrength]"
-            :error-messages="errors.new_password"
-            :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
-            @click:append-inner="showNewPassword = !showNewPassword"
+            type="password"
+            class="input input-bordered w-full"
+            :class="{ 'input-error': errors.new_password }"
+            placeholder="Enter your new password"
+            required
           />
+          <label v-if="errors.new_password" class="label">
+            <span class="label-text-alt text-error">{{ errors.new_password }}</span>
+          </label>
+        </div>
 
-          <v-text-field
+        <!-- Confirm New Password -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Confirm New Password *</span>
+          </label>
+          <input
             v-model="formData.confirm_password"
-            :label="$t('profile.confirmPassword')"
-            :type="showConfirmPassword ? 'text' : 'password'"
-            variant="outlined"
-            density="comfortable"
-            :rules="[rules.required, rules.passwordMatch]"
-            :error-messages="errors.confirm_password"
-            :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
-            @click:append-inner="showConfirmPassword = !showConfirmPassword"
+            type="password"
+            class="input input-bordered w-full"
+            :class="{ 'input-error': errors.confirm_password }"
+            placeholder="Confirm your new password"
+            required
           />
+          <label v-if="errors.confirm_password" class="label">
+            <span class="label-text-alt text-error">{{ errors.confirm_password }}</span>
+          </label>
+        </div>
 
-          <!-- Password Strength Indicator -->
-          <div v-if="formData.new_password" class="mt-2">
-            <v-progress-linear
-              :model-value="passwordStrength"
-              :color="passwordStrengthColor"
-              height="4"
-              rounded
+        <!-- Password Requirements -->
+        <div class="alert alert-info">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="stroke-current shrink-0 h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
-            <div class="text-caption mt-1">
-              {{ passwordStrengthText }}
-            </div>
+          </svg>
+          <div>
+            <h3 class="font-bold">Password Requirements</h3>
+            <div class="text-xs">• At least 8 characters long</div>
+            <div class="text-xs">• Contains uppercase and lowercase letters</div>
+            <div class="text-xs">• Contains at least one number</div>
+            <div class="text-xs">• Contains at least one special character</div>
           </div>
+        </div>
 
-          <!-- Password Requirements -->
-          <v-alert
-            type="info"
-            variant="tonal"
-            class="mt-4"
-            :text="$t('profile.passwordRequirements')"
-          />
-        </v-form>
-      </v-card-text>
-
-      <v-card-actions>
-        <v-spacer />
-        <v-btn @click="dialog = false" :disabled="changing">
-          {{ $t('common.cancel') }}
-        </v-btn>
-        <v-btn @click="handleSubmit" color="primary" :loading="changing" :disabled="!isFormValid">
-          <v-icon start>mdi-key</v-icon>
-          {{ $t('profile.changePassword') }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        <!-- Actions -->
+        <div class="modal-action">
+          <button @click="closeDialog" type="button" class="btn btn-ghost" :disabled="loading">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            :class="{ loading: loading }"
+            :disabled="loading || !isFormValid"
+          >
+            <span v-if="!loading" class="text-lg">🔐</span>
+            {{ loading ? 'Changing...' : 'Change Password' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 interface Props {
   modelValue: boolean
@@ -93,118 +117,97 @@ interface Emits {
   (e: 'update:modelValue', value: boolean): void
   (
     e: 'change',
-    data: { current_password: string; new_password: string; confirm_password: string },
+    data: {
+      current_password: string
+      new_password: string
+      confirm_password: string
+    },
   ): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const { t } = useI18n()
-
 // State
-const changing = ref(false)
-const showCurrentPassword = ref(false)
-const showNewPassword = ref(false)
-const showConfirmPassword = ref(false)
-
+const loading = ref(false)
+const errors = ref<Record<string, string>>({})
 const formData = ref({
   current_password: '',
   new_password: '',
   confirm_password: '',
 })
 
-const errors = ref({
-  current_password: [] as string[],
-  new_password: [] as string[],
-  confirm_password: [] as string[],
-})
-
 // Computed
-const dialog = computed({
+const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value),
 })
 
-const passwordStrength = computed(() => {
-  const password = formData.value.new_password
-  if (!password) return 0
-
-  let strength = 0
-  if (password.length >= 8) strength += 20
-  if (password.length >= 12) strength += 20
-  if (/[a-z]/.test(password)) strength += 20
-  if (/[A-Z]/.test(password)) strength += 20
-  if (/[0-9]/.test(password)) strength += 10
-  if (/[^A-Za-z0-9]/.test(password)) strength += 10
-
-  return strength
-})
-
-const passwordStrengthColor = computed(() => {
-  const strength = passwordStrength.value
-  if (strength < 40) return 'error'
-  if (strength < 70) return 'warning'
-  return 'success'
-})
-
-const passwordStrengthText = computed(() => {
-  const strength = passwordStrength.value
-  if (strength < 40) return t('profile.passwordStrength.weak')
-  if (strength < 70) return t('profile.passwordStrength.medium')
-  return t('profile.passwordStrength.strong')
-})
-
 const isFormValid = computed(() => {
   return (
-    formData.value.current_password &&
-    formData.value.new_password &&
-    formData.value.confirm_password &&
-    formData.value.new_password === formData.value.confirm_password &&
-    passwordStrength.value >= 40
+    formData.value.current_password.trim() !== '' &&
+    formData.value.new_password.trim() !== '' &&
+    formData.value.confirm_password.trim() !== '' &&
+    formData.value.new_password === formData.value.confirm_password
   )
 })
 
-// Validation rules
-const rules = {
-  required: (value: any) => !!value || t('validation.required'),
-  passwordStrength: (value: string) => {
-    if (!value) return true
-    if (value.length < 8) return t('validation.passwordMinLength')
-    return true
-  },
-  passwordMatch: (value: string) => {
-    return value === formData.value.new_password || t('validation.passwordMatch')
-  },
+// Validation
+const validateForm = () => {
+  errors.value = {}
+
+  if (!formData.value.current_password.trim()) {
+    errors.value.current_password = 'Current password is required'
+  }
+
+  if (!formData.value.new_password.trim()) {
+    errors.value.new_password = 'New password is required'
+  } else {
+    // Password strength validation
+    const password = formData.value.new_password
+    if (password.length < 8) {
+      errors.value.new_password = 'Password must be at least 8 characters long'
+    } else if (!/(?=.*[a-z])/.test(password)) {
+      errors.value.new_password = 'Password must contain at least one lowercase letter'
+    } else if (!/(?=.*[A-Z])/.test(password)) {
+      errors.value.new_password = 'Password must contain at least one uppercase letter'
+    } else if (!/(?=.*\d)/.test(password)) {
+      errors.value.new_password = 'Password must contain at least one number'
+    } else if (!/(?=.*[@$!%*?&])/.test(password)) {
+      errors.value.new_password = 'Password must contain at least one special character'
+    }
+  }
+
+  if (!formData.value.confirm_password.trim()) {
+    errors.value.confirm_password = 'Please confirm your new password'
+  } else if (formData.value.new_password !== formData.value.confirm_password) {
+    errors.value.confirm_password = 'Passwords do not match'
+  }
+
+  return Object.keys(errors.value).length === 0
 }
 
 // Methods
 const handleSubmit = async () => {
-  if (!isFormValid.value) return
+  if (!validateForm()) return
 
-  changing.value = true
+  loading.value = true
   try {
     emit('change', { ...formData.value })
-    resetForm()
+    // Reset form
+    formData.value = {
+      current_password: '',
+      new_password: '',
+      confirm_password: '',
+    }
+    closeDialog()
   } finally {
-    changing.value = false
+    loading.value = false
   }
 }
 
-const resetForm = () => {
-  formData.value = {
-    current_password: '',
-    new_password: '',
-    confirm_password: '',
-  }
-  errors.value = {
-    current_password: [],
-    new_password: [],
-    confirm_password: [],
-  }
-  showCurrentPassword.value = false
-  showNewPassword.value = false
-  showConfirmPassword.value = false
+const closeDialog = () => {
+  isOpen.value = false
 }
 
 // Watchers
@@ -212,7 +215,14 @@ watch(
   () => props.modelValue,
   (newValue) => {
     if (!newValue) {
-      resetForm()
+      // Reset form when dialog closes
+      formData.value = {
+        current_password: '',
+        new_password: '',
+        confirm_password: '',
+      }
+      errors.value = {}
+      loading.value = false
     }
   },
 )

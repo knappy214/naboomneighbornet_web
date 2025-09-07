@@ -56,34 +56,34 @@
   color-scheme: dark;
 
   /* Agricultural Dark Theme - Optimized for low-light farming environments */
-  --color-base-100: #2d1b0a; /* Dark earth tone - reminiscent of rich soil at night */
-  --color-base-200: #3d2814; /* Medium dark earth tone for subtle backgrounds */
-  --color-base-300: #4d331e; /* Lighter dark earth tone for borders and dividers */
-  --color-base-content: #f5f5f4; /* Light earth tone for text - high contrast on dark */
+  --color-base-100: #1a0f05; /* Darker earth tone for better contrast */
+  --color-base-200: #2d1b0a; /* Medium dark earth tone for subtle backgrounds */
+  --color-base-300: #3d2814; /* Lighter dark earth tone for borders and dividers */
+  --color-base-content: #ffffff; /* Pure white for maximum contrast on dark */
 
   --color-primary: #8b6f4a; /* Lighter Land - Maintains earth tone but visible in dark */
-  --color-primary-content: #2d1b0a; /* Dark earth for text on primary */
+  --color-primary-content: #1a0f05; /* Darker earth for text on primary */
 
   --color-secondary: #4a8b5a; /* Lighter Crop-Green - Maintains growth symbolism in dark */
-  --color-secondary-content: #2d1b0a; /* Dark earth for text on secondary */
+  --color-secondary-content: #1a0f05; /* Darker earth for text on secondary */
 
   --color-accent: #f6b40e; /* Sun-Gold - Same as light theme for consistency */
-  --color-accent-content: #2d1b0a; /* Dark earth for text on accent */
+  --color-accent-content: #1a0f05; /* Darker earth for text on accent */
 
   --color-neutral: #8b6f4a; /* Lighter Land for neutral elements */
-  --color-neutral-content: #f5f5f4; /* Light earth for text on neutral */
+  --color-neutral-content: #ffffff; /* White for text on neutral */
 
   --color-info: #4a8b5a; /* Lighter Crop-Green for informational messages */
-  --color-info-content: #2d1b0a; /* Dark earth for text on info */
+  --color-info-content: #1a0f05; /* Darker earth for text on info */
 
   --color-success: #4a8b5a; /* Lighter Crop-Green for success states */
-  --color-success-content: #2d1b0a; /* Dark earth for text on success */
+  --color-success-content: #1a0f05; /* Darker earth for text on success */
 
   --color-warning: #f6b40e; /* Sun-Gold for warnings - same as light theme */
-  --color-warning-content: #2d1b0a; /* Dark earth for text on warning */
+  --color-warning-content: #1a0f05; /* Darker earth for text on warning */
 
   --color-error: #e74c3c; /* Lighter Signal-Red - Better visibility in dark mode */
-  --color-error-content: #f5f5f4; /* Light earth for text on error */
+  --color-error-content: #ffffff; /* White for text on error */
 
   --radius-selector: 0.5rem;
   --radius-field: 0.25rem;

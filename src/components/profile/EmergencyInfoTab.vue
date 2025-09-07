@@ -1,58 +1,139 @@
 <template>
   <div>
-    <v-form @submit.prevent="handleSubmit" ref="form">
-      <v-row>
-        <v-col cols="12" md="6">
-          <v-text-field
+    <form @submit.prevent="handleSubmit" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Emergency Contact Name -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Emergency Contact Name *</span>
+          </label>
+          <input
             v-model="formData.emergency_contact_name"
-            :label="$t('profile.emergencyContactName')"
-            variant="outlined"
-            density="comfortable"
-            :placeholder="$t('profile.emergencyContactNamePlaceholder')"
+            type="text"
+            class="input input-bordered w-full"
+            :class="{ 'input-error': errors.emergency_contact_name }"
+            placeholder="Enter emergency contact name"
+            required
           />
-        </v-col>
+          <label v-if="errors.emergency_contact_name" class="label">
+            <span class="label-text-alt text-error">{{ errors.emergency_contact_name }}</span>
+          </label>
+        </div>
 
-        <v-col cols="12" md="6">
-          <v-text-field
+        <!-- Emergency Contact Phone -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Emergency Contact Phone *</span>
+          </label>
+          <input
             v-model="formData.emergency_contact_phone"
-            :label="$t('profile.emergencyContactPhone')"
-            variant="outlined"
-            density="comfortable"
             type="tel"
-            :placeholder="$t('profile.emergencyContactPhonePlaceholder')"
+            class="input input-bordered w-full"
+            :class="{ 'input-error': errors.emergency_contact_phone }"
+            placeholder="Enter emergency contact phone"
+            required
           />
-        </v-col>
+          <label v-if="errors.emergency_contact_phone" class="label">
+            <span class="label-text-alt text-error">{{ errors.emergency_contact_phone }}</span>
+          </label>
+        </div>
 
-        <v-col cols="12">
-          <v-select
+        <!-- Emergency Contact Relationship -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Relationship</span>
+          </label>
+          <select
             v-model="formData.emergency_contact_relationship"
-            :label="$t('profile.emergencyContactRelationship')"
-            :items="relationshipOptions"
-            variant="outlined"
-            density="comfortable"
-            clearable
-            :placeholder="$t('profile.emergencyContactRelationshipPlaceholder')"
+            class="select select-bordered w-full"
+          >
+            <option value="">Select relationship</option>
+            <option value="Spouse">Spouse</option>
+            <option value="Parent">Parent</option>
+            <option value="Child">Child</option>
+            <option value="Sibling">Sibling</option>
+            <option value="Friend">Friend</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <!-- Blood Type -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Blood Type</span>
+          </label>
+          <select v-model="formData.blood_type" class="select select-bordered w-full">
+            <option value="">Select blood type</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+            <option value="Unknown">Unknown</option>
+          </select>
+        </div>
+
+        <!-- Medical Insurance -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Medical Insurance Provider</span>
+          </label>
+          <input
+            v-model="formData.medical_insurance"
+            type="text"
+            class="input input-bordered w-full"
+            placeholder="Enter medical insurance provider"
           />
-        </v-col>
-      </v-row>
+        </div>
 
-      <v-alert type="info" variant="tonal" class="mt-4" :text="$t('profile.emergencyInfoNote')" />
+        <!-- Insurance Policy Number -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">Insurance Policy Number</span>
+          </label>
+          <input
+            v-model="formData.insurance_policy_number"
+            type="text"
+            class="input input-bordered w-full"
+            placeholder="Enter policy number"
+          />
+        </div>
+      </div>
 
-      <v-row class="mt-4">
-        <v-col cols="12" class="d-flex justify-end">
-          <v-btn type="submit" color="primary" :loading="loading" :disabled="!hasChanges">
-            <v-icon start>mdi-content-save</v-icon>
-            {{ $t('common.save') }}
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-form>
+      <!-- Additional Emergency Notes -->
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text font-medium">Additional Emergency Information</span>
+        </label>
+        <textarea
+          v-model="formData.emergency_notes"
+          class="textarea textarea-bordered w-full"
+          rows="4"
+          placeholder="Any additional information that might be helpful in an emergency..."
+        ></textarea>
+      </div>
+
+      <!-- Save Button -->
+      <div class="flex justify-end">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          :class="{ loading: loading }"
+          :disabled="!hasChanges || loading"
+        >
+          <span v-if="!loading" class="text-lg">💾</span>
+          {{ loading ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+    </form>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import type { UserProfile } from '@/stores/profile'
 
 interface Props {
@@ -66,14 +147,17 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const { t } = useI18n()
-
 // State
 const loading = ref(false)
+const errors = ref<Record<string, string>>({})
 const formData = ref({
   emergency_contact_name: '',
   emergency_contact_phone: '',
   emergency_contact_relationship: '',
+  blood_type: '',
+  medical_insurance: '',
+  insurance_policy_number: '',
+  emergency_notes: '',
 })
 
 const originalData = ref({ ...formData.value })
@@ -83,15 +167,20 @@ const hasChanges = computed(() => {
   return JSON.stringify(formData.value) !== JSON.stringify(originalData.value)
 })
 
-// Relationship options
-const relationshipOptions = [
-  { title: t('profile.relationshipOptions.spouse'), value: 'Spouse' },
-  { title: t('profile.relationshipOptions.parent'), value: 'Parent' },
-  { title: t('profile.relationshipOptions.child'), value: 'Child' },
-  { title: t('profile.relationshipOptions.sibling'), value: 'Sibling' },
-  { title: t('profile.relationshipOptions.friend'), value: 'Friend' },
-  { title: t('profile.relationshipOptions.other'), value: 'Other' },
-]
+// Validation
+const validateForm = () => {
+  errors.value = {}
+
+  if (!formData.value.emergency_contact_name.trim()) {
+    errors.value.emergency_contact_name = 'Emergency contact name is required'
+  }
+
+  if (!formData.value.emergency_contact_phone.trim()) {
+    errors.value.emergency_contact_phone = 'Emergency contact phone is required'
+  }
+
+  return Object.keys(errors.value).length === 0
+}
 
 // Methods
 const initializeForm = () => {
@@ -99,12 +188,18 @@ const initializeForm = () => {
     emergency_contact_name: props.profile.emergency_contact_name || '',
     emergency_contact_phone: props.profile.emergency_contact_phone || '',
     emergency_contact_relationship: props.profile.emergency_contact_relationship || '',
+    blood_type: props.profile.blood_type || '',
+    medical_insurance: props.profile.medical_insurance || '',
+    insurance_policy_number: props.profile.insurance_policy_number || '',
+    emergency_notes: props.profile.emergency_notes || '',
   }
   originalData.value = { ...formData.value }
 }
 
 const handleSubmit = async () => {
   if (!hasChanges.value) return
+
+  if (!validateForm()) return
 
   loading.value = true
   try {

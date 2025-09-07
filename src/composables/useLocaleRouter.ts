@@ -80,6 +80,11 @@ export function useLocaleRouter() {
     navigateToLocale(currentLocale.value, '/reset')
   }
 
+  // Navigate to profile in current locale
+  const goToProfile = () => {
+    navigateToLocale(currentLocale.value, '/profile')
+  }
+
   // Navigate to demo pages in current locale
   const goToDemo = () => {
     navigateToLocale(currentLocale.value, '/demo')
@@ -133,6 +138,7 @@ export function useLocaleRouter() {
     goToRegister,
     goToForgot,
     goToReset,
+    goToProfile,
     goToDemo,
     goToThemeDemo,
     goBack,

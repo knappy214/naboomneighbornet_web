@@ -18,6 +18,7 @@ declare module 'vue-router' {
 
 // Lazy-loaded components with improved loading
 const Home = () => import('@/pages/Home.vue')
+const Dashboard = () => import('@/pages/Dashboard.vue')
 const Login = () => import('@/pages/auth/Login.vue')
 const Register = () => import('@/pages/auth/Register.vue')
 const Forgot = () => import('@/pages/auth/Forgot.vue')
@@ -44,7 +45,7 @@ const createLocaleRoutes = (): RouteRecordRaw[] => {
         {
           path: 'dashboard',
           name: `dashboard-${locale}`,
-          component: Home,
+          component: Dashboard,
           meta: {
             requiresAuth: true,
             locale,

@@ -1,131 +1,195 @@
 <template>
   <div>
-    <v-form @submit.prevent="handleSubmit" ref="form">
+    <form @submit.prevent="handleSubmit" class="space-y-6">
       <!-- Notification Settings -->
-      <v-card variant="outlined" class="mb-4">
-        <v-card-title>
-          <v-icon class="me-2">mdi-bell</v-icon>
-          {{ $t('profile.notificationSettings') }}
-        </v-card-title>
+      <div class="card bg-base-200 shadow-sm">
+        <div class="card-body">
+          <h3 class="card-title text-lg mb-4">Notification Settings</h3>
 
-        <v-card-text>
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-switch
-                v-model="formData.email_notifications"
-                :label="$t('profile.emailNotifications')"
-                color="primary"
-                hide-details
-              />
-            </v-col>
+          <div class="space-y-4">
+            <div class="form-control">
+              <label class="label cursor-pointer">
+                <span class="label-text font-medium">Email Notifications</span>
+                <input
+                  v-model="formData.email_notifications"
+                  type="checkbox"
+                  class="toggle toggle-primary"
+                />
+              </label>
+            </div>
 
-            <v-col cols="12" md="6">
-              <v-switch
-                v-model="formData.sms_notifications"
-                :label="$t('profile.smsNotifications')"
-                color="primary"
-                hide-details
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
+            <div class="form-control">
+              <label class="label cursor-pointer">
+                <span class="label-text font-medium">SMS Notifications</span>
+                <input
+                  v-model="formData.sms_notifications"
+                  type="checkbox"
+                  class="toggle toggle-primary"
+                />
+              </label>
+            </div>
+
+            <div class="form-control">
+              <label class="label cursor-pointer">
+                <span class="label-text font-medium">Push Notifications</span>
+                <input
+                  v-model="formData.push_notifications"
+                  type="checkbox"
+                  class="toggle toggle-primary"
+                />
+              </label>
+            </div>
+
+            <div class="form-control">
+              <label class="label cursor-pointer">
+                <span class="label-text font-medium">Emergency Alerts</span>
+                <input
+                  v-model="formData.emergency_alerts"
+                  type="checkbox"
+                  class="toggle toggle-primary"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Privacy Settings -->
+      <div class="card bg-base-200 shadow-sm">
+        <div class="card-body">
+          <h3 class="card-title text-lg mb-4">Privacy Settings</h3>
+
+          <div class="space-y-4">
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Profile Visibility</span>
+              </label>
+              <select v-model="formData.profile_visibility" class="select select-bordered w-full">
+                <option value="public">Public - Everyone can see your profile</option>
+                <option value="community">Community - Only community members can see</option>
+                <option value="private">Private - Only you can see your profile</option>
+              </select>
+            </div>
+
+            <div class="form-control">
+              <label class="label cursor-pointer">
+                <span class="label-text font-medium">Show Contact Information</span>
+                <input
+                  v-model="formData.show_contact_info"
+                  type="checkbox"
+                  class="toggle toggle-primary"
+                />
+              </label>
+            </div>
+
+            <div class="form-control">
+              <label class="label cursor-pointer">
+                <span class="label-text font-medium">Show Location</span>
+                <input
+                  v-model="formData.show_location"
+                  type="checkbox"
+                  class="toggle toggle-primary"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Security Settings -->
-      <v-card variant="outlined" class="mb-4">
-        <v-card-title>
-          <v-icon class="me-2">mdi-shield</v-icon>
-          {{ $t('profile.securitySettings') }}
-        </v-card-title>
+      <div class="card bg-base-200 shadow-sm">
+        <div class="card-body">
+          <h3 class="card-title text-lg mb-4">Security Settings</h3>
 
-        <v-card-text>
-          <v-row>
-            <v-col cols="12" md="6">
-              <v-switch
-                v-model="formData.mfa_enabled"
-                :label="$t('profile.mfaEnabled')"
-                color="primary"
-                hide-details
-              />
-            </v-col>
-          </v-row>
+          <div class="space-y-4">
+            <div class="form-control">
+              <label class="label cursor-pointer">
+                <span class="label-text font-medium">Two-Factor Authentication</span>
+                <input
+                  v-model="formData.two_factor_enabled"
+                  type="checkbox"
+                  class="toggle toggle-primary"
+                />
+              </label>
+            </div>
 
-          <v-divider class="my-4" />
+            <div class="form-control">
+              <label class="label cursor-pointer">
+                <span class="label-text font-medium">Login Notifications</span>
+                <input
+                  v-model="formData.login_notifications"
+                  type="checkbox"
+                  class="toggle toggle-primary"
+                />
+              </label>
+            </div>
 
-          <v-btn @click="$emit('change-password')" color="primary" variant="outlined">
-            <v-icon start>mdi-key</v-icon>
-            {{ $t('profile.changePassword') }}
-          </v-btn>
-        </v-card-text>
-      </v-card>
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="font-medium">Change Password</div>
+                <div class="text-sm text-base-content/70">Update your account password</div>
+              </div>
+              <button
+                @click="handleChangePassword"
+                type="button"
+                class="btn btn-outline btn-primary"
+              >
+                Change Password
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <!-- Account Information -->
-      <v-card variant="outlined" class="mb-4">
-        <v-card-title>
-          <v-icon class="me-2">mdi-account</v-icon>
-          {{ $t('profile.accountInfo') }}
-        </v-card-title>
+      <!-- Language and Region -->
+      <div class="card bg-base-200 shadow-sm">
+        <div class="card-body">
+          <h3 class="card-title text-lg mb-4">Language and Region</h3>
 
-        <v-card-text>
-          <v-list density="comfortable">
-            <v-list-item>
-              <template #prepend>
-                <v-icon>mdi-account</v-icon>
-              </template>
-              <v-list-item-title>{{ $t('profile.username') }}</v-list-item-title>
-              <template #append>
-                <span class="text-grey">{{ profile.username }}</span>
-              </template>
-            </v-list-item>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Language</span>
+              </label>
+              <select v-model="formData.language" class="select select-bordered w-full">
+                <option value="en">English</option>
+                <option value="af">Afrikaans</option>
+              </select>
+            </div>
 
-            <v-list-item>
-              <template #prepend>
-                <v-icon>mdi-calendar</v-icon>
-              </template>
-              <v-list-item-title>{{ $t('profile.memberSince') }}</v-list-item-title>
-              <template #append>
-                <span class="text-grey">{{ formatDate(profile.date_joined) }}</span>
-              </template>
-            </v-list-item>
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Time Zone</span>
+              </label>
+              <select v-model="formData.timezone" class="select select-bordered w-full">
+                <option value="Africa/Johannesburg">Africa/Johannesburg (SAST)</option>
+                <option value="UTC">UTC</option>
+                <option value="America/New_York">America/New_York (EST)</option>
+                <option value="Europe/London">Europe/London (GMT)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
 
-            <v-list-item>
-              <template #prepend>
-                <v-icon>mdi-clock</v-icon>
-              </template>
-              <v-list-item-title>{{ $t('profile.lastLogin') }}</v-list-item-title>
-              <template #append>
-                <span class="text-grey">{{ formatDate(profile.last_login) }}</span>
-              </template>
-            </v-list-item>
-
-            <v-list-item>
-              <template #prepend>
-                <v-icon>mdi-update</v-icon>
-              </template>
-              <v-list-item-title>{{ $t('profile.lastUpdated') }}</v-list-item-title>
-              <template #append>
-                <span class="text-grey">{{ formatDate(profile.updated_at) }}</span>
-              </template>
-            </v-list-item>
-          </v-list>
-        </v-card-text>
-      </v-card>
-
-      <v-row class="mt-4">
-        <v-col cols="12" class="d-flex justify-end">
-          <v-btn type="submit" color="primary" :loading="loading" :disabled="!hasChanges">
-            <v-icon start>mdi-content-save</v-icon>
-            {{ $t('common.save') }}
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-form>
+      <!-- Save Button -->
+      <div class="flex justify-end">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          :class="{ loading: loading }"
+          :disabled="!hasChanges || loading"
+        >
+          <span v-if="!loading" class="text-lg">💾</span>
+          {{ loading ? 'Saving...' : 'Save Settings' }}
+        </button>
+      </div>
+    </form>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import type { UserProfile } from '@/stores/profile'
 
 interface Props {
@@ -140,14 +204,20 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const { t } = useI18n()
-
 // State
 const loading = ref(false)
 const formData = ref({
-  email_notifications: false,
+  email_notifications: true,
   sms_notifications: false,
-  mfa_enabled: false,
+  push_notifications: true,
+  emergency_alerts: true,
+  profile_visibility: 'community',
+  show_contact_info: true,
+  show_location: false,
+  two_factor_enabled: false,
+  login_notifications: true,
+  language: 'en',
+  timezone: 'Africa/Johannesburg',
 })
 
 const originalData = ref({ ...formData.value })
@@ -158,15 +228,19 @@ const hasChanges = computed(() => {
 })
 
 // Methods
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString()
-}
-
 const initializeForm = () => {
   formData.value = {
-    email_notifications: props.profile.email_notifications || false,
-    sms_notifications: props.profile.sms_notifications || false,
-    mfa_enabled: props.profile.mfa_enabled || false,
+    email_notifications: props.profile.email_notifications ?? true,
+    sms_notifications: props.profile.sms_notifications ?? false,
+    push_notifications: props.profile.push_notifications ?? true,
+    emergency_alerts: props.profile.emergency_alerts ?? true,
+    profile_visibility: props.profile.profile_visibility || 'community',
+    show_contact_info: props.profile.show_contact_info ?? true,
+    show_location: props.profile.show_location ?? false,
+    two_factor_enabled: props.profile.two_factor_enabled ?? false,
+    login_notifications: props.profile.login_notifications ?? true,
+    language: props.profile.language || 'en',
+    timezone: props.profile.timezone || 'Africa/Johannesburg',
   }
   originalData.value = { ...formData.value }
 }
@@ -181,6 +255,10 @@ const handleSubmit = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const handleChangePassword = () => {
+  emit('change-password')
 }
 
 // Watchers
