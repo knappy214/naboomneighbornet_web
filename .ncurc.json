@@ -1,0 +1,9 @@
+{
+  "reject": [
+    "vue",
+    "vite",
+    "typescript"
+  ],
+  "peer": false,
+  "upgrade": true
+}
