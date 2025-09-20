@@ -621,8 +621,18 @@ onMounted(async () => {
 
     // Load profile data (this now includes groups and roles fetching with error handling)
     await profileStore.refreshProfile()
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error initializing profile:', error)
+
+    // If it's an authentication error, redirect to login
+    if (error.response?.status === 401) {
+      // Clear any stored auth data
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+
+      // Redirect to login page
+      window.location.href = '/login'
+    }
   }
 })
 </script>

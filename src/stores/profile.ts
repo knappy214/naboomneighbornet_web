@@ -157,12 +157,15 @@ export const useProfileStore = defineStore('profile', () => {
       // Handle Wagtail API v2 response format
       if (response.data.items && response.data.items.length > 0) {
         const profileData = response.data.items[0]
+        console.log('Profile data structure:', profileData)
         profile.value = profileData
         // Extract stats and avatar info from custom fields
         if (profileData.stats) {
           stats.value = profileData.stats
+          console.log('Stats data:', profileData.stats)
           // Extract group information from stats
           if (profileData.stats.active_groups) {
+            console.log('Active groups from stats:', profileData.stats.active_groups)
             groups.value = profileData.stats.active_groups.map(
               (groupName: string, index: number) => ({
                 id: index + 1,
@@ -225,8 +228,18 @@ export const useProfileStore = defineStore('profile', () => {
     try {
       setLoading(true)
       clearError()
-      // Use Wagtail API v2 pattern - PATCH to the main endpoint
-      const response = await api.patch('/user-profiles/', data)
+      // Try PUT method first, then fallback to POST
+      let response
+      try {
+        response = await api.put('/user-profiles/', data)
+      } catch (putError: any) {
+        if (putError.response?.status === 405) {
+          // If PUT is not allowed, try POST
+          response = await api.post('/user-profiles/update/', data)
+        } else {
+          throw putError
+        }
+      }
       profile.value = response.data
       return response.data
     } catch (err: any) {
@@ -246,8 +259,18 @@ export const useProfileStore = defineStore('profile', () => {
     try {
       setLoading(true)
       clearError()
-      // Use Wagtail API v2 pattern - PATCH to the main endpoint
-      const response = await api.patch('/user-profiles/', data)
+      // Try PUT method first, then fallback to POST
+      let response
+      try {
+        response = await api.put('/user-profiles/', data)
+      } catch (putError: any) {
+        if (putError.response?.status === 405) {
+          // If PUT is not allowed, try POST
+          response = await api.post('/user-profiles/update/', data)
+        } else {
+          throw putError
+        }
+      }
       if (profile.value) {
         profile.value.first_name = response.data.first_name
         profile.value.last_name = response.data.last_name
@@ -296,8 +319,10 @@ export const useProfileStore = defineStore('profile', () => {
       setLoading(true)
       clearError()
       const response = await api.get('/user-groups/')
-      groups.value = response.data
-      return response.data
+      console.log('Groups response:', response.data)
+      // Handle Wagtail API v2 format - extract items array
+      groups.value = response.data.items || response.data
+      return groups.value
     } catch (err: any) {
       console.warn('Groups endpoint not available:', err.response?.status, err.message)
       // Set empty groups array as fallback
@@ -314,8 +339,10 @@ export const useProfileStore = defineStore('profile', () => {
       setLoading(true)
       clearError()
       const response = await api.get('/user-roles/')
-      roles.value = response.data
-      return response.data
+      console.log('Roles response:', response.data)
+      // Handle Wagtail API v2 format - extract items array
+      roles.value = response.data.items || response.data
+      return roles.value
     } catch (err: any) {
       console.warn('Roles endpoint not available:', err.response?.status, err.message)
       // Set empty roles array as fallback
@@ -327,12 +354,85 @@ export const useProfileStore = defineStore('profile', () => {
     }
   }
 
+  const fetchGroupMemberships = async () => {
+    try {
+      setLoading(true)
+      clearError()
+      const response = await api.get('/user-profile/group-memberships/')
+      console.log('Group memberships response:', response.data)
+      // Update profile group memberships
+      if (profile.value) {
+        profile.value.group_memberships = response.data
+      }
+      return response.data
+    } catch (err: any) {
+      console.warn('Group memberships endpoint not available:', err.response?.status, err.message)
+      return []
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const createGroupMembership = async (data: { group_id: number; role_id: number }) => {
+    try {
+      setLoading(true)
+      clearError()
+      const response = await api.post('/user-profile/group-memberships/', data)
+      // Refresh group memberships
+      await fetchGroupMemberships()
+      return response.data
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.detail || err.message || 'Failed to create group membership'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateGroupMembership = async (id: number, data: Partial<GroupMembership>) => {
+    try {
+      setLoading(true)
+      clearError()
+      const response = await api.patch(`/user-profile/group-memberships/${id}/`, data)
+      // Refresh group memberships
+      await fetchGroupMemberships()
+      return response.data
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.detail || err.message || 'Failed to update group membership'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteGroupMembership = async (id: number) => {
+    try {
+      setLoading(true)
+      clearError()
+      const response = await api.delete(`/user-profile/group-memberships/${id}/`)
+      // Refresh group memberships
+      await fetchGroupMemberships()
+      return response.data
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.detail || err.message || 'Failed to delete group membership'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const joinGroup = async (data: { group_id: number; role_id: number }) => {
     try {
       setLoading(true)
       clearError()
-      // Use Wagtail API v2 pattern for joining groups
-      const response = await api.post('/user-profiles/join-group/', data)
+      // Use the correct endpoint for joining groups
+      const response = await api.post('/user-profile/join-group/', data)
       // Refresh profile to get updated group memberships
       await fetchProfile()
       return response.data
@@ -349,8 +449,8 @@ export const useProfileStore = defineStore('profile', () => {
     try {
       setLoading(true)
       clearError()
-      // Use Wagtail API v2 pattern for leaving groups
-      const response = await api.post('/user-profiles/leave-group/', data)
+      // Use the correct endpoint for leaving groups
+      const response = await api.post('/user-profile/leave-group/', data)
       // Refresh profile to get updated group memberships
       await fetchProfile()
       return response.data
@@ -452,11 +552,14 @@ export const useProfileStore = defineStore('profile', () => {
   const refreshProfile = async () => {
     // fetchProfile now includes stats and avatar_info via ?fields=stats,avatar_info
     await fetchProfile()
-    // Try to fetch groups and roles separately, but don't fail if they're not available
+    // Try to fetch groups, roles, and group memberships separately, but don't fail if they're not available
     try {
-      await Promise.all([fetchGroups(), fetchRoles()])
+      await Promise.all([fetchGroups(), fetchRoles(), fetchGroupMemberships()])
     } catch (error) {
-      console.warn('Groups and roles endpoints not available or returning errors:', error)
+      console.warn(
+        'Groups, roles, or group memberships endpoints not available or returning errors:',
+        error,
+      )
       // Don't throw the error, just log it and continue
     }
   }
@@ -485,6 +588,10 @@ export const useProfileStore = defineStore('profile', () => {
     fetchStats,
     fetchGroups,
     fetchRoles,
+    fetchGroupMemberships,
+    createGroupMembership,
+    updateGroupMembership,
+    deleteGroupMembership,
     joinGroup,
     leaveGroup,
     uploadAvatar,
