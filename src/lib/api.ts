@@ -2,12 +2,28 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { i18n } from '@/plugins/i18n'
 
+// Determine the correct API base URL
+const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost'
+const isProduction = window.location.hostname === 'naboomneighbornet.net.za'
+
+const getApiBaseUrl = () => {
+  // If environment variables are set, use them
+  if (import.meta.env.VITE_API_V2_BASE) return import.meta.env.VITE_API_V2_BASE
+  if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL
+  if (import.meta.env.VITE_API_BASE) return import.meta.env.VITE_API_BASE
+
+  // If running on production domain, use production API
+  if (isProduction) return 'https://naboomneighbornet.net.za/api'
+
+  // For development, use localhost
+  if (isDevelopment) return 'http://localhost:8000/api'
+
+  // Fallback to production
+  return 'https://naboomneighbornet.net.za/api'
+}
+
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_V2_BASE ||
-    import.meta.env.VITE_API_BASE_URL ||
-    import.meta.env.VITE_API_BASE ||
-    '/api/v2',
+  baseURL: getApiBaseUrl(),
 })
 
 // Debug the API configuration
@@ -43,16 +59,27 @@ api.interceptors.response.use(undefined, async (error) => {
   const store = useAuthStore()
   if (error.response?.status === 401 && store.refreshToken) {
     try {
-      const { data } = await axios.post(
-        (import.meta.env.VITE_API_BASE || '/api') + '/auth/jwt/refresh/',
-        {
-          refresh: store.refreshToken,
-        },
-      )
+      console.log('Attempting token refresh...')
+      // Use the same base URL as the main API instance
+      const refreshUrl =
+        (api.defaults.baseURL || '/api/v2').replace('/v2', '') + '/auth/jwt/refresh/'
+      console.log('Refresh URL:', refreshUrl)
+
+      const { data } = await axios.post(refreshUrl, {
+        refresh: store.refreshToken,
+      })
+
+      console.log('Token refresh successful')
       store.setAccessToken(data.access)
       error.config.headers.Authorization = `Bearer ${data.access}`
       return api.request(error.config)
-    } catch {}
+    } catch (refreshError) {
+      console.error('Token refresh failed:', refreshError)
+      // Clear tokens if refresh fails
+      store.clear()
+      // Redirect to login page
+      window.location.href = '/login'
+    }
   }
   return Promise.reject(error)
 })

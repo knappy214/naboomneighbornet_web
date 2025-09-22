@@ -616,7 +616,11 @@ const handlePasswordChange = async (data: {
 onMounted(async () => {
   try {
     // Initialize API configuration similar to Home page
-    const base = import.meta.env.VITE_API_V2_BASE || '/api/v2'
+    const isProduction = window.location.hostname === 'naboomneighbornet.net.za'
+    const base = import.meta.env.DEV
+      ? 'http://localhost:8000/api'
+      : import.meta.env.VITE_API_V2_BASE ||
+        (isProduction ? 'https://naboomneighbornet.net.za/api' : 'http://localhost:8000/api')
     console.log('Profile API Base:', base)
 
     // Load profile data (this now includes groups and roles fetching with error handling)

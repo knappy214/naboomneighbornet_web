@@ -52,6 +52,10 @@
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
+      <!-- Debug Panel (Development Only) -->
+      <div v-if="showDebugPanel" class="mb-8">
+        <AuthDebugPanel />
+      </div>
       <!-- Status Overview Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <!-- Connected Farms Card -->
@@ -475,7 +479,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import AuthNav from '@/components/AuthNav.vue'
+import AuthDebugPanel from '@/components/AuthDebugPanel.vue'
 
 // Reactive data
 const isOnline = ref(true)
+
+// Debug panel (show in development)
+const showDebugPanel = ref(import.meta.env.DEV)
 </script>

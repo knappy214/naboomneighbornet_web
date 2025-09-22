@@ -397,7 +397,11 @@ const loadRoles = async () => {
 
 const checkBackendHealth = async () => {
   try {
-    const response = await fetch('http://localhost:8000/api/')
+    const isProduction = window.location.hostname === 'naboomneighbornet.net.za'
+    const apiBase = isProduction
+      ? 'https://naboomneighbornet.net.za/api'
+      : 'http://localhost:8000/api'
+    const response = await fetch(apiBase + '/')
     if (response.ok) {
       console.log('Backend is reachable')
       return true
@@ -464,7 +468,9 @@ const testDirectAPI = async () => {
   }
 
   try {
-    const response = await fetch('https://naboomneighbornet.net.za/api/v2/user-profiles/', {
+    const isProduction = window.location.hostname === 'naboomneighbornet.net.za'
+    const apiBase = isProduction ? 'https://naboomneighbornet.net.za' : 'http://localhost:8000'
+    const response = await fetch(`${apiBase}/api/v2/user-profiles/`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${authStore.accessToken}`,
@@ -509,10 +515,13 @@ const testBackendEndpoints = async () => {
     '/api/auth/jwt/verify/',
   ]
 
+  const isProduction = window.location.hostname === 'naboomneighbornet.net.za'
+  const apiBase = isProduction ? 'https://naboomneighbornet.net.za' : 'http://localhost:8000'
+
   for (const endpoint of endpoints) {
     try {
       console.log(`Testing endpoint: ${endpoint}`)
-      const response = await fetch(`https://naboomneighbornet.net.za${endpoint}`, {
+      const response = await fetch(`${apiBase}${endpoint}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${authStore.accessToken}`,
@@ -545,7 +554,9 @@ const verifyToken = async () => {
   }
 
   try {
-    const response = await fetch('https://naboomneighbornet.net.za/api/auth/jwt/verify/', {
+    const isProduction = window.location.hostname === 'naboomneighbornet.net.za'
+    const apiBase = isProduction ? 'https://naboomneighbornet.net.za' : 'http://localhost:8000'
+    const response = await fetch(`${apiBase}/api/auth/jwt/verify/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

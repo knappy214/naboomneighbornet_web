@@ -150,7 +150,7 @@ export const useProfileStore = defineStore('profile', () => {
       setLoading(true)
       clearError()
       console.log('Fetching profile from:', api.defaults.baseURL + '/user-profiles/')
-      // Use Wagtail API v2 pattern with custom fields
+      // Use the correct endpoint pattern for the current API
       const response = await api.get('/user-profiles/?fields=stats,avatar_info')
       console.log('Profile response:', response.data)
 

@@ -7,6 +7,8 @@ import { i18n } from './plugins/i18n'
 import { vuetify } from './plugins/vuetify'
 import { useI18nStore } from './stores/i18n'
 import { useCacheStore } from './stores/cache'
+// Import auth debugging utilities
+import './utils/authDebug'
 // COMMENTED OUT: Data stores - only auth APIs are available for now
 // import {
 //   useFarmsStore,

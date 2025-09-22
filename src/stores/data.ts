@@ -2,9 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { useI18nStore } from './i18n'
 import { useCacheStore } from './cache'
-import { api } from '@/services/api'
+import api from '@/lib/api'
 import type { AppLocale } from '@/plugins/i18n'
-import type { ApiResponse } from '@/services/api'
 
 // TypeScript interfaces
 export interface DataState<T = any> {
@@ -114,12 +113,7 @@ export function createDataStore<T = any>(
 
       try {
         // Make API request
-        const response: ApiResponse<T> = await api.get<T>(apiEndpoint, {
-          cache: cache,
-          cacheKey: cacheKey.value,
-          cacheTTL: cacheTTL,
-          locale: locale,
-        })
+        const response = await api.get<T>(apiEndpoint)
 
         // Update state
         state.value.data = response.data as any

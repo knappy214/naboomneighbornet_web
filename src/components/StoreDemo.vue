@@ -268,7 +268,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStores, useCacheManagement } from '@/composables/useStores'
-import { api } from '@/services/api'
+import api from '@/lib/api'
 
 const { t } = useI18n()
 // Get all stores (data stores are mocked for now)
@@ -355,10 +355,7 @@ const testApiCall = async () => {
   apiResult.value = null
 
   try {
-    const response = await api.get(apiEndpoint.value, {
-      cache: true,
-      cacheTTL: 300000,
-    })
+    const response = await api.get(apiEndpoint.value)
     apiResult.value = response
   } catch (error: any) {
     apiResult.value = {

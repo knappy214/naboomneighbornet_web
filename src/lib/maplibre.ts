@@ -1,11 +1,18 @@
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
+
+// Re-export the module
+export const MapLibreModule = maplibregl
+
+// Simplified interfaces for better TypeScript compatibility
 export interface MapLibreModule {
-  Map: new (options: MapOptions) => MapInstance
-  NavigationControl: new (options?: NavigationOptions) => NavigationControlInstance
-  LngLatBounds: new (sw: [number, number], ne?: [number, number]) => MapBounds
+  Map: new (options: any) => any
+  NavigationControl: new (options?: any) => any
+  LngLatBounds: new (sw: [number, number], ne?: [number, number]) => any
 }
 
 export interface NavigationControlInstance {
-  onAdd: (map: MapInstance) => HTMLElement
+  onAdd: (map: any) => HTMLElement
   onRemove: () => void
 }
 
@@ -16,7 +23,11 @@ export interface MapBounds {
 }
 
 export interface MapInstance {
-  on: (event: string, layerId: string | ((event: any) => void), listener?: (event: any) => void) => void
+  on: (
+    event: string,
+    layerId: string | ((event: any) => void),
+    listener?: (event: any) => void,
+  ) => void
   off: (event: string, listener: (event: any) => void) => void
   addControl: (control: any, position?: string) => void
   addSource: (id: string, source: any) => void
@@ -32,6 +43,7 @@ export interface MapInstance {
   project: (lngLat: [number, number]) => { x: number; y: number }
   resize: () => void
   remove: () => void
+  getCanvas: () => HTMLCanvasElement
 }
 
 export interface MapOptions {
@@ -50,67 +62,7 @@ export interface NavigationOptions {
   visualizePitch?: boolean
 }
 
-declare global {
-  interface Window {
-    maplibregl?: MapLibreModule
-  }
-}
-
-const MAPLIBRE_VERSION = '3.6.2'
-const SCRIPT_URL = `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.js`
-const STYLE_URL = `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`
-
-let loader: Promise<MapLibreModule> | null = null
-
-function injectScript(): Promise<MapLibreModule> {
-  if (typeof window === 'undefined') {
-    return Promise.reject(new Error('MapLibre can only be used in a browser environment'))
-  }
-
-  if (window.maplibregl) {
-    return Promise.resolve(window.maplibregl)
-  }
-
-  if (loader) {
-    return loader
-  }
-
-  injectStyle()
-
-  loader = new Promise<MapLibreModule>((resolve, reject) => {
-    const script = document.createElement('script')
-    script.src = SCRIPT_URL
-    script.async = true
-    script.onload = () => {
-      if (window.maplibregl) {
-        resolve(window.maplibregl)
-      } else {
-        reject(new Error('Failed to initialize MapLibre'))
-      }
-    }
-    script.onerror = () => reject(new Error('Failed to load MapLibre script'))
-    document.head.appendChild(script)
-  })
-
-  return loader
-}
-
-function injectStyle(): void {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  if (document.querySelector('link[data-maplibre-style="true"]')) {
-    return
-  }
-
-  const link = document.createElement('link')
-  link.rel = 'stylesheet'
-  link.href = STYLE_URL
-  link.setAttribute('data-maplibre-style', 'true')
-  document.head.appendChild(link)
-}
-
 export async function loadMapLibre(): Promise<MapLibreModule> {
-  return injectScript()
+  // Return the already imported module
+  return maplibregl as any
 }

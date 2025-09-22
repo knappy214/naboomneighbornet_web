@@ -78,9 +78,9 @@ onMounted(async () => {
     maxZoom: 18,
   })
 
-  map.value.addControl(new maplibre.NavigationControl({ showCompass: false }), 'top-right')
+  map.value?.addControl(new maplibre.NavigationControl({ showCompass: false }), 'top-right')
 
-  map.value.on('load', () => {
+  map.value?.on('load', () => {
     setupSources()
     setupLayers()
     bindInteractions()
@@ -93,7 +93,7 @@ onMounted(async () => {
     emit('ready', map.value as MapInstance)
   })
 
-  map.value.on('moveend', emitBounds)
+  map.value?.on('moveend', emitBounds)
 })
 
 onBeforeUnmount(() => {
@@ -178,24 +178,8 @@ function setupLayers() {
       source: INCIDENT_SOURCE,
       filter: ['has', 'point_count'],
       paint: {
-        'circle-color': [
-          'step',
-          ['get', 'point_count'],
-          '#1d4ed8',
-          5,
-          '#2563eb',
-          15,
-          '#1e3a8a',
-        ],
-        'circle-radius': [
-          'step',
-          ['get', 'point_count'],
-          14,
-          5,
-          18,
-          15,
-          22,
-        ],
+        'circle-color': ['step', ['get', 'point_count'], '#1d4ed8', 5, '#2563eb', 15, '#1e3a8a'],
+        'circle-radius': ['step', ['get', 'point_count'], 14, 5, 18, 15, 22],
         'circle-opacity': 0.85,
       },
     })
@@ -371,7 +355,9 @@ function updateSelected(incidentId: string | null) {
     return
   }
 
-  const filter = incidentId ? ['==', ['get', 'id'], incidentId] : ['in', ['get', 'id'], ['literal', []]]
+  const filter = incidentId
+    ? ['==', ['get', 'id'], incidentId]
+    : ['in', ['get', 'id'], ['literal', []]]
   if (map.value.getLayer(SELECTED_LAYER)) {
     map.value.setFilter(SELECTED_LAYER, filter)
   }
@@ -382,7 +368,9 @@ function updateHighlight(incidentId: string | null) {
     return
   }
 
-  const filter = incidentId ? ['==', ['get', 'id'], incidentId] : ['in', ['get', 'id'], ['literal', []]]
+  const filter = incidentId
+    ? ['==', ['get', 'id'], incidentId]
+    : ['in', ['get', 'id'], ['literal', []]]
   if (map.value.getLayer(HIGHLIGHT_LAYER)) {
     map.value.setFilter(HIGHLIGHT_LAYER, filter)
   }
@@ -394,7 +382,9 @@ function emitBounds() {
   }
 
   const bounds = map.value.getBounds().toArray()
-  emit('bbox-change', [bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]])
+  if (bounds && bounds[0] && bounds[1]) {
+    emit('bbox-change', [bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]])
+  }
 }
 
 function flyToIncident(incident: Incident, zoom = 15) {
@@ -429,10 +419,18 @@ function fitToIncidents() {
     return
   }
 
-  const coordinates = props.incidents.map((incident) => [
-    incident.location.longitude,
-    incident.location.latitude,
-  ])
+  const coordinates = props.incidents
+    .filter(
+      (incident) =>
+        Number.isFinite(incident.location.longitude) && Number.isFinite(incident.location.latitude),
+    )
+    .map(
+      (incident) => [incident.location.longitude, incident.location.latitude] as [number, number],
+    )
+
+  if (coordinates.length === 0) {
+    return
+  }
 
   const bounds = coordinates.reduce(
     (acc, coord) => {
@@ -449,20 +447,27 @@ function fitToIncidents() {
     return
   }
 
-  map.value.fitBounds([
-    [bounds[0], bounds[1]],
-    [bounds[2], bounds[3]],
-  ], {
-    padding: 60,
-    maxZoom: 15,
-  })
+  map.value.fitBounds(
+    [
+      [bounds[0], bounds[1]],
+      [bounds[2], bounds[3]],
+    ],
+    {
+      padding: 60,
+      maxZoom: 15,
+    },
+  )
 }
 
 function buildIncidentCollection(incidents: Incident[]): GeoJSON.FeatureCollection<GeoJSON.Point> {
   return {
     type: 'FeatureCollection',
     features: incidents
-      .filter((incident) => Number.isFinite(incident.location.longitude) && Number.isFinite(incident.location.latitude))
+      .filter(
+        (incident) =>
+          Number.isFinite(incident.location.longitude) &&
+          Number.isFinite(incident.location.latitude),
+      )
       .map((incident) => ({
         type: 'Feature' as const,
         geometry: {
@@ -483,7 +488,9 @@ function buildWaypointCollection(waypoints: Waypoint[]): GeoJSON.FeatureCollecti
   return {
     type: 'FeatureCollection',
     features: waypoints
-      .filter((waypoint) => Number.isFinite(waypoint.longitude) && Number.isFinite(waypoint.latitude))
+      .filter(
+        (waypoint) => Number.isFinite(waypoint.longitude) && Number.isFinite(waypoint.latitude),
+      )
       .map((waypoint) => ({
         type: 'Feature' as const,
         geometry: {
