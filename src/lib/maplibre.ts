@@ -1,4 +1,5 @@
 import maplibregl from 'maplibre-gl'
+import type { StyleSpecification } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 // Re-export the module
@@ -8,6 +9,9 @@ export const MapLibreModule = maplibregl
 export interface MapLibreModule {
   Map: new (options: any) => any
   NavigationControl: new (options?: any) => any
+  FullscreenControl: new (options?: any) => any
+  GeolocateControl: new (options?: any) => any
+  ScaleControl: new (options?: any) => any
   LngLatBounds: new (sw: [number, number], ne?: [number, number]) => any
 }
 
@@ -44,16 +48,23 @@ export interface MapInstance {
   resize: () => void
   remove: () => void
   getCanvas: () => HTMLCanvasElement
+  setFog: (fog: any) => void
+  setLight: (light: any) => void
 }
 
 export interface MapOptions {
   container: HTMLElement | string
-  style: string
+  style: string | StyleSpecification
   center?: [number, number]
   zoom?: number
   minZoom?: number
   maxZoom?: number
   attributionControl?: boolean
+  pitch?: number
+  pitchWithRotate?: boolean
+  dragRotate?: boolean
+  touchPitch?: boolean
+  cooperativeGestures?: boolean | Record<string, unknown>
 }
 
 export interface NavigationOptions {
