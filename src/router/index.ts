@@ -27,6 +27,7 @@ const VuetifyI18nDemo = () => import('@/components/VuetifyI18nDemo.vue')
 const ThemeLocaleSwitcher = () => import('@/components/ThemeLocaleSwitcher.vue')
 const LocaleRoutingDemo = () => import('@/pages/LocaleRoutingDemo.vue')
 const SafeNaboom = () => import('@/pages/SafeNaboom.vue')
+const Monitor = () => import('@/pages/Monitor.vue')
 const StoreDemo = () => import('@/components/StoreDemo.vue')
 const Profile = () => import('@/pages/Profile.vue')
 
@@ -136,6 +137,17 @@ const createLocaleRoutes = (): RouteRecordRaw[] => {
             locale,
             title: 'SafeNaboom',
             description: 'Agricultural community security platform',
+          },
+        },
+        {
+          path: 'monitor',
+          name: `monitor-${locale}`,
+          component: Monitor,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Panic Monitor',
+            description: 'Live panic and patrol incident monitor',
           },
         },
         {

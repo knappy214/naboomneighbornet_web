@@ -9,6 +9,7 @@
         <RouterView />
       </v-main>
     </v-layout>
+    <ToastHost />
   </v-app>
 </template>
 
@@ -17,6 +18,7 @@ import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import LocaleNavigation from '@/components/LocaleNavigation.vue'
+import ToastHost from '@/components/ToastHost.vue'
 import { detectLocale } from '@/utils/localeDetection'
 
 const { locale } = useI18n()

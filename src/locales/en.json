@@ -14,6 +14,7 @@
     "localeRouting": "Locale Routing",
     "safenaboom": "SafeNaboom",
     "storeDemo": "Store Demo",
+    "monitor": "Panic Monitor",
     "profile": "Profile"
   },
   "auth": {
@@ -207,6 +208,54 @@
       "medium": "Medium",
       "strong": "Strong"
     }
+  },
+  "monitor": {
+    "title": "Panic Monitor",
+    "refresh": "Refresh",
+    "loading": "Loading incidents…",
+    "retry": "Retry",
+    "close": "Close",
+    "acknowledge": "Acknowledge",
+    "resolve": "Resolve",
+    "viewOnMap": "View on map",
+    "acknowledgedToast": "Incident acknowledged",
+    "resolvedToast": "Incident resolved",
+    "actionFailed": "Could not complete the action",
+    "lastUpdated": "Updated {time}",
+    "updatedNow": "Just now",
+    "listCount": "{count} incidents",
+    "noIncidents": "No incidents match your filters.",
+    "assignedTo": "Assigned to {name}",
+    "filters": {
+      "status": "Status",
+      "dateRange": "Date range",
+      "to": "to",
+      "search": "Search",
+      "searchPlaceholder": "Search reporters, responders or notes…",
+      "limitToMap": "Limit to current map view",
+      "clear": "Clear filters",
+      "refreshWaypoints": "Reload waypoints"
+    },
+    "statuses": {
+      "open": "Open",
+      "acknowledged": "Acknowledged",
+      "resolved": "Resolved"
+    },
+    "details": {
+      "reporter": "Reporter",
+      "responder": "Responder",
+      "location": "Location"
+    },
+    "activeFilters": {
+      "search": "Filtered by \"{query}\""
+    },
+    "sseConnected": "Live stream connected",
+    "sseDisconnected": "Live stream reconnecting…",
+    "streamRestored": "Stream restored",
+    "streamLost": "Stream interrupted",
+    "patrolAlertTitle": "Patrol alert",
+    "patrolAlertBodyWithResponder": "{name} triggered a panic near {location}",
+    "patrolAlertBody": "Panic triggered near {location}"
   },
   "common": {
     "loading": "Loading...",
