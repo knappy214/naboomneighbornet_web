@@ -12,7 +12,10 @@
           class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium"
           :class="isStreamConnected ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'"
         >
-          <span class="inline-block h-2 w-2 rounded-full" :class="isStreamConnected ? 'bg-success' : 'bg-warning'"></span>
+          <span
+            class="inline-block h-2 w-2 rounded-full"
+            :class="isStreamConnected ? 'bg-success' : 'bg-warning'"
+          ></span>
           {{ connectionLabel }}
         </span>
         <button class="btn btn-sm btn-outline" @click="refreshIncidents()" :disabled="loading">
@@ -143,8 +146,8 @@
         <IncidentMap
           ref="mapRef"
           :incidents="filteredIncidents"
-          :selected-incident-id="selectedIncident?.id ?? null"
-          :highlight-incident-id="highlightIncidentId"
+          :selected-incident-id="selectedIncident?.id ?? undefined"
+          :highlight-incident-id="highlightIncidentId ?? undefined"
           :waypoints="waypoints"
           @select="handleIncidentSelectedFromMap"
           @bbox-change="handleBboxChange"
@@ -158,10 +161,15 @@
           <div>
             <h2 class="drawer-title">{{ selectedIncident.summary }}</h2>
             <p class="drawer-subtitle">
-              {{ formatExactTime(selectedIncident.reportedAt) }} · {{ formatRelativeTime(selectedIncident.reportedAt) }}
+              {{ formatExactTime(selectedIncident.reportedAt) }} ·
+              {{ formatRelativeTime(selectedIncident.reportedAt) }}
             </p>
           </div>
-          <button class="btn btn-sm btn-ghost" type="button" @click="incidentStore.selectIncident(null)">
+          <button
+            class="btn btn-sm btn-ghost"
+            type="button"
+            @click="incidentStore.selectIncident(null)"
+          >
             {{ t('monitor.close') }}
           </button>
         </header>
@@ -183,14 +191,18 @@
         <section class="drawer-section drawer-grid">
           <div>
             <h3 class="drawer-heading">{{ t('monitor.details.reporter') }}</h3>
-            <p v-if="selectedIncident.reporter?.name" class="drawer-text">{{ selectedIncident.reporter.name }}</p>
+            <p v-if="selectedIncident.reporter?.name" class="drawer-text">
+              {{ selectedIncident.reporter.name }}
+            </p>
             <p v-if="selectedIncident.reporter?.phone" class="drawer-text">
               {{ selectedIncident.reporter.phone }}
             </p>
           </div>
           <div>
             <h3 class="drawer-heading">{{ t('monitor.details.responder') }}</h3>
-            <p v-if="selectedIncident.responder?.name" class="drawer-text">{{ selectedIncident.responder.name }}</p>
+            <p v-if="selectedIncident.responder?.name" class="drawer-text">
+              {{ selectedIncident.responder.name }}
+            </p>
             <p v-if="selectedIncident.responder?.phone" class="drawer-text">
               {{ selectedIncident.responder.phone }}
             </p>
@@ -205,11 +217,7 @@
 
         <footer class="drawer-footer">
           <div class="flex gap-2">
-            <button
-              class="btn btn-sm btn-outline"
-              type="button"
-              @click="viewSelectedOnMap"
-            >
+            <button class="btn btn-sm btn-outline" type="button" @click="viewSelectedOnMap">
               {{ t('monitor.viewOnMap') }}
             </button>
             <button
@@ -252,8 +260,16 @@ import type {
 } from '@/types/panic'
 
 const incidentStore = useIncidentStore()
-const { filteredIncidents, filters, loading, error, lastUpdated, selectedIncident, waypoints, activeStatuses } =
-  storeToRefs(incidentStore)
+const {
+  filteredIncidents,
+  filters,
+  loading,
+  error,
+  lastUpdated,
+  selectedIncident,
+  waypoints,
+  activeStatuses,
+} = storeToRefs(incidentStore)
 
 const { t, locale } = useI18n()
 const { push: pushToast } = useToasts()
@@ -287,7 +303,9 @@ const statusOptions = computed(() => [
   { value: 'resolved' as IncidentStatus, label: t('monitor.statuses.resolved') },
 ])
 
-const incidentCountLabel = computed(() => t('monitor.listCount', { count: filteredIncidents.value.length }))
+const incidentCountLabel = computed(() =>
+  t('monitor.listCount', { count: filteredIncidents.value.length }),
+)
 const connectionLabel = computed(() =>
   isStreamConnected.value ? t('monitor.sseConnected') : t('monitor.sseDisconnected'),
 )
@@ -299,8 +317,9 @@ const lastUpdatedLabel = computed(() => {
 })
 
 const canAcknowledge = computed(() => selectedIncident.value?.status === 'open')
-const canResolve = computed(() =>
-  selectedIncident.value?.status === 'open' || selectedIncident.value?.status === 'acknowledged',
+const canResolve = computed(
+  () =>
+    selectedIncident.value?.status === 'open' || selectedIncident.value?.status === 'acknowledged',
 )
 
 let pollingHandle: ReturnType<typeof setInterval> | null = null
@@ -647,7 +666,7 @@ function formatPatrolAlertMessage(
   payload: PatrolAlertPayload | Incident,
 ): string {
   const responderName = isPatrolPayload(payload)
-    ? payload.responder?.name ?? incident.responder?.name
+    ? (payload.responder?.name ?? incident.responder?.name)
     : incident.responder?.name
   const locationLabel = incident.location.address
     ? incident.location.address
@@ -689,12 +708,17 @@ function getIncidentId(value: unknown): string | null {
     return null
   }
 
-  const candidate = (value as any).id ?? (value as any).incidentId ?? (value as any).incident_id
+  const candidate =
+    (value as Record<string, unknown>).id ??
+    (value as Record<string, unknown>).incidentId ??
+    (value as Record<string, unknown>).incident_id
   return candidate ? String(candidate) : null
 }
 
 function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
-  return Boolean(value && typeof value === 'object' && 'incident' in (value as any))
+  return Boolean(
+    value && typeof value === 'object' && 'incident' in (value as Record<string, unknown>),
+  )
 }
 </script>
 
@@ -743,6 +767,7 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
   gap: 1.5rem;
   flex: 1;
   min-height: 0;
+  height: 60vh;
 }
 
 .incident-list {
@@ -795,7 +820,9 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .incident-item:hover {
@@ -846,6 +873,8 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
   box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
   overflow: hidden;
   position: relative;
+  min-height: 400px;
+  height: 100%;
 }
 
 .incident-drawer {
@@ -928,7 +957,9 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
 
 .drawer-enter-active,
 .drawer-leave-active {
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
 }
 
 @media (max-width: 1024px) {
@@ -946,4 +977,3 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
   }
 }
 </style>
-

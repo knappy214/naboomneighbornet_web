@@ -55,7 +55,24 @@ const WAYPOINT_SOURCE = 'waypoint-source'
 const WAYPOINT_LAYER = 'waypoint-circles'
 const WAYPOINT_LABEL_LAYER = 'waypoint-labels'
 
-const FALLBACK_STYLE_URL = 'https://demotiles.maplibre.org/style.json'
+const FALLBACK_STYLE_URL: StyleSpecification = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors',
+    },
+  },
+  layers: [
+    {
+      id: 'osm',
+      type: 'raster',
+      source: 'osm',
+    },
+  ],
+}
 
 interface MapPalette {
   accent: string
@@ -241,12 +258,7 @@ function createPointRadiusExpression() {
 }
 
 function createWaypointRadiusExpression() {
-  return [
-    'case',
-    ['has', 'radius'],
-    ['interpolate', ['linear'], ['zoom'], 6, 8, 12, 16, 16, 22],
-    ['interpolate', ['linear'], ['zoom'], 4, 8, 10, 10, 16, 18],
-  ]
+  return ['interpolate', ['linear'], ['zoom'], 4, 8, 10, 10, 16, 18]
 }
 
 function createStatusColorExpression() {
@@ -295,10 +307,15 @@ function createMapPalette(): MapPalette {
 }
 
 async function resolveMapStyle(
-  styleInput: string,
+  styleInput: string | StyleSpecification,
   theme: MapPalette,
 ): Promise<string | StyleSpecification> {
   if (typeof window === 'undefined') {
+    return styleInput
+  }
+
+  // If it's already an object, return it
+  if (typeof styleInput === 'object') {
     return styleInput
   }
 
@@ -323,7 +340,7 @@ async function resolveMapStyle(
     return enhanceBaseStyle(baseStyle, theme)
   } catch (error) {
     console.warn('[panic] Unable to fetch enhanced map style, using fallback', error)
-    return styleInput
+    return FALLBACK_STYLE_URL
   }
 }
 
@@ -338,7 +355,7 @@ function enhanceBaseStyle(style: StyleSpecification, theme: MapPalette): StyleSp
         return layer
       }
 
-      const nextLayer: Record<string, any> = { ...layer }
+      const nextLayer = { ...layer } as any
       if (layer.paint) {
         nextLayer.paint = { ...layer.paint }
       }
@@ -426,7 +443,7 @@ function enhanceBaseStyle(style: StyleSpecification, theme: MapPalette): StyleSp
         nextLayer.paint['text-halo-blur'] = 0.4
 
         nextLayer.layout = nextLayer.layout || {}
-        nextLayer.layout['text-font'] = ['Open Sans SemiBold', 'Arial Unicode MS Bold']
+        nextLayer.layout['text-font'] = ['Arial Unicode MS Bold', 'Arial', 'sans-serif']
         nextLayer.layout['text-letter-spacing'] = [
           'interpolate',
           ['linear'],
@@ -498,10 +515,12 @@ function mixHexColors(colorA: string, colorB: string, ratio: number, fallback?: 
   }
 
   const clampRatio = Math.min(Math.max(ratio, 0), 1)
-  const mixChannel = (index: number) =>
-    Math.round(rgbA[index] * (1 - clampRatio) + rgbB[index] * clampRatio)
+  const [rA, gA, bA] = rgbA
+  const [rB, gB, bB] = rgbB
 
-  return `#${[mixChannel(0), mixChannel(1), mixChannel(2)]
+  const mixChannel = (a: number, b: number) => Math.round(a * (1 - clampRatio) + b * clampRatio)
+
+  return `#${[mixChannel(rA, rB), mixChannel(gA, gB), mixChannel(bA, bB)]
     .map((value) => value.toString(16).padStart(2, '0'))
     .join('')}`
 }
@@ -560,7 +579,7 @@ function setupLayers() {
       filter: ['has', 'point_count'],
       layout: {
         'text-field': '{point_count_abbreviated}',
-        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+        'text-font': ['Arial Unicode MS Bold', 'Arial', 'sans-serif'],
         'text-size': 12,
         'text-allow-overlap': true,
       },
@@ -646,7 +665,7 @@ function setupLayers() {
       source: WAYPOINT_SOURCE,
       layout: {
         'text-field': ['coalesce', ['get', 'name'], ''],
-        'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+        'text-font': ['Arial Unicode MS Bold', 'Arial', 'sans-serif'],
         'text-size': ['interpolate', ['linear'], ['zoom'], 6, 10, 16, 14],
         'text-offset': [0, 1.3],
         'text-anchor': 'top',
@@ -972,11 +991,11 @@ defineExpose({ flyToIncident, flashIncident, fitToIncidents, resize })
 
 :deep(.maplibregl-ctrl-scale) {
   font-family:
-    'Open Sans',
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
+    Arial,
     sans-serif;
   font-size: 0.75rem;
   padding: 0.25rem 0.6rem;
