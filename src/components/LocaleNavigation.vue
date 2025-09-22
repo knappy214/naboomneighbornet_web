@@ -23,6 +23,14 @@
         :active="isRoute('/dashboard')"
       />
 
+      <v-list-item
+        :prepend-icon="'mdi-map-marker-alert'"
+        :title="t('app.monitor')"
+        :value="'monitor'"
+        :to="getLocalizedPath('/monitor')"
+        :active="isRoute('/monitor')"
+      />
+
       <!-- Demo Pages -->
       <v-list-item
         :prepend-icon="'mdi-translate'"

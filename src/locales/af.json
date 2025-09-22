@@ -14,6 +14,7 @@
     "localeRouting": "Taal Roete",
     "safenaboom": "SafeNaboom",
     "storeDemo": "Stoor Demo",
+    "monitor": "Paniek Monitor",
     "profile": "Profiel"
   },
   "auth": {
@@ -207,6 +208,54 @@
       "medium": "Medium",
       "strong": "Sterk"
     }
+  },
+  "monitor": {
+    "title": "Paniek Monitor",
+    "refresh": "Verfris",
+    "loading": "Laai voorvalle…",
+    "retry": "Probeer weer",
+    "close": "Sluit",
+    "acknowledge": "Erken",
+    "resolve": "Los op",
+    "viewOnMap": "Wys op kaart",
+    "acknowledgedToast": "Voorval erken",
+    "resolvedToast": "Voorval opgelos",
+    "actionFailed": "Kon nie die aksie voltooi nie",
+    "lastUpdated": "Opgedateer {time}",
+    "updatedNow": "Nou net",
+    "listCount": "{count} voorvalle",
+    "noIncidents": "Geen voorvalle pas by jou filters nie.",
+    "assignedTo": "Toegeken aan {name}",
+    "filters": {
+      "status": "Status",
+      "dateRange": "Datumreeks",
+      "to": "tot",
+      "search": "Soek",
+      "searchPlaceholder": "Soek na rapporteerders, responders of notas…",
+      "limitToMap": "Beperk tot huidige kaart uitsig",
+      "clear": "Vee filters uit",
+      "refreshWaypoints": "Laai wegpunte weer"
+    },
+    "statuses": {
+      "open": "Oop",
+      "acknowledged": "Erken",
+      "resolved": "Opgelos"
+    },
+    "details": {
+      "reporter": "Rapporteerder",
+      "responder": "Responder",
+      "location": "Ligging"
+    },
+    "activeFilters": {
+      "search": "Gefilter deur \"{query}\""
+    },
+    "sseConnected": "Lewende stroom gekoppel",
+    "sseDisconnected": "Lewende stroom herverbind…",
+    "streamRestored": "Stroom herstel",
+    "streamLost": "Stroom onderbreek",
+    "patrolAlertTitle": "Patrollie alarm",
+    "patrolAlertBodyWithResponder": "{name} het 'n paniek naby {location} geaktiveer",
+    "patrolAlertBody": "Paniek geaktiveer naby {location}"
   },
   "common": {
     "loading": "Laai...",
