@@ -145,7 +145,7 @@
       <div class="map-pane">
         <IncidentMap
           ref="mapRef"
-          :incidents="filteredIncidents"
+          :incidents="mapIncidents"
           :selected-incident-id="selectedIncident?.id ?? undefined"
           :highlight-incident-id="highlightIncidentId ?? undefined"
           :waypoints="waypoints"
@@ -257,7 +257,7 @@ import type {
   IncidentStatus,
   IncidentStreamEnvelope,
   PatrolAlertPayload,
-} from '@/types/panic'
+} from '@/types/panic.d'
 
 const incidentStore = useIncidentStore()
 const {
@@ -321,6 +321,15 @@ const canResolve = computed(
   () =>
     selectedIncident.value?.status === 'open' || selectedIncident.value?.status === 'acknowledged',
 )
+
+// Ensure selected incident is always included in map incidents
+const mapIncidents = computed(() => {
+  const incidents = [...filteredIncidents.value]
+  if (selectedIncident.value && !incidents.find((inc) => inc.id === selectedIncident.value?.id)) {
+    incidents.push(selectedIncident.value)
+  }
+  return incidents
+})
 
 let pollingHandle: ReturnType<typeof setInterval> | null = null
 let searchTimer: ReturnType<typeof setTimeout> | null = null
@@ -729,7 +738,7 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
   gap: 1.5rem;
   height: 100%;
   padding: 1.5rem;
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.08), transparent 65%);
+  background: linear-gradient(180deg, hsl(var(--p) / 0.08), transparent 65%);
 }
 
 .monitor-header {
@@ -743,10 +752,10 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
-  background: var(--color-base-100, #fff);
+  background: hsl(var(--b1));
   padding: 1rem;
   border-radius: 1rem;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 10px 30px hsl(var(--b1) / 0.1);
 }
 
 .filter-group {
@@ -773,9 +782,9 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
 .incident-list {
   display: flex;
   flex-direction: column;
-  background: var(--color-base-100, #fff);
+  background: hsl(var(--b1));
   border-radius: 1rem;
-  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 40px hsl(var(--b1) / 0.1);
   overflow: hidden;
 }
 
@@ -784,7 +793,7 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  border-bottom: 1px solid hsl(var(--b3));
 }
 
 .list-body {
@@ -813,7 +822,7 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
 .incident-item {
   width: 100%;
   text-align: left;
-  background: rgba(255, 255, 255, 0.8);
+  background: hsl(var(--b1) / 0.8);
   border-radius: 0.85rem;
   border: 1px solid transparent;
   padding: 0.85rem 1rem;
@@ -826,13 +835,13 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
 }
 
 .incident-item:hover {
-  border-color: rgba(59, 130, 246, 0.25);
-  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+  border-color: hsl(var(--p) / 0.25);
+  box-shadow: 0 12px 26px hsl(var(--b1) / 0.1);
 }
 
 .incident-item--active {
-  border-color: rgba(59, 130, 246, 0.6);
-  box-shadow: 0 18px 30px rgba(59, 130, 246, 0.18);
+  border-color: hsl(var(--p) / 0.6);
+  box-shadow: 0 18px 30px hsl(var(--p) / 0.18);
 }
 
 .incident-item__header {
@@ -844,7 +853,7 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
 .incident-item__title {
   font-weight: 600;
   font-size: 1rem;
-  color: var(--color-base-content, #1f2937);
+  color: hsl(var(--bc));
 }
 
 .incident-item__meta {
@@ -852,25 +861,25 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
   align-items: center;
   gap: 0.75rem;
   font-size: 0.8rem;
-  color: rgba(15, 23, 42, 0.65);
+  color: hsl(var(--bc) / 0.65);
 }
 
 .incident-item__description {
   font-size: 0.85rem;
-  color: rgba(15, 23, 42, 0.75);
+  color: hsl(var(--bc) / 0.75);
 }
 
 .incident-item__footer {
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: rgba(15, 23, 42, 0.6);
+  color: hsl(var(--bc) / 0.6);
 }
 
 .map-pane {
-  background: var(--color-base-100, #fff);
+  background: hsl(var(--b1));
   border-radius: 1rem;
-  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 40px hsl(var(--b1) / 0.1);
   overflow: hidden;
   position: relative;
   min-height: 400px;
@@ -883,8 +892,8 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
   right: 0;
   width: min(420px, 90vw);
   height: 100%;
-  background: var(--color-base-100, #fff);
-  box-shadow: -10px 0 40px rgba(15, 23, 42, 0.15);
+  background: hsl(var(--b1));
+  box-shadow: -10px 0 40px hsl(var(--b1) / 0.15);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -905,7 +914,7 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
 
 .drawer-subtitle {
   font-size: 0.85rem;
-  color: rgba(15, 23, 42, 0.6);
+  color: hsl(var(--bc) / 0.6);
 }
 
 .drawer-section {
@@ -923,7 +932,7 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
 .drawer-description {
   font-size: 0.95rem;
   line-height: 1.45;
-  color: rgba(15, 23, 42, 0.8);
+  color: hsl(var(--bc) / 0.8);
 }
 
 .drawer-grid {
@@ -935,12 +944,12 @@ function isPatrolPayload(value: unknown): value is PatrolAlertPayload {
 .drawer-heading {
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(15, 23, 42, 0.75);
+  color: hsl(var(--bc) / 0.75);
 }
 
 .drawer-text {
   font-size: 0.85rem;
-  color: rgba(15, 23, 42, 0.8);
+  color: hsl(var(--bc) / 0.8);
 }
 
 .drawer-footer {

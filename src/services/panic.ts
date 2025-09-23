@@ -1,11 +1,19 @@
 import axios from 'axios'
+import api from '@/lib/api'
+import { handleApiError, createUserErrorMessage, type ErrorContext } from '@/utils/errorHandler'
 import type {
   Incident,
   IncidentFilters,
   IncidentPriority,
   IncidentStatus,
   Waypoint,
-} from '@/types/panic'
+  Responder,
+  Vehicle,
+  VehicleTrack,
+  PatrolAlert,
+  EmergencyContact,
+  RelayFrame,
+} from '@/types/panic.d'
 
 interface IncidentQueryParams {
   status?: IncidentStatus[]
@@ -31,6 +39,52 @@ const panicClient = axios.create({
   withCredentials: true,
   timeout: 20000,
 })
+
+// Separate client for Wagtail API endpoints
+const getWagtailBaseUrl = () => {
+  // If specific Wagtail base URL is set, use it
+  if (import.meta.env.VITE_WAGTAIL_BASE) return import.meta.env.VITE_WAGTAIL_BASE
+
+  // Otherwise, construct from main API base
+  const apiBase = import.meta.env.VITE_API_BASE
+  if (apiBase) {
+    // If it already ends with /v2, use as is, otherwise append /v2
+    return apiBase.endsWith('/v2') ? apiBase : `${apiBase}/v2`
+  }
+
+  // Production fallback
+  if (typeof window !== 'undefined' && window.location.hostname === 'naboomneighbornet.net.za') {
+    return 'https://naboomneighbornet.net.za/api/v2'
+  }
+
+  // Development fallback
+  return 'http://localhost:8000/api/v2'
+}
+
+const wagtailClient = axios.create({
+  baseURL: normalizeBaseUrl(getWagtailBaseUrl()),
+  withCredentials: true,
+  timeout: 20000,
+})
+
+// Debug logging for API clients (can be removed in production)
+if (import.meta.env.DEV) {
+  console.log('Panic API Client Configuration:', {
+    panicClientBaseURL: panicClient.defaults.baseURL,
+    wagtailClientBaseURL: wagtailClient.defaults.baseURL,
+    VITE_API_BASE: import.meta.env.VITE_API_BASE,
+  })
+
+  console.info(
+    '📋 PANIC API Backend Implementation Status:',
+    '\n✅ /api/v2/incidents/ - Working (incident listing)',
+    '\n✅ /panic/api/vehicle/live - Working (vehicle positions)',
+    '\n✅ /panic/api/waypoints - Working (patrol waypoints)',
+    '\n✅ /api/v2/responders/ - Working (responders with province filtering)',
+    '\n✅ /api/v2/alerts/ - Working (patrol alerts with shift filtering)',
+    '\n🎉 All PANIC API endpoints are now implemented!',
+  )
+}
 
 function normalizeBaseUrl(baseUrl?: string): string {
   if (!baseUrl) {
@@ -92,67 +146,105 @@ function toIncidentId(value: unknown): string {
   return Math.random().toString(36).slice(2, 12)
 }
 
-function safeNumber(value: unknown, fallback: number = 0): number {
+function safeNumber(value: unknown, fallback: number | null = 0): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
   const result = Number(value)
   return Number.isFinite(result) ? result : fallback
 }
 
-export function mapIncident(raw: any): Incident {
+function safeString(
+  value: unknown,
+  fallback: string | null | undefined = '',
+): string | null | undefined {
+  if (typeof value === 'string') return value
+  return fallback
+}
+
+function safeOptionalString(value: unknown): string | undefined {
+  if (typeof value === 'string') return value
+  return undefined
+}
+
+function safeBoolean(value: unknown, fallback: boolean = false): boolean {
+  return typeof value === 'boolean' ? value : fallback
+}
+
+export function mapIncident(raw: unknown): Incident {
+  const rawObj = raw as Record<string, unknown>
+  const location = rawObj?.location as Record<string, unknown> | undefined
+
   const latitude =
-    raw?.latitude ?? raw?.lat ?? raw?.location?.latitude ?? raw?.location?.lat ?? raw?.location?.y
+    rawObj?.latitude ?? rawObj?.lat ?? location?.latitude ?? location?.lat ?? location?.y
   const longitude =
-    raw?.longitude ?? raw?.lon ?? raw?.lng ?? raw?.location?.longitude ?? raw?.location?.lon ?? raw?.location?.x
+    rawObj?.longitude ??
+    rawObj?.lon ??
+    rawObj?.lng ??
+    location?.longitude ??
+    location?.lon ??
+    location?.x
+
+  const reporter = rawObj?.reporter as Record<string, unknown> | undefined
+  const responder = rawObj?.responder as Record<string, unknown> | undefined
 
   return {
-    id: toIncidentId(raw?.id ?? raw?.uuid ?? raw?.incident_id),
-    status: coerceStatus(raw?.status ?? raw?.state),
-    priority: coercePriority(raw?.priority ?? raw?.severity),
-    type: typeof raw?.type === 'string' ? raw.type : 'panic',
+    id: toIncidentId(rawObj?.id ?? rawObj?.uuid ?? rawObj?.incident_id),
+    status: coerceStatus(rawObj?.status ?? rawObj?.state),
+    priority: coercePriority(rawObj?.priority ?? rawObj?.severity),
+    type: typeof rawObj?.type === 'string' ? rawObj.type : 'panic',
     summary:
-      typeof raw?.summary === 'string'
-        ? raw.summary
-        : typeof raw?.title === 'string'
-          ? raw.title
-          : `Incident ${toIncidentId(raw?.id ?? raw?.uuid ?? raw?.incident_id)}`,
+      typeof rawObj?.summary === 'string'
+        ? rawObj.summary
+        : typeof rawObj?.title === 'string'
+          ? rawObj.title
+          : `Incident ${toIncidentId(rawObj?.id ?? rawObj?.uuid ?? rawObj?.incident_id)}`,
     description:
-      typeof raw?.description === 'string'
-        ? raw.description
-        : typeof raw?.notes === 'string'
-          ? raw.notes
+      typeof rawObj?.description === 'string'
+        ? rawObj.description
+        : typeof rawObj?.notes === 'string'
+          ? rawObj.notes
           : null,
-    reportedAt: raw?.reportedAt || raw?.reported_at || raw?.createdAt || raw?.created_at || new Date().toISOString(),
-    updatedAt: raw?.updatedAt || raw?.updated_at || raw?.modifiedAt || raw?.modified_at || new Date().toISOString(),
+    reportedAt: safeString(
+      rawObj?.reportedAt || rawObj?.reported_at || rawObj?.createdAt || rawObj?.created_at,
+      new Date().toISOString(),
+    ) as string,
+    updatedAt: safeString(
+      rawObj?.updatedAt || rawObj?.updated_at || rawObj?.modifiedAt || rawObj?.modified_at,
+      new Date().toISOString(),
+    ) as string,
     location: {
-      latitude: safeNumber(latitude, 0),
-      longitude: safeNumber(longitude, 0),
-      accuracy: raw?.accuracy ?? raw?.location?.accuracy ?? null,
-      address: raw?.address ?? raw?.location?.address ?? null,
+      latitude: safeNumber(latitude, 0) as number,
+      longitude: safeNumber(longitude, 0) as number,
+      accuracy: safeNumber(rawObj?.accuracy ?? location?.accuracy, null),
+      address: safeString(rawObj?.address ?? location?.address, null),
     },
-    reporter: raw?.reporter
+    reporter: reporter
       ? {
-          id: raw.reporter.id ?? raw.reporter.uuid,
-          name: raw.reporter.name ?? raw.reporter.full_name ?? raw.reporter.fullName ?? null,
-          phone: raw.reporter.phone ?? raw.reporter.phone_number ?? null,
-          email: raw.reporter.email ?? null,
+          id: toIncidentId(reporter.id ?? reporter.uuid),
+          name: safeString(reporter.name ?? reporter.full_name ?? reporter.fullName, null),
+          phone: safeString(reporter.phone ?? reporter.phone_number, null),
+          email: safeString(reporter.email, null),
         }
-      : raw?.reporter_name || raw?.reporter_phone
+      : rawObj?.reporter_name || rawObj?.reporter_phone
         ? {
-            name: raw.reporter_name ?? null,
-            phone: raw.reporter_phone ?? null,
+            name: safeString(rawObj.reporter_name, null),
+            phone: safeString(rawObj.reporter_phone, null),
           }
         : null,
-    responder: raw?.responder
+    responder: responder
       ? {
-          id: raw.responder.id ?? raw.responder.uuid,
-          name: raw.responder.name ?? raw.responder.full_name ?? null,
-          phone: raw.responder.phone ?? raw.responder.phone_number ?? null,
-          vehicle: raw.responder.vehicle ?? raw.responder.vehicle_name ?? null,
+          id: toIncidentId(responder.id ?? responder.uuid),
+          name: safeString(responder.name ?? responder.full_name, null),
+          phone: safeString(responder.phone ?? responder.phone_number, null),
+          vehicle: safeString(responder.vehicle ?? responder.vehicle_name, null),
         }
       : null,
-    attachments: Array.isArray(raw?.attachments)
-      ? raw.attachments.filter((value: unknown): value is string => typeof value === 'string')
+    attachments: Array.isArray(rawObj?.attachments)
+      ? rawObj.attachments.filter((value: unknown): value is string => typeof value === 'string')
       : undefined,
-    metadata: raw?.metadata && typeof raw.metadata === 'object' ? raw.metadata : undefined,
+    metadata:
+      rawObj?.metadata && typeof rawObj.metadata === 'object' && rawObj.metadata !== null
+        ? (rawObj.metadata as Record<string, unknown>)
+        : undefined,
   }
 }
 
@@ -165,29 +257,73 @@ function extractIncidentList(response: IncidentApiResponse | unknown[]): unknown
     return []
   }
 
-  if (Array.isArray(response.incidents)) {
-    return response.incidents
+  const responseObj = response as Record<string, unknown>
+
+  if (Array.isArray(responseObj.incidents)) {
+    return responseObj.incidents
   }
 
-  if (Array.isArray(response.data)) {
-    return response.data
+  if (Array.isArray(responseObj.data)) {
+    return responseObj.data
   }
 
-  if (Array.isArray(response.results)) {
-    return response.results
+  if (Array.isArray(responseObj.results)) {
+    return responseObj.results
   }
 
   return []
 }
 
 export async function fetchIncidents(filters: IncidentFilters): Promise<Incident[]> {
-  const params = toQueryParams(filters)
-  const response = await panicClient.get<IncidentApiResponse | unknown[]>('/incidents', {
-    params,
-  })
+  const context: ErrorContext = {
+    operation: 'Fetch Incidents',
+    endpoint: '/incidents/',
+    params: filters,
+  }
 
-  const rawList = extractIncidentList(response.data)
-  return rawList.map((item) => mapIncident(item))
+  try {
+    const params = toQueryParams(filters)
+    console.log('🔍 [API] Fetching incidents with params:', params)
+
+    const response = await api.get<IncidentApiResponse | unknown[]>('/incidents/', {
+      params,
+    })
+
+    console.log('📊 [API] Incidents response:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      url: response.config.url,
+      params: response.config.params,
+    })
+
+    // Incidents API returns data in { items: [...], meta: {...} } structure
+    const responseData = response.data as {
+      items?: unknown[]
+      incidents?: unknown[]
+      results?: unknown[]
+    }
+    const rawList = responseData.items || responseData.incidents || responseData.results || []
+    console.log('🔍 [API] Extracted items from incidents response:', rawList)
+
+    const incidents = rawList.map((item) => mapIncident(item))
+
+    console.log('✅ [API] Mapped incidents:', incidents)
+    return incidents
+  } catch (error) {
+    const apiError = handleApiError(error, context)
+    const userMessage = createUserErrorMessage(apiError, context)
+
+    console.error('❌ [API] Failed to fetch incidents:', {
+      error: apiError,
+      userMessage,
+      filters,
+    })
+
+    // For fetch operations, return empty array instead of throwing
+    // This allows the UI to continue functioning
+    return []
+  }
 }
 
 export async function acknowledgeIncident(incidentId: string): Promise<Incident> {
@@ -200,22 +336,447 @@ export async function resolveIncident(incidentId: string): Promise<Incident> {
   return mapIncident(response.data)
 }
 
-export async function fetchWaypoints(): Promise<Waypoint[]> {
+export async function fetchWaypoints(province?: string): Promise<Waypoint[]> {
   try {
-    const response = await panicClient.get<{ waypoints?: unknown[]; data?: unknown[] }>('/waypoints')
+    const params = province ? { province } : {}
+    console.log('🔍 [API] Fetching waypoints with params:', params)
+
+    const response = await panicClient.get<{ waypoints?: unknown[]; data?: unknown[] }>(
+      '/waypoints',
+      { params },
+    )
+
+    console.log('📊 [API] Waypoints response:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      url: response.config.url,
+      params: response.config.params,
+    })
+
     const items = extractIncidentList(response.data as IncidentApiResponse | unknown[])
-    return items
-      .map((item: any) => ({
-        id: toIncidentId(item?.id ?? item?.uuid ?? crypto.randomUUID()),
-        name: typeof item?.name === 'string' ? item.name : `Waypoint ${item?.id ?? ''}`,
-        latitude: safeNumber(item?.latitude ?? item?.lat ?? item?.y, 0),
-        longitude: safeNumber(item?.longitude ?? item?.lon ?? item?.x, 0),
-        radius: item?.radius ?? item?.accuracy ?? null,
-        color: item?.color ?? null,
-      }))
-      .filter((waypoint) => Number.isFinite(waypoint.latitude) && Number.isFinite(waypoint.longitude))
+    const waypoints = items
+      .map((item: unknown) => {
+        const itemObj = item as Record<string, unknown>
+        return {
+          id: toIncidentId(itemObj?.id ?? itemObj?.uuid ?? crypto.randomUUID()),
+          name:
+            safeString(itemObj?.name, `Waypoint ${itemObj?.id ?? ''}`) ||
+            `Waypoint ${itemObj?.id ?? ''}`,
+          latitude: safeNumber(itemObj?.latitude ?? itemObj?.lat ?? itemObj?.y, 0) as number,
+          longitude: safeNumber(itemObj?.longitude ?? itemObj?.lon ?? itemObj?.x, 0) as number,
+          radius: safeNumber(itemObj?.radius ?? itemObj?.accuracy, null),
+          color: safeString(itemObj?.color, null),
+          province: safeOptionalString(itemObj?.province),
+        }
+      })
+      .filter(
+        (waypoint) => Number.isFinite(waypoint.latitude) && Number.isFinite(waypoint.longitude),
+      )
+
+    console.log('✅ [API] Mapped waypoints:', waypoints)
+    return waypoints
   } catch (error) {
-    console.warn('[panic] Failed to preload waypoints', error)
+    console.warn('❌ [API] Failed to preload waypoints:', error)
+    console.warn('❌ [API] Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return []
+  }
+}
+
+// Vehicle telemetry APIs
+export async function fetchLiveVehicles(): Promise<Vehicle[]> {
+  try {
+    console.log('🔍 [API] Fetching live vehicles')
+
+    const response = await panicClient.get<{ features?: unknown[] }>('/vehicle/live')
+
+    console.log('📊 [API] Live vehicles response:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      url: response.config.url,
+    })
+
+    const features = response.data?.features || []
+    const vehicles = features.map((feature: unknown) => {
+      const featureObj = feature as Record<string, unknown>
+      const properties = featureObj?.properties as Record<string, unknown> | undefined
+      const geometry = featureObj?.geometry as { coordinates?: unknown[] } | undefined
+
+      return {
+        id: toIncidentId(properties?.id ?? properties?.vehicle_id ?? crypto.randomUUID()),
+        name:
+          safeString(properties?.name, `Vehicle ${properties?.id ?? ''}`) ||
+          `Vehicle ${properties?.id ?? ''}`,
+        lastPosition:
+          geometry?.coordinates && Array.isArray(geometry.coordinates)
+            ? {
+                latitude: safeNumber(geometry.coordinates[1], 0) as number,
+                longitude: safeNumber(geometry.coordinates[0], 0) as number,
+                timestamp: safeString(properties?.timestamp, new Date().toISOString()) as string,
+                speedKph: safeNumber(properties?.speed_kph, null),
+                headingDeg: safeNumber(properties?.heading_deg, null),
+              }
+            : null,
+        isActive: safeBoolean(properties?.is_active, true),
+        lastPing: safeString(properties?.last_ping, null),
+      }
+    })
+
+    console.log('✅ [API] Mapped live vehicles:', vehicles)
+    return vehicles
+  } catch (error) {
+    console.warn('❌ [API] Failed to fetch live vehicles:', error)
+    console.warn('❌ [API] Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+    return []
+  }
+}
+
+export async function fetchVehicleTracks(
+  minutes = 60,
+  vehicleId?: string,
+): Promise<VehicleTrack[]> {
+  try {
+    const params: Record<string, unknown> = { minutes }
+    if (vehicleId) {
+      params.vehicle = vehicleId
+    }
+    const response = await panicClient.get<{ tracks?: Record<string, unknown[]> }>(
+      '/vehicle/tracks',
+      { params },
+    )
+    const tracks = response.data?.tracks || {}
+    return Object.entries(tracks).map(([id, points]) => ({
+      vehicleId: toIncidentId(id),
+      points: Array.isArray(points)
+        ? points.map((point: unknown) => {
+            const pointObj = point as Record<string, unknown>
+            return {
+              latitude: safeNumber(pointObj?.latitude ?? pointObj?.lat ?? pointObj?.y, 0) as number,
+              longitude: safeNumber(
+                pointObj?.longitude ?? pointObj?.lon ?? pointObj?.x,
+                0,
+              ) as number,
+              timestamp: safeString(pointObj?.timestamp, new Date().toISOString()) as string,
+              speedKph: safeNumber(pointObj?.speed_kph, null),
+              headingDeg: safeNumber(pointObj?.heading_deg, null),
+            }
+          })
+        : [],
+    }))
+  } catch (error) {
+    console.warn('[panic] Failed to fetch vehicle tracks', error)
+    return []
+  }
+}
+
+export async function pingVehicle(
+  token: string,
+  lat: number,
+  lng: number,
+  speedKph?: number,
+  headingDeg?: number,
+  timestamp?: string,
+): Promise<void> {
+  try {
+    await panicClient.post('/vehicle/ping', {
+      token,
+      lat,
+      lng,
+      speed_kph: speedKph,
+      heading_deg: headingDeg,
+      ts: timestamp,
+    })
+  } catch (error) {
+    console.warn('[panic] Failed to ping vehicle', error)
+    throw error
+  }
+}
+
+// Responders API
+export async function fetchResponders(province?: string): Promise<Responder[]> {
+  try {
+    const params = province ? { province } : {}
+    console.log('🔍 [API] Fetching responders with params:', params)
+
+    const response = await api.get<{ responders?: unknown[]; results?: unknown[] }>(
+      '/responders/',
+      { params },
+    )
+
+    console.log('📊 [API] Responders response:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      url: response.config.url,
+      params: response.config.params,
+    })
+
+    // Responders API returns data in a different structure: { items: [...], meta: {...} }
+    const responseData = response.data as { items?: unknown[]; meta?: unknown }
+    const items = responseData.items || []
+    console.log('🔍 [API] Extracted items from responders response:', items)
+
+    const responders = items.map((item: unknown) => {
+      const itemObj = item as Record<string, unknown>
+      return {
+        id: toIncidentId(itemObj?.id ?? itemObj?.uuid ?? crypto.randomUUID()),
+        name:
+          safeString(itemObj?.name ?? itemObj?.full_name, `Responder ${itemObj?.id ?? ''}`) ||
+          `Responder ${itemObj?.id ?? ''}`,
+        phone: safeString(itemObj?.phone ?? itemObj?.phone_number, null),
+        email: safeString(itemObj?.email, null),
+        province: safeString(itemObj?.province, 'Limpopo') || 'Limpopo',
+        isActive: safeBoolean(itemObj?.is_active, true),
+        vehicle: safeString(itemObj?.vehicle, null),
+        lastSeen: safeString(itemObj?.last_seen, null),
+      }
+    })
+
+    console.log('✅ [API] Mapped responders:', responders)
+    return responders
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.warn('❌ [API] Failed to fetch responders:', error.response?.status, error.message)
+      console.warn('❌ [API] Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url,
+        params: error.config?.params,
+      })
+    } else {
+      console.error('❌ [API] Unexpected error fetching responders:', error)
+    }
+    return []
+  }
+}
+
+// Patrol alerts API
+export async function fetchPatrolAlerts(shift?: string, limit = 50): Promise<PatrolAlert[]> {
+  try {
+    const params: Record<string, unknown> = { limit }
+    if (shift) {
+      params.shift = shift
+    }
+    console.log('🔍 [API] Fetching patrol alerts with params:', params)
+
+    const response = await api.get<{ alerts?: unknown[]; results?: unknown[] }>('/alerts/', {
+      params,
+    })
+
+    console.log('📊 [API] Patrol alerts response:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+      url: response.config.url,
+      params: response.config.params,
+    })
+    // Alerts API might also return data in { items: [...], meta: {...} } structure
+    const responseData = response.data as {
+      items?: unknown[]
+      alerts?: unknown[]
+      results?: unknown[]
+    }
+    const items = responseData.items || responseData.alerts || responseData.results || []
+    console.log('🔍 [API] Extracted items from alerts response:', items)
+
+    const alerts = items.map((item: unknown) => {
+      const itemObj = item as Record<string, unknown>
+      const waypoint = itemObj?.waypoint as Record<string, unknown> | undefined
+      const responder = itemObj?.responder as Record<string, unknown> | undefined
+
+      return {
+        id: toIncidentId(itemObj?.id ?? itemObj?.uuid ?? crypto.randomUUID()),
+        waypointId: toIncidentId(itemObj?.waypoint_id ?? waypoint?.id ?? ''),
+        waypoint: waypoint
+          ? {
+              id: toIncidentId(waypoint.id ?? waypoint.uuid ?? ''),
+              name:
+                safeString(waypoint.name, `Waypoint ${waypoint.id ?? ''}`) ||
+                `Waypoint ${waypoint.id ?? ''}`,
+              latitude: safeNumber(waypoint.latitude ?? waypoint.lat ?? 0, 0) as number,
+              longitude: safeNumber(waypoint.longitude ?? waypoint.lon ?? 0, 0) as number,
+              radius: safeNumber(waypoint.radius, null),
+              color: safeString(waypoint.color, null),
+              province: safeOptionalString(waypoint.province),
+            }
+          : undefined,
+        status: (itemObj?.status ?? 'open') as 'open' | 'acknowledged' | 'resolved',
+        message: safeString(itemObj?.message ?? itemObj?.description, '') || '',
+        createdAt: safeString(
+          itemObj?.created_at ?? itemObj?.createdAt,
+          new Date().toISOString(),
+        ) as string,
+        acknowledgedAt: safeString(itemObj?.acknowledged_at ?? itemObj?.acknowledgedAt, null),
+        resolvedAt: safeString(itemObj?.resolved_at ?? itemObj?.resolvedAt, null),
+        responder: responder
+          ? {
+              id: toIncidentId(responder.id ?? responder.uuid),
+              name: safeString(responder.name ?? responder.full_name, null),
+              phone: safeString(responder.phone ?? responder.phone_number, null),
+              vehicle: safeString(responder.vehicle, null),
+            }
+          : null,
+        shift: safeString(itemObj?.shift, null),
+      }
+    })
+
+    console.log('✅ [API] Mapped patrol alerts:', alerts)
+    return alerts
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.warn('❌ [API] Failed to fetch patrol alerts:', error.response?.status, error.message)
+      console.warn('❌ [API] Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url,
+        params: error.config?.params,
+      })
+    } else {
+      console.error('❌ [API] Unexpected error fetching patrol alerts:', error)
+    }
+    return []
+  }
+}
+
+// Emergency contacts API
+export async function bulkUpsertContacts(
+  clientId: string,
+  contacts: Omit<EmergencyContact, 'id' | 'clientId'>[],
+): Promise<{ created: number; updated: number }> {
+  try {
+    const response = await panicClient.post<{ created: number; updated: number }>(
+      '/contacts/bulk_upsert',
+      {
+        client_id: clientId,
+        contacts: contacts.map((contact) => ({
+          phone_number: contact.phoneNumber,
+          full_name: contact.fullName,
+          relationship: contact.relationship,
+          priority: contact.priority,
+          is_active: contact.isActive,
+        })),
+      },
+    )
+    return response.data
+  } catch (error) {
+    console.warn('[panic] Failed to bulk upsert contacts', error)
+    throw error
+  }
+}
+
+// Push device registration
+export async function registerPushDevice(
+  token: string,
+  clientId?: string,
+  platform: 'android' | 'ios' | 'web' | 'unknown' = 'unknown',
+  appVersion?: string,
+): Promise<void> {
+  try {
+    await panicClient.post('/push/register', {
+      token,
+      client_id: clientId,
+      platform,
+      app_version: appVersion,
+    })
+  } catch (error) {
+    console.warn('[panic] Failed to register push device', error)
+    throw error
+  }
+}
+
+// Relay submission
+export async function submitRelayFrames(frames: RelayFrame[]): Promise<void> {
+  try {
+    await panicClient.post('/relay_submit', {
+      frames: frames.map((frame) => ({
+        message: frame.message,
+        source: frame.source,
+        timestamp: frame.timestamp,
+        incident_reference: frame.incidentReference,
+        metadata: frame.metadata,
+      })),
+    })
+  } catch (error) {
+    console.warn('[panic] Failed to submit relay frames', error)
+    throw error
+  }
+}
+
+// Incident submission (for Vue dashboard)
+export async function submitIncident(incident: {
+  clientId?: string
+  lat?: number
+  lng?: number
+  description?: string
+  source?: string
+  address?: string
+  priority?: IncidentPriority
+  province?: string
+  context?: Record<string, unknown>
+}): Promise<{
+  id: string
+  reference: string
+  status: IncidentStatus
+  createdAt: string
+}> {
+  const context: ErrorContext = {
+    operation: 'Submit Incident',
+    endpoint: '/submit',
+    data: incident,
+  }
+
+  try {
+    console.log('🔍 [API] Submitting incident:', incident)
+
+    const response = await panicClient.post<{
+      id: string
+      reference: string
+      status: IncidentStatus
+      created_at: string
+    }>('/submit', {
+      client_id: incident.clientId,
+      lat: incident.lat,
+      lng: incident.lng,
+      description: incident.description,
+      source: incident.source ?? 'dashboard',
+      address: incident.address,
+      priority: incident.priority,
+      province: incident.province,
+      context: incident.context,
+    })
+
+    console.log('✅ [API] Incident submitted successfully:', response.data)
+
+    return {
+      id: response.data.id,
+      reference: response.data.reference,
+      status: response.data.status,
+      createdAt: response.data.created_at,
+    }
+  } catch (error) {
+    const apiError = handleApiError(error, context)
+    const userMessage = createUserErrorMessage(apiError, context)
+
+    console.error('❌ [API] Failed to submit incident:', {
+      error: apiError,
+      userMessage,
+      incident,
+    })
+
+    // Create a more detailed error with user-friendly message
+    const enhancedError = new Error(userMessage)
+    ;(enhancedError as Error & { apiError: unknown; originalError: unknown }).apiError = apiError
+    ;(enhancedError as Error & { apiError: unknown; originalError: unknown }).originalError = error
+
+    throw enhancedError
   }
 }

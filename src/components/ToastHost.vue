@@ -23,9 +23,7 @@
             >
               {{ toast.action.label }}
             </button>
-            <button type="button" class="btn btn-ghost btn-sm" @click="dismiss(toast.id)">
-              ×
-            </button>
+            <button type="button" class="btn btn-ghost btn-sm" @click="dismiss(toast.id)">×</button>
           </div>
         </div>
       </div>
@@ -76,12 +74,14 @@ function handleAction(id: string) {
 
 .toast-enter-active,
 .toast-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .toast {
   border-radius: 0.75rem;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 15px 30px hsl(var(--b3) / 0.15);
   padding: 0.75rem 1rem;
   min-width: 18rem;
   max-width: 24rem;

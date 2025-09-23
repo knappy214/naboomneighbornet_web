@@ -11,7 +11,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { StyleSpecification } from 'maplibre-gl'
 import { loadMapLibre, type MapInstance, type MapLibreModule } from '@/lib/maplibre'
-import type { Incident, Waypoint } from '@/types/panic'
+import type { Incident, Waypoint } from '@/types/panic.d'
 
 const props = defineProps({
   incidents: {
@@ -57,6 +57,7 @@ const WAYPOINT_LABEL_LAYER = 'waypoint-labels'
 
 const FALLBACK_STYLE_URL: StyleSpecification = {
   version: 8,
+  glyphs: 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',
   sources: {
     osm: {
       type: 'raster',
@@ -88,16 +89,16 @@ interface MapPalette {
 }
 
 const DEFAULT_PALETTE: MapPalette = {
-  accent: '#2563eb',
-  accentStrong: '#1d4ed8',
-  accentSoft: '#dbeafe',
-  background: '#f8fafc',
-  backgroundMuted: '#e2e8f0',
-  emphasis: '#312e81',
-  text: '#0f172a',
-  success: '#22c55e',
-  info: '#38bdf8',
-  warning: '#f59e0b',
+  accent: '#570df8', // DaisyUI primary color
+  accentStrong: '#4506cb', // Darker primary
+  accentSoft: '#f0ebff', // Light primary
+  background: '#ffffff', // DaisyUI base-100
+  backgroundMuted: '#f8fafc', // Light gray
+  emphasis: '#1f2937', // DaisyUI base-content
+  text: '#1f2937', // DaisyUI base-content
+  success: '#10b981', // DaisyUI success
+  info: '#3b82f6', // DaisyUI info
+  warning: '#f59e0b', // DaisyUI warning
 }
 
 let palette: MapPalette = DEFAULT_PALETTE
@@ -281,16 +282,21 @@ function createMapPalette(): MapPalette {
   }
 
   const styles = getComputedStyle(document.documentElement)
-  const readColor = (name: string, fallback: string) =>
-    coerceHex(styles.getPropertyValue(name)) ?? fallback
+  const readColor = (name: string, fallback: string) => {
+    const value = styles.getPropertyValue(name).trim()
+    if (!value) return fallback
+    // Convert CSS custom properties to actual color values
+    return resolveColorValue(value) ?? fallback
+  }
 
-  const background = readColor('--color-base-100', DEFAULT_PALETTE.background)
-  const text = readColor('--color-base-content', DEFAULT_PALETTE.text)
-  const accent = readColor('--color-primary', DEFAULT_PALETTE.accent)
-  const info = readColor('--color-info', DEFAULT_PALETTE.info)
-  const success = readColor('--color-success', DEFAULT_PALETTE.success)
-  const warning = readColor('--color-warning', DEFAULT_PALETTE.warning)
-  const emphasis = readColor('--color-secondary', DEFAULT_PALETTE.emphasis)
+  // Read DaisyUI CSS custom properties
+  const background = readColor('--b1', DEFAULT_PALETTE.background)
+  const text = readColor('--bc', DEFAULT_PALETTE.text)
+  const accent = readColor('--p', DEFAULT_PALETTE.accent)
+  const info = readColor('--in', DEFAULT_PALETTE.info)
+  const success = readColor('--su', DEFAULT_PALETTE.success)
+  const warning = readColor('--wa', DEFAULT_PALETTE.warning)
+  const emphasis = readColor('--s', DEFAULT_PALETTE.emphasis)
 
   return {
     accent,
@@ -344,10 +350,16 @@ async function resolveMapStyle(
   }
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 function enhanceBaseStyle(style: StyleSpecification, theme: MapPalette): StyleSpecification {
   const cloned = JSON.parse(JSON.stringify(style)) as StyleSpecification
   cloned.transition = { duration: 300, delay: 0 }
   cloned.metadata = { ...(cloned.metadata ?? {}), 'naboomneighbornet:enhanced': true }
+
+  // Ensure glyphs are available for text rendering
+  if (!cloned.glyphs) {
+    cloned.glyphs = 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf'
+  }
 
   if (Array.isArray(cloned.layers)) {
     cloned.layers = cloned.layers.map((layer) => {
@@ -357,50 +369,50 @@ function enhanceBaseStyle(style: StyleSpecification, theme: MapPalette): StyleSp
 
       const nextLayer = { ...layer } as any
       if (layer.paint) {
-        nextLayer.paint = { ...layer.paint }
+        nextLayer.paint = { ...layer.paint } as any
       }
       if (layer.layout) {
-        nextLayer.layout = { ...layer.layout }
+        nextLayer.layout = { ...layer.layout } as any
       }
 
       const layerId = (layer.id ?? '').toLowerCase()
 
       if (layer.type === 'background') {
         nextLayer.paint = nextLayer.paint || {}
-        nextLayer.paint['background-color'] = theme.background
+        ;(nextLayer.paint as any)['background-color'] = theme.background
       }
 
       if (layer.type === 'fill' && layerId.includes('water')) {
         nextLayer.paint = nextLayer.paint || {}
-        nextLayer.paint['fill-color'] = mixHexColors(
+        ;(nextLayer.paint as any)['fill-color'] = mixHexColors(
           theme.accentSoft,
           theme.background,
           0.2,
           theme.accentSoft,
         )
-        nextLayer.paint['fill-opacity'] = 0.9
+        ;(nextLayer.paint as any)['fill-opacity'] = 0.9
       }
 
       if (layer.type === 'fill' && (layerId.includes('landcover') || layerId.includes('park'))) {
         nextLayer.paint = nextLayer.paint || {}
-        nextLayer.paint['fill-color'] = mixHexColors(
+        ;(nextLayer.paint as any)['fill-color'] = mixHexColors(
           theme.success,
           theme.background,
           0.7,
           theme.success,
         )
-        nextLayer.paint['fill-opacity'] = 0.2
+        ;(nextLayer.paint as any)['fill-opacity'] = 0.2
       }
 
       if (layer.type === 'fill' && layerId.includes('building')) {
         nextLayer.paint = nextLayer.paint || {}
-        nextLayer.paint['fill-color'] = mixHexColors(
+        ;(nextLayer.paint as any)['fill-color'] = mixHexColors(
           theme.accentSoft,
           theme.backgroundMuted,
           0.4,
           theme.accentSoft,
         )
-        nextLayer.paint['fill-opacity'] = 0.6
+        ;(nextLayer.paint as any)['fill-opacity'] = 0.6
       }
 
       if (
@@ -412,13 +424,13 @@ function enhanceBaseStyle(style: StyleSpecification, theme: MapPalette): StyleSp
           layerId.includes('tunnel'))
       ) {
         nextLayer.paint = nextLayer.paint || {}
-        nextLayer.paint['line-color'] = mixHexColors(
+        ;(nextLayer.paint as any)['line-color'] = mixHexColors(
           theme.backgroundMuted,
           theme.accentSoft,
           0.35,
           theme.backgroundMuted,
         )
-        nextLayer.paint['line-width'] = [
+        ;(nextLayer.paint as any)['line-width'] = [
           'interpolate',
           ['linear'],
           ['zoom'],
@@ -430,21 +442,21 @@ function enhanceBaseStyle(style: StyleSpecification, theme: MapPalette): StyleSp
           3.2,
         ]
         nextLayer.layout = nextLayer.layout || {}
-        nextLayer.layout['line-cap'] = 'round'
-        nextLayer.layout['line-join'] = 'round'
+        ;(nextLayer.layout as any)['line-cap'] = 'round'
+        ;(nextLayer.layout as any)['line-join'] = 'round'
       }
 
       const hasTextField = Boolean(nextLayer.layout && 'text-field' in nextLayer.layout)
       if (layer.type === 'symbol' && hasTextField) {
         nextLayer.paint = nextLayer.paint || {}
-        nextLayer.paint['text-color'] = theme.text
-        nextLayer.paint['text-halo-color'] = colorWithOpacity(theme.background, 0.95)
-        nextLayer.paint['text-halo-width'] = 1.2
-        nextLayer.paint['text-halo-blur'] = 0.4
+        ;(nextLayer.paint as any)['text-color'] = theme.text
+        ;(nextLayer.paint as any)['text-halo-color'] = colorWithOpacity(theme.background, 0.95)
+        ;(nextLayer.paint as any)['text-halo-width'] = 1.2
+        ;(nextLayer.paint as any)['text-halo-blur'] = 0.4
 
         nextLayer.layout = nextLayer.layout || {}
-        nextLayer.layout['text-font'] = ['Arial Unicode MS Bold', 'Arial', 'sans-serif']
-        nextLayer.layout['text-letter-spacing'] = [
+        ;(nextLayer.layout as any)['text-font'] = ['Arial Unicode MS Bold', 'Arial', 'sans-serif']
+        ;(nextLayer.layout as any)['text-letter-spacing'] = [
           'interpolate',
           ['linear'],
           ['zoom'],
@@ -461,6 +473,7 @@ function enhanceBaseStyle(style: StyleSpecification, theme: MapPalette): StyleSp
 
   return cloned
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 function applyAtmosphere(instance: MapInstance, theme: MapPalette) {
   if (typeof instance.setLight === 'function') {
@@ -472,11 +485,16 @@ function applyAtmosphere(instance: MapInstance, theme: MapPalette) {
   }
 
   if (typeof instance.setFog === 'function') {
+    // Get additional colors from CSS custom properties
+    const styles = getComputedStyle(document.documentElement)
+    const b3Color = resolveColorValue(styles.getPropertyValue('--b3').trim()) ?? theme.background
+    const pColor = resolveColorValue(styles.getPropertyValue('--p').trim()) ?? theme.accent
+    const b1Color = resolveColorValue(styles.getPropertyValue('--b1').trim()) ?? theme.background
     instance.setFog({
       range: [0.5, 8],
-      color: mixHexColors(theme.background, '#cbd5f5', 0.15, theme.background),
-      'high-color': mixHexColors(theme.accentSoft, '#ffffff', 0.35, theme.accentSoft),
-      'space-color': '#020617',
+      color: mixHexColors(theme.background, colorWithOpacity(pColor, 0.1), 0.15, theme.background),
+      'high-color': mixHexColors(theme.accentSoft, b1Color, 0.35, theme.accentSoft),
+      'space-color': b3Color,
       'horizon-blend': 0.08,
     })
   }
@@ -491,6 +509,7 @@ function coerceHex(value: string | null | undefined): string | null {
     return null
   }
 
+  // Handle hex colors
   if (/^#?[0-9a-fA-F]{6}$/.test(trimmed)) {
     return trimmed.startsWith('#') ? trimmed : `#${trimmed}`
   }
@@ -504,6 +523,109 @@ function coerceHex(value: string | null | undefined): string | null {
   }
 
   return null
+}
+
+function resolveColorValue(value: string | null | undefined): string | null {
+  if (!value) {
+    return null
+  }
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return null
+  }
+
+  // Handle hex colors
+  const hex = coerceHex(trimmed)
+  if (hex) {
+    return hex
+  }
+
+  // Handle CSS custom properties like "hsl(var(--p))"
+  if (trimmed.includes('hsl(var(')) {
+    // Extract the CSS variable name
+    const match = trimmed.match(/hsl\(var\(--([^)]+)\)\)/)
+    if (match) {
+      const varName = match[1]
+      const styles = getComputedStyle(document.documentElement)
+      const cssValue = styles.getPropertyValue(`--${varName}`).trim()
+      if (cssValue) {
+        // Convert HSL to hex
+        return hslToHex(cssValue)
+      }
+    }
+  }
+
+  // Handle direct HSL values
+  if (trimmed.startsWith('hsl(')) {
+    return hslToHex(trimmed)
+  }
+
+  // Handle RGB values
+  if (trimmed.startsWith('rgb(')) {
+    return rgbToHex(trimmed)
+  }
+
+  return null
+}
+
+function hslToHex(hsl: string): string | null {
+  // Parse HSL string like "210 100% 50%" or "210, 100%, 50%"
+  const match = hsl.match(
+    /hsl\(\s*(\d+(?:\.\d+)?)\s*[,\s]\s*(\d+(?:\.\d+)?)%\s*[,\s]\s*(\d+(?:\.\d+)?)%\s*\)/,
+  )
+  if (!match) {
+    return null
+  }
+
+  const h = parseFloat(match[1]!) / 360
+  const s = parseFloat(match[2]!) / 100
+  const l = parseFloat(match[3]!) / 100
+
+  const hue2rgb = (p: number, q: number, t: number) => {
+    if (t < 0) t += 1
+    if (t > 1) t -= 1
+    if (t < 1 / 6) return p + (q - p) * 6 * t
+    if (t < 1 / 2) return q
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+    return p
+  }
+
+  let r, g, b
+
+  if (s === 0) {
+    r = g = b = l // achromatic
+  } else {
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+    const p = 2 * l - q
+    r = hue2rgb(p, q, h + 1 / 3)
+    g = hue2rgb(p, q, h)
+    b = hue2rgb(p, q, h - 1 / 3)
+  }
+
+  const toHex = (c: number) => {
+    const hex = Math.round(c * 255).toString(16)
+    return hex.length === 1 ? '0' + hex : hex
+  }
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+}
+
+function rgbToHex(rgb: string): string | null {
+  const match = rgb.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/)
+  if (!match) {
+    return null
+  }
+
+  const r = parseInt(match[1]!, 10)
+  const g = parseInt(match[2]!, 10)
+  const b = parseInt(match[3]!, 10)
+
+  const toHex = (n: number) => {
+    const hex = n.toString(16)
+    return hex.length === 1 ? '0' + hex : hex
+  }
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
 }
 
 function mixHexColors(colorA: string, colorB: string, ratio: number, fallback?: string): string {
@@ -687,26 +809,28 @@ function bindInteractions() {
     return
   }
 
-  map.value.on('click', CLUSTER_LAYER, (event: any) => {
+  map.value.on('click', CLUSTER_LAYER, (event: maplibregl.MapLayerMouseEvent) => {
     const feature = event.features?.[0]
     if (!feature) {
       return
     }
 
     const clusterId = feature.properties?.cluster_id
-    const coordinates = feature.geometry?.coordinates
-    const source = map.value!.getSource(INCIDENT_SOURCE) as any
+    const coordinates = (feature.geometry as GeoJSON.Point)?.coordinates
+    const source = map.value!.getSource(INCIDENT_SOURCE) as maplibregl.GeoJSONSource
     if (source?.getClusterExpansionZoom && clusterId != null) {
-      source.getClusterExpansionZoom(clusterId, (error: unknown, zoom: number) => {
-        if (error) {
-          return
-        }
-        map.value?.easeTo({ center: coordinates, zoom })
-      })
+      source
+        .getClusterExpansionZoom(clusterId)
+        .then((zoom: number) => {
+          map.value?.easeTo({ center: coordinates, zoom })
+        })
+        .catch((error: unknown) => {
+          console.warn('Failed to get cluster expansion zoom:', error)
+        })
     }
   })
 
-  map.value.on('click', POINT_LAYER, (event: any) => {
+  map.value.on('click', POINT_LAYER, (event: maplibregl.MapLayerMouseEvent) => {
     const feature = event.features?.[0]
     if (!feature) {
       return
@@ -735,7 +859,7 @@ function updateIncidents() {
     return
   }
 
-  const source = map.value.getSource(INCIDENT_SOURCE) as any
+  const source = map.value.getSource(INCIDENT_SOURCE) as maplibregl.GeoJSONSource
   if (source && typeof source.setData === 'function') {
     source.setData(featureCollection.value)
   }
@@ -746,7 +870,7 @@ function updateWaypoints() {
     return
   }
 
-  const source = map.value.getSource(WAYPOINT_SOURCE) as any
+  const source = map.value.getSource(WAYPOINT_SOURCE) as maplibregl.GeoJSONSource
   if (source && typeof source.setData === 'function') {
     source.setData(waypointCollection.value)
   }
@@ -927,17 +1051,16 @@ defineExpose({ flyToIncident, flashIncident, fitToIncidents, resize })
   border-radius: 1rem;
   overflow: hidden;
   background:
-    radial-gradient(140% 140% at 85% 15%, rgba(59, 130, 246, 0.08), transparent),
-    radial-gradient(120% 120% at 15% 90%, rgba(14, 165, 233, 0.08), transparent),
-    var(--color-base-100, #f8fafc);
-  box-shadow: 0 30px 55px rgba(15, 23, 42, 0.14);
+    radial-gradient(140% 140% at 85% 15%, hsl(var(--p) / 0.08), transparent),
+    radial-gradient(120% 120% at 15% 90%, hsl(var(--in) / 0.08), transparent), hsl(var(--b1));
+  box-shadow: 0 30px 55px hsl(var(--b1) / 0.14);
   transition:
     box-shadow 200ms ease,
     transform 200ms ease;
 }
 
 .incident-map:hover {
-  box-shadow: 0 38px 72px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 38px 72px hsl(var(--b1) / 0.18);
   transform: translateY(-2px);
 }
 
@@ -949,8 +1072,8 @@ defineExpose({ flyToIncident, flashIncident, fitToIncidents, resize })
   align-items: center;
   justify-content: center;
   gap: 0.85rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(16, 185, 129, 0.12));
-  color: var(--color-base-content, #1f2937);
+  background: linear-gradient(135deg, hsl(var(--p) / 0.12), hsl(var(--su) / 0.12));
+  color: hsl(var(--bc));
   backdrop-filter: blur(6px);
 }
 
@@ -968,8 +1091,8 @@ defineExpose({ flyToIncident, flashIncident, fitToIncidents, resize })
 :deep(.maplibregl-ctrl-group) {
   border-radius: 0.75rem;
   overflow: hidden;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
-  background: rgba(248, 250, 252, 0.9);
+  box-shadow: 0 12px 32px hsl(var(--b1) / 0.18);
+  background: hsl(var(--b1) / 0.9);
   backdrop-filter: blur(8px);
 }
 
@@ -977,7 +1100,7 @@ defineExpose({ flyToIncident, flashIncident, fitToIncidents, resize })
   width: 2.4rem;
   height: 2.4rem;
   border: none;
-  color: var(--color-base-content, #0f172a);
+  color: hsl(var(--bc));
   transition:
     background-color 160ms ease,
     color 160ms ease;
@@ -985,8 +1108,8 @@ defineExpose({ flyToIncident, flashIncident, fitToIncidents, resize })
 
 :deep(.maplibregl-ctrl-group button:hover),
 :deep(.maplibregl-ctrl-group button:focus-visible) {
-  background: rgba(37, 99, 235, 0.12);
-  color: var(--color-primary, #2563eb);
+  background: hsl(var(--p) / 0.12);
+  color: hsl(var(--p));
 }
 
 :deep(.maplibregl-ctrl-scale) {
@@ -1000,10 +1123,10 @@ defineExpose({ flyToIncident, flashIncident, fitToIncidents, resize })
   font-size: 0.75rem;
   padding: 0.25rem 0.6rem;
   border-radius: 9999px;
-  background: rgba(15, 23, 42, 0.7);
-  color: #f8fafc;
+  background: hsl(var(--b3) / 0.7);
+  color: hsl(var(--b1));
   border: none;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 10px 30px hsl(var(--b3) / 0.25);
 }
 
 :deep(.maplibregl-user-location-dot),
@@ -1025,7 +1148,7 @@ defineExpose({ flyToIncident, flashIncident, fitToIncidents, resize })
   }
 
   :deep(.maplibregl-ctrl-group) {
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+    box-shadow: 0 10px 24px hsl(var(--b1) / 0.16);
   }
 }
 </style>

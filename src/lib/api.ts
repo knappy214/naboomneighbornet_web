@@ -12,14 +12,14 @@ const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL
   if (import.meta.env.VITE_API_BASE) return import.meta.env.VITE_API_BASE
 
-  // If running on production domain, use production API
-  if (isProduction) return 'https://naboomneighbornet.net.za/api'
+  // If running on production domain, use production API v2
+  if (isProduction) return 'https://naboomneighbornet.net.za/api/v2'
 
-  // For development, use localhost
-  if (isDevelopment) return 'http://localhost:8000/api'
+  // For development, use localhost v2
+  if (isDevelopment) return 'http://localhost:8000/api/v2'
 
-  // Fallback to production
-  return 'https://naboomneighbornet.net.za/api'
+  // Fallback to production v2
+  return 'https://naboomneighbornet.net.za/api/v2'
 }
 
 const api = axios.create({

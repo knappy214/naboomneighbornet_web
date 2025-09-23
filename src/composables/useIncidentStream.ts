@@ -1,5 +1,5 @@
 import { onBeforeUnmount, ref } from 'vue'
-import type { IncidentStreamEnvelope } from '@/types/panic'
+import type { IncidentStreamEnvelope } from '@/types/panic.d'
 
 type StreamListener<T = unknown> = (event: StreamEvent<T>) => void
 

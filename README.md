@@ -105,22 +105,21 @@ The application showcases various DaisyUI components:
 
 ### Theme Switching
 
-The application includes an enhanced theme switcher that allows you to cycle through:
+The application includes an enhanced theme switcher that allows you to switch between:
 
-1. **Community Security (Light)**: Your custom light theme with brand colors
-2. **Community Security (Dark)**: Your custom dark theme with brand colors
-3. **DaisyUI Light**: Default DaisyUI light theme for comparison
+1. **Light**: DaisyUI light theme - clean and bright
+2. **Business**: DaisyUI business theme - professional dark theme
 
-Click the "Switch Theme" button in the navbar to cycle through all three themes!
+Click the theme switcher in the navbar to toggle between light and business themes!
 
-### Custom CSS Variables
+### DaisyUI Theme Configuration
 
-Both themes define all required DaisyUI CSS variables including:
+The application uses DaisyUI's built-in themes:
 
-- Color palette (primary, secondary, accent, etc.)
-- Border radius settings
-- Component sizes
-- Depth and noise effects
+- **Light Theme**: Clean, bright interface with high contrast
+- **Business Theme**: Professional dark theme with corporate colors
+
+Both themes are configured using DaisyUI's standard theme system with automatic color management.
 
 ## 📁 Project Structure
 
@@ -158,53 +157,40 @@ npm run type-check
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
 - **Type Safety**: Full TypeScript support
 - **Modern UI**: DaisyUI component library
-- **Dual Custom Themes**: Light and dark variants of your brand
-- **Enhanced Theme Switcher**: Cycle through three different themes
+- **Dual DaisyUI Themes**: Light and business themes
+- **Enhanced Theme Switcher**: Toggle between light and business themes
 - **Fast Development**: Vite hot module replacement
 
 ## 🎨 Theme Configuration
 
-Your custom themes are configured in `src/style.css` using DaisyUI v5's `@plugin "daisyui/theme"` syntax:
-
-### Light Theme
+The application uses DaisyUI's built-in themes configured in `src/app.css`:
 
 ```css
-@plugin "daisyui/theme" {
-  name: 'community-security';
-  default: true;
-  prefersdark: false;
-  color-scheme: light;
-
-  --color-primary: #4b6bfb;
-  --color-secondary: #047aff;
-  --color-accent: #f97316;
-  /* ... more color variables */
+@plugin "daisyui" {
+  themes:
+    light --default,
+    business --prefersdark;
+  root: ':root';
+  include:;
+  exclude:;
+  prefix:;
+  logs: true;
 }
 ```
 
-### Dark Theme
+This configuration:
 
-```css
-@plugin "daisyui/theme" {
-  name: 'community-security-dark';
-  default: false;
-  prefersdark: true;
-  color-scheme: dark;
+- Sets `light` as the default theme
+- Sets `business` as the dark theme (prefers-color-scheme: dark)
+- Uses DaisyUI's standard color palette and styling
 
-  --color-primary: #60a5fa;
-  --color-secondary: #38bdf8;
-  --color-accent: #fb923c;
-  /* ... more color variables */
-}
-```
+## 🌙 Business Theme Benefits
 
-## 🌙 Dark Theme Benefits
-
+- **Professional Appearance**: Corporate-friendly dark theme
 - **Reduced Eye Strain**: Dark backgrounds for low-light environments
 - **Battery Saving**: OLED displays use less power with dark themes
 - **Modern Aesthetic**: Contemporary design preference for many users
 - **Accessibility**: High contrast ratios for better readability
-- **Brand Consistency**: Maintains your community security identity
 
 ## 📄 License
 

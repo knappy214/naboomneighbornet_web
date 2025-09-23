@@ -31,30 +31,30 @@ export const vuetify = createVuetify({
     messages: { en, af },
   } as any,
   theme: {
-    defaultTheme: 'community-security',
+    defaultTheme: 'light',
     themes: {
-      'community-security': {
+      light: {
         dark: false,
         colors: {
-          primary: '#6b4f2a',
-          secondary: '#3a7d44',
-          accent: '#f6b40e',
-          error: '#c0392b',
-          warning: '#f6b40e',
-          info: '#3a7d44',
-          success: '#3a7d44',
+          primary: '#570df8',
+          secondary: '#f000b8',
+          accent: '#37cdbe',
+          error: '#f87272',
+          warning: '#fbbd23',
+          info: '#3abff8',
+          success: '#36d399',
         },
       },
-      'community-security-dark': {
+      business: {
         dark: true,
         colors: {
-          primary: '#8b6f4a',
-          secondary: '#4a8b5a',
-          accent: '#f6b40e',
-          error: '#e74c3c',
-          warning: '#f6b40e',
-          info: '#4a8b5a',
-          success: '#4a8b5a',
+          primary: '#1a365d',
+          secondary: '#2d3748',
+          accent: '#3182ce',
+          error: '#e53e3e',
+          warning: '#dd6b20',
+          info: '#3182ce',
+          success: '#38a169',
         },
       },
     },

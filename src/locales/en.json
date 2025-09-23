@@ -15,6 +15,7 @@
     "safenaboom": "SafeNaboom",
     "storeDemo": "Store Demo",
     "monitor": "Panic Monitor",
+    "panicDashboard": "Panic Dashboard",
     "profile": "Profile"
   },
   "auth": {
@@ -255,7 +256,10 @@
     "streamLost": "Stream interrupted",
     "patrolAlertTitle": "Patrol alert",
     "patrolAlertBodyWithResponder": "{name} triggered a panic near {location}",
-    "patrolAlertBody": "Panic triggered near {location}"
+    "patrolAlertBody": "Panic triggered near {location}",
+    "map": {
+      "title": "Incident Monitoring Map"
+    }
   },
   "common": {
     "loading": "Loading...",
@@ -263,7 +267,79 @@
     "cancel": "Cancel",
     "retry": "Retry",
     "error": "Error",
-    "success": "Success"
+    "success": "Success",
+    "refresh": "Refresh",
+    "select": "Select"
+  },
+  "panic": {
+    "dashboard": {
+      "title": "Panic Management Dashboard",
+      "subtitle": "Comprehensive incident monitoring, vehicle tracking, and responder management"
+    },
+    "monitoring": {
+      "title": "Real-time Monitoring"
+    },
+    "submit": {
+      "title": "Submit New Incident",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the incident...",
+      "priority": "Priority",
+      "location": "Location",
+      "locationPlaceholder": "Enter location or address...",
+      "province": "Province",
+      "submit": "Submit Incident"
+    }
+  },
+  "incidents": {
+    "open": "Open",
+    "acknowledged": "Acknowledged",
+    "resolved": "Resolved",
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    }
+  },
+  "vehicles": {
+    "title": "Vehicle Tracking",
+    "total": "Total Vehicles",
+    "active": "Active",
+    "withPosition": "With Position",
+    "show": "Show Vehicles",
+    "hide": "Hide Vehicles",
+    "showTracks": "Show Tracks",
+    "hideTracks": "Hide Tracks",
+    "showMap": "Show Map",
+    "hideMap": "Hide Map",
+    "allVehicles": "All Vehicles",
+    "map": {
+      "title": "Vehicle Tracking Map"
+    }
+  },
+  "responders": {
+    "title": "Responders",
+    "total": "Total",
+    "active": "Active",
+    "provinces": "Provinces",
+    "allProvinces": "All Provinces"
+  },
+  "provinces": {
+    "easternCape": "Eastern Cape",
+    "freeState": "Free State",
+    "gauteng": "Gauteng",
+    "kwazuluNatal": "KwaZulu-Natal",
+    "limpopo": "Limpopo",
+    "mpumalanga": "Mpumalanga",
+    "northernCape": "Northern Cape",
+    "northWest": "North West",
+    "westernCape": "Western Cape"
+  },
+  "patrolAlerts": {
+    "title": "Patrol Alerts",
+    "open": "Open",
+    "acknowledged": "Acknowledged",
+    "resolved": "Resolved"
   },
   "validation": {
     "required": "This field is required",

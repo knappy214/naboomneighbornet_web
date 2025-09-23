@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import api from '@/lib/api'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from 'vue-i18n'
@@ -20,15 +19,19 @@ async function submit() {
   isLoading.value = true
 
   try {
-    const { data } = await api.post('/auth/jwt/create/', {
-      email: email.value,
+    await store.login({
+      username: email.value, // Use email as username for the API
       password: password.value,
     })
-    store.setAccessToken(data.access)
-    store.setRefreshToken(data.refresh)
     router.push('/')
-  } catch (e: any) {
-    error.value = e?.response?.data?.detail || 'Login failed'
+  } catch (e: unknown) {
+    console.error('Login error:', e)
+    const errorMessage =
+      (e as { response?: { data?: { detail?: string; error?: string } } })?.response?.data
+        ?.detail ||
+      (e as { response?: { data?: { detail?: string; error?: string } } })?.response?.data?.error ||
+      'Login failed'
+    error.value = errorMessage
   } finally {
     isLoading.value = false
   }

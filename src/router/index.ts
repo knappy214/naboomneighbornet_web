@@ -28,6 +28,7 @@ const ThemeLocaleSwitcher = () => import('@/components/ThemeLocaleSwitcher.vue')
 const LocaleRoutingDemo = () => import('@/pages/LocaleRoutingDemo.vue')
 const SafeNaboom = () => import('@/pages/SafeNaboom.vue')
 const Monitor = () => import('@/pages/Monitor.vue')
+const PanicDashboard = () => import('@/pages/PanicDashboard.vue')
 const StoreDemo = () => import('@/components/StoreDemo.vue')
 const Profile = () => import('@/pages/Profile.vue')
 
@@ -148,6 +149,17 @@ const createLocaleRoutes = (): RouteRecordRaw[] => {
             locale,
             title: 'Panic Monitor',
             description: 'Live panic and patrol incident monitor',
+          },
+        },
+        {
+          path: 'panic-dashboard',
+          name: `panic-dashboard-${locale}`,
+          component: PanicDashboard,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Panic Dashboard',
+            description: 'Comprehensive panic management dashboard',
           },
         },
         {

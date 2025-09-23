@@ -1,98 +1,11 @@
 @import 'tailwindcss';
-@plugin "daisyui";
-
-@plugin "daisyui/theme" {
-  name: 'community-security';
-  default: true;
-  prefersdark: false;
-  color-scheme: light;
-
-  /* Agricultural Color Palette - Optimized for farming communities */
-  --color-base-100: #ffffff; /* Cloud-White - Maximum contrast under bright sun */
-  --color-base-200: #f5f5f4; /* Light earth tone for subtle backgrounds */
-  --color-base-300: #e7e5e4; /* Medium earth tone for borders and dividers */
-  --color-base-content: #6b4f2a; /* Land color for text - high contrast on white */
-
-  --color-primary: #6b4f2a; /* Land - Familiar, trustworthy; echoes ploughed soil */
-  --color-primary-content: #ffffff; /* Cloud-White for text on Land */
-
-  --color-secondary: #3a7d44; /* Crop-Green - Symbolises growth & safety; good daylight legibility */
-  --color-secondary-content: #ffffff; /* Cloud-White for text on Crop-Green */
-
-  --color-accent: #f6b40e; /* Sun-Gold - Draws attention to CTA buttons; 68% associate with alert/readiness */
-  --color-accent-content: #6b4f2a; /* Land color for text on Sun-Gold */
-
-  --color-neutral: #6b4f2a; /* Land color for neutral elements */
-  --color-neutral-content: #ffffff; /* Cloud-White for text on neutral */
-
-  --color-info: #3a7d44; /* Crop-Green for informational messages */
-  --color-info-content: #ffffff; /* Cloud-White for text on info */
-
-  --color-success: #3a7d44; /* Crop-Green for success states */
-  --color-success-content: #ffffff; /* Cloud-White for text on success */
-
-  --color-warning: #f6b40e; /* Sun-Gold for warnings */
-  --color-warning-content: #6b4f2a; /* Land color for text on warning */
-
-  --color-error: #c0392b; /* Signal-Red - WCAG-AA contrast on white & brown */
-  --color-error-content: #ffffff; /* Cloud-White for text on error */
-
-  --radius-selector: 0.5rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.5rem;
-
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-
-  --border: 1px;
-  --depth: 1;
-  --noise: 0;
-}
-
-@plugin "daisyui/theme" {
-  name: 'community-security-dark';
-  default: false;
-  prefersdark: true;
-  color-scheme: dark;
-
-  /* Agricultural Dark Theme - Optimized for low-light farming environments */
-  --color-base-100: #1a0f05; /* Darker earth tone for better contrast */
-  --color-base-200: #2d1b0a; /* Medium dark earth tone for subtle backgrounds */
-  --color-base-300: #3d2814; /* Lighter dark earth tone for borders and dividers */
-  --color-base-content: #ffffff; /* Pure white for maximum contrast on dark */
-
-  --color-primary: #8b6f4a; /* Lighter Land - Maintains earth tone but visible in dark */
-  --color-primary-content: #1a0f05; /* Darker earth for text on primary */
-
-  --color-secondary: #4a8b5a; /* Lighter Crop-Green - Maintains growth symbolism in dark */
-  --color-secondary-content: #1a0f05; /* Darker earth for text on secondary */
-
-  --color-accent: #f6b40e; /* Sun-Gold - Same as light theme for consistency */
-  --color-accent-content: #1a0f05; /* Darker earth for text on accent */
-
-  --color-neutral: #8b6f4a; /* Lighter Land for neutral elements */
-  --color-neutral-content: #ffffff; /* White for text on neutral */
-
-  --color-info: #4a8b5a; /* Lighter Crop-Green for informational messages */
-  --color-info-content: #1a0f05; /* Darker earth for text on info */
-
-  --color-success: #4a8b5a; /* Lighter Crop-Green for success states */
-  --color-success-content: #1a0f05; /* Darker earth for text on success */
-
-  --color-warning: #f6b40e; /* Sun-Gold for warnings - same as light theme */
-  --color-warning-content: #1a0f05; /* Darker earth for text on warning */
-
-  --color-error: #e74c3c; /* Lighter Signal-Red - Better visibility in dark mode */
-  --color-error-content: #ffffff; /* White for text on error */
-
-  --radius-selector: 0.5rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.5rem;
-
-  --size-selector: 0.25rem;
-  --size-field: 0.25rem;
-
-  --border: 1px;
-  --depth: 1;
-  --noise: 0;
+@plugin "daisyui" {
+  themes:
+    light --default,
+    business --prefersdark;
+  root: ':root';
+  include:;
+  exclude:;
+  prefix:;
+  logs: true;
 }

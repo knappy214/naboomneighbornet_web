@@ -25,13 +25,13 @@
             @update:model-value="changeTheme"
             class="mb-2"
           >
-            <v-btn value="community-security" size="small">
+            <v-btn value="light" size="small">
               <v-icon start>mdi-weather-sunny</v-icon>
               Light
             </v-btn>
-            <v-btn value="community-security-dark" size="small">
+            <v-btn value="business" size="small">
               <v-icon start>mdi-weather-night</v-icon>
-              Dark
+              Business
             </v-btn>
           </v-btn-toggle>
           <v-divider class="my-2" />
@@ -106,9 +106,7 @@ const theme = useTheme()
 const vuetifyLocale = useLocale()
 
 const currentLocale = computed(() => locale.value as AppLocale)
-const currentTheme = ref(
-  theme.current.value.dark ? 'community-security-dark' : 'community-security',
-)
+const currentTheme = ref(theme.current.value.dark ? 'business' : 'light')
 
 const themeColors = computed(() => {
   const currentThemeObj = theme.current.value
@@ -131,10 +129,10 @@ const changeTheme = (newTheme: string) => {
 // Watch for locale changes and adjust theme if needed
 watch(currentLocale, (newLocale) => {
   // You can add locale-specific theme logic here
-  // For example, automatically switch to dark theme for Afrikaans
-  if (newLocale === 'af' && currentTheme.value === 'community-security') {
-    // Optionally auto-switch to dark theme for Afrikaans
-    // changeTheme('community-security-dark')
+  // For example, automatically switch to business theme for Afrikaans
+  if (newLocale === 'af' && currentTheme.value === 'light') {
+    // Optionally auto-switch to business theme for Afrikaans
+    // changeTheme('business')
   }
 })
 
@@ -142,7 +140,7 @@ watch(currentLocale, (newLocale) => {
 watch(
   () => theme.current.value.dark,
   (isDark) => {
-    currentTheme.value = isDark ? 'community-security-dark' : 'community-security'
+    currentTheme.value = isDark ? 'business' : 'light'
   },
 )
 </script>

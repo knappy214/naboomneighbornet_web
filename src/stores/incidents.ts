@@ -6,12 +6,7 @@ import {
   fetchWaypoints,
   resolveIncident,
 } from '@/services/panic'
-import type {
-  Incident,
-  IncidentFilters,
-  IncidentStatus,
-  Waypoint,
-} from '@/types/panic'
+import type { Incident, IncidentFilters, IncidentStatus, Waypoint } from '@/types/panic.d'
 
 interface FetchOptions {
   silent?: boolean
@@ -93,7 +88,16 @@ export const useIncidentStore = defineStore('incident-store', () => {
     if (!selectedIncidentId.value) {
       return null
     }
-    return incidents.value.find((incident) => incident.id === selectedIncidentId.value) ?? null
+    // First try to find in filtered incidents (for UI consistency)
+    let incident = filteredIncidents.value.find(
+      (incident) => incident.id === selectedIncidentId.value,
+    )
+    // If not found in filtered, look in all incidents (in case it was filtered out)
+    if (!incident) {
+      incident =
+        incidents.value.find((incident) => incident.id === selectedIncidentId.value) ?? null
+    }
+    return incident
   })
 
   const activeStatuses = computed(() => new Set(filters.statuses))

@@ -15,6 +15,7 @@
     "safenaboom": "SafeNaboom",
     "storeDemo": "Stoor Demo",
     "monitor": "Paniek Monitor",
+    "panicDashboard": "Paniek Dashboard",
     "profile": "Profiel"
   },
   "auth": {
@@ -255,7 +256,10 @@
     "streamLost": "Stroom onderbreek",
     "patrolAlertTitle": "Patrollie alarm",
     "patrolAlertBodyWithResponder": "{name} het 'n paniek naby {location} geaktiveer",
-    "patrolAlertBody": "Paniek geaktiveer naby {location}"
+    "patrolAlertBody": "Paniek geaktiveer naby {location}",
+    "map": {
+      "title": "Voorval Monitering Kaart"
+    }
   },
   "common": {
     "loading": "Laai...",
@@ -263,7 +267,79 @@
     "cancel": "Kanselleer",
     "retry": "Probeer Weer",
     "error": "Fout",
-    "success": "Sukses"
+    "success": "Sukses",
+    "refresh": "Verfris",
+    "select": "Kies"
+  },
+  "panic": {
+    "dashboard": {
+      "title": "Paniek Bestuur Dashboard",
+      "subtitle": "Omvattende voorval monitering, voertuig nasporing, en responder bestuur"
+    },
+    "monitoring": {
+      "title": "Werkstyd Monitering"
+    },
+    "submit": {
+      "title": "Dien Nuwe Voorval In",
+      "description": "Beskrywing",
+      "descriptionPlaceholder": "Beskryf die voorval...",
+      "priority": "Prioriteit",
+      "location": "Ligging",
+      "locationPlaceholder": "Voer ligging of adres in...",
+      "province": "Provinsie",
+      "submit": "Dien Voorval In"
+    }
+  },
+  "incidents": {
+    "open": "Oop",
+    "acknowledged": "Erken",
+    "resolved": "Opgelos",
+    "priority": {
+      "low": "Laag",
+      "medium": "Medium",
+      "high": "Hoog",
+      "critical": "Kritiek"
+    }
+  },
+  "vehicles": {
+    "title": "Voertuig Nasporing",
+    "total": "Totale Voertuie",
+    "active": "Aktief",
+    "withPosition": "Met Posisie",
+    "show": "Wys Voertuie",
+    "hide": "Versteek Voertuie",
+    "showTracks": "Wys Spore",
+    "hideTracks": "Versteek Spore",
+    "showMap": "Wys Kaart",
+    "hideMap": "Versteek Kaart",
+    "allVehicles": "Alle Voertuie",
+    "map": {
+      "title": "Voertuig Nasporing Kaart"
+    }
+  },
+  "responders": {
+    "title": "Responders",
+    "total": "Totaal",
+    "active": "Aktief",
+    "provinces": "Provinsies",
+    "allProvinces": "Alle Provinsies"
+  },
+  "provinces": {
+    "easternCape": "Oos-Kaap",
+    "freeState": "Vrystaat",
+    "gauteng": "Gauteng",
+    "kwazuluNatal": "KwaZulu-Natal",
+    "limpopo": "Limpopo",
+    "mpumalanga": "Mpumalanga",
+    "northernCape": "Noord-Kaap",
+    "northWest": "Noordwes",
+    "westernCape": "Wes-Kaap"
+  },
+  "patrolAlerts": {
+    "title": "Patrollie Alarms",
+    "open": "Oop",
+    "acknowledged": "Erken",
+    "resolved": "Opgelos"
   },
   "validation": {
     "required": "Hierdie veld is verpligtend",

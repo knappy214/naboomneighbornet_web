@@ -2,9 +2,8 @@
 import { ref, onMounted } from 'vue'
 
 const themes = [
-  { name: 'community-security', label: 'Agricultural Light', icon: '🌾' },
-  { name: 'community-security-dark', label: 'Agricultural Dark', icon: '🌙' },
-  { name: 'light', label: 'DaisyUI Light', icon: '💡' },
+  { name: 'light', label: 'Light', icon: '💡' },
+  { name: 'business', label: 'Business', icon: '🏢' },
 ]
 
 const currentThemeIndex = ref(0)

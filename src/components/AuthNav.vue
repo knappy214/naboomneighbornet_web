@@ -39,6 +39,18 @@ const logout = () => {
           </router-link>
         </li>
         <li>
+          <router-link :to="getLocalizedPath('/monitor')" class="btn btn-ghost">
+            <span class="text-lg">🚨</span>
+            Monitor
+          </router-link>
+        </li>
+        <li>
+          <router-link :to="getLocalizedPath('/panic-dashboard')" class="btn btn-ghost">
+            <span class="text-lg">📊</span>
+            Panic Dashboard
+          </router-link>
+        </li>
+        <li>
           <router-link :to="getLocalizedPath('/profile')" class="btn btn-ghost">
             <span class="text-lg">👤</span>
             Profile
@@ -68,6 +80,18 @@ const logout = () => {
             <router-link :to="getLocalizedPath('/dashboard')" class="flex items-center gap-2">
               <span class="text-lg">🏠</span>
               <span>Dashboard</span>
+            </router-link>
+          </li>
+          <li>
+            <router-link :to="getLocalizedPath('/monitor')" class="flex items-center gap-2">
+              <span class="text-lg">🚨</span>
+              <span>Monitor</span>
+            </router-link>
+          </li>
+          <li>
+            <router-link :to="getLocalizedPath('/panic-dashboard')" class="flex items-center gap-2">
+              <span class="text-lg">📊</span>
+              <span>Panic Dashboard</span>
             </router-link>
           </li>
           <li>

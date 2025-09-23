@@ -274,7 +274,7 @@ onMounted(() => {
 
 pre {
   font-size: 0.8em;
-  background: rgba(0, 0, 0, 0.05);
+  background: hsl(var(--b3) / 0.05);
   padding: 8px;
   border-radius: 4px;
   overflow-x: auto;

@@ -31,6 +31,14 @@
         :active="isRoute('/monitor')"
       />
 
+      <v-list-item
+        :prepend-icon="'mdi-view-dashboard-variant'"
+        :title="t('app.panicDashboard')"
+        :value="'panic-dashboard'"
+        :to="getLocalizedPath('/panic-dashboard')"
+        :active="isRoute('/panic-dashboard')"
+      />
+
       <!-- Demo Pages -->
       <v-list-item
         :prepend-icon="'mdi-translate'"
@@ -111,10 +119,10 @@
             size="small"
             density="compact"
           >
-            <v-btn value="community-security" size="small">
+            <v-btn value="light" size="small">
               <v-icon size="small">mdi-weather-sunny</v-icon>
             </v-btn>
-            <v-btn value="community-security-dark" size="small">
+            <v-btn value="business" size="small">
               <v-icon size="small">mdi-weather-night</v-icon>
             </v-btn>
           </v-btn-toggle>
@@ -171,9 +179,7 @@ const supportedLocales = getSupportedLocales()
 
 const isAuthenticated = computed(() => authStore.accessToken && authStore.accessToken.length > 0)
 
-const currentTheme = ref(
-  theme.current.value.dark ? 'community-security-dark' : 'community-security',
-)
+const currentTheme = ref(theme.current.value.dark ? 'business' : 'light')
 
 const currentLocaleIcon = computed(() => {
   const localeInfo = supportedLocales.find((l) => l.code === currentLocale.value)
@@ -202,7 +208,7 @@ const handleLogout = () => {
 watch(
   () => theme.current.value.dark,
   (isDark) => {
-    currentTheme.value = isDark ? 'community-security-dark' : 'community-security'
+    currentTheme.value = isDark ? 'business' : 'light'
   },
 )
 </script>
