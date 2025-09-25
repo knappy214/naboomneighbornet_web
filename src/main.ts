@@ -7,6 +7,8 @@ import { i18n } from './plugins/i18n'
 import { vuetify } from './plugins/vuetify'
 import { useI18nStore } from './stores/i18n'
 import { useCacheStore } from './stores/cache'
+import { usePrefsStore } from './stores/hub/prefs'
+import { piniaPluginPersistedstate } from './plugins/persistedState'
 // Import auth debugging utilities
 import './utils/authDebug'
 // COMMENTED OUT: Data stores - only auth APIs are available for now
@@ -18,10 +20,13 @@ import './utils/authDebug'
 //   useNeighborsStore,
 // } from './stores/data'
 
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
+
 const app = createApp(App)
 
 // Register plugins in correct order
-app.use(createPinia())
+app.use(pinia)
 app.use(router)
 app.use(i18n)
 app.use(vuetify)
@@ -29,9 +34,10 @@ app.use(vuetify)
 // Initialize stores after pinia is installed
 const i18nStore = useI18nStore()
 const cacheStore = useCacheStore()
+const prefsStore = usePrefsStore()
 
 // Initialize stores
-Promise.all([i18nStore.initializeLocale(), cacheStore.initialize()])
+Promise.all([i18nStore.initializeLocale(), cacheStore.initialize(), prefsStore.initialize()])
   .then(async () => {
     // COMMENTED OUT: Initialize data stores after i18n is ready
     // Only auth APIs are available for now
@@ -52,6 +58,16 @@ Promise.all([i18nStore.initializeLocale(), cacheStore.initialize()])
 
     // Mount the app
     app.mount('#app')
+
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js')
+        const { initializePush } = await import('./lib/push')
+        await initializePush(registration)
+      } catch (error) {
+        console.warn('Service worker registration failed', error)
+      }
+    }
   })
   .catch((error) => {
     console.error('Failed to initialize stores:', error)

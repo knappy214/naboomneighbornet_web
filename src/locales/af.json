@@ -210,6 +210,114 @@
       "strong": "Sterk"
     }
   },
+  "hub": {
+    "nav": {
+      "channels": "Gemeenskapsentrum",
+      "notifications": "Kennisgewings"
+    },
+    "pageTitle": "Gemeenskapsentrum-kanale",
+    "pageSubtitle": "Koördineer saam met jou bure in reële tyd.",
+    "actions": {
+      "refresh": "Verfris",
+      "viewThreads": "Maak drade oop",
+      "backToChannels": "Terug na kanale",
+      "backToChannel": "Terug na kanaal"
+    },
+    "channels": {
+      "title": "Kanale",
+      "members": "{count} lede",
+      "membersLabel": "Lede",
+      "unreadLabel": "Ongelees",
+      "activityLabel": "Laaste aktiwiteit",
+      "mutedLabel": "Stil status"
+    },
+    "threads": {
+      "title": "Drade",
+      "previewTitle": "Onlangse aktiwiteit",
+      "previewEmpty": "Geen onlangse bydraes in hierdie kanaal nie.",
+      "empty": "Geen drade nog nie. Begin die eerste gesprek!",
+      "count": "{count} drade",
+      "author": "Begin deur {name}",
+      "replies": "{count} antwoorde",
+      "byline": "Begin deur {author} • {time}",
+      "unknownTitle": "Naamlose draad",
+      "unknownAuthor": "Onbekende outeur",
+      "sideInfo": "Hou die gesprek konstruktief en op onderwerp.",
+      "tipRealtime": "Herlaai in reële tyd hou almal op hoogte.",
+      "tipSearch": "Gebruik soek om ou waarskuwings vinnig te vind.",
+      "tipNotifications": "Skakel stootkennisgewings aan vir vinniger reaksies."
+    },
+    "search": {
+      "label": "Soek drade",
+      "placeholder": "Soek volgens titel, outeur of sleutelwoord",
+      "clear": "Maak skoon",
+      "resultsSummary": "Wys {count} van {total} resultate",
+      "rank": "Rang {rank}"
+    },
+    "posts": {
+      "count": "{count} antwoorde",
+      "optimistic": "Stuur tans…",
+      "empty": "Geen antwoorde nog nie. Voeg jou stem eerste by."
+    },
+    "composer": {
+      "label": "Antwoord",
+      "placeholder": "Deel 'n opdatering met jou bure…",
+      "hint": "Markdown word ondersteun. Druk Ctrl+Enter om te stuur.",
+      "clear": "Maak skoon",
+      "post": "Antwoord",
+      "errorTitle": "Boodskap nie gestuur nie",
+      "errorBody": "Ons kon nie jou antwoord lewer nie. Probeer asseblief weer."
+    },
+    "notifications": {
+      "title": "Stootkennisgewings",
+      "description": "Aktiveer onmiddellike waarskuwings vir nuwe plasings en verwysings.",
+      "status": "Status",
+      "permission": "Toestemming",
+      "lastChecked": "Laas nagegaan",
+      "on": "Geaktiveer",
+      "off": "Gedeaktiveer",
+      "permissionGranted": "Toegelaat",
+      "permissionDenied": "Geblokkeer",
+      "permissionPrompt": "Tik om te aktiveer",
+      "unsupported": "Nie ondersteun nie",
+      "blocked": "Stoot geblokkeer",
+      "active": "Aktief",
+      "inactive": "Onaktief",
+      "never": "Nog nooit",
+      "pageTitle": "Kennisgewingvoorkeure",
+      "pageSubtitle": "Beheer hoe die sentrum jou bereik.",
+      "pushTitle": "Webstoot",
+      "pushDescription": "Stoot hou jou blaaier in sinchronisasie met kritieke waarskuwings.",
+      "pushTip1": "Laat kennisgewings toe in jou blaaier wanneer gevra word.",
+      "pushTip2": "Voeg NeighborNet by jou tuisskerm vir vinniger toegang.",
+      "pushTip3": "Demper kanale wat nie onmiddellike opdaterings benodig nie.",
+      "emailTitle": "E-pos opsommings",
+      "emailDescription": "Daaglikse e-pos hou jou op hoogte.",
+      "emailDaily": "Daaglikse opsomming",
+      "emailSecurity": "Sekuriteitswaarskuwings"
+    },
+    "push": {
+      "enabled": "Stoot geaktiveer",
+      "blocked": "Stoot geblokkeer",
+      "pending": "Wag op toestemming",
+      "unsupported": "Stoot onbeskikbaar"
+    },
+    "status": {
+      "online": "Aanlyn",
+      "connecting": "Koppel",
+      "reconnecting": "Her-koppel",
+      "offline": "Vanlyn",
+      "muted": "Stil",
+      "active": "Aktief"
+    },
+    "time": {
+      "now": "Pas nou",
+      "minutes": "{count} min gelede",
+      "hours": "{count} u gelede",
+      "days": "{count} d gelede",
+      "unknown": "Onbekend"
+    }
+  },
   "monitor": {
     "title": "Paniek Monitor",
     "refresh": "Verfris",

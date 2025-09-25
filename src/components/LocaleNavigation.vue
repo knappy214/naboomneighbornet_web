@@ -39,6 +39,14 @@
         :active="isRoute('/panic-dashboard')"
       />
 
+      <v-list-item
+        :prepend-icon="'mdi-forum'"
+        :title="t('hub.nav.channels')"
+        :value="'channels'"
+        :to="getLocalizedPath('/channels')"
+        :active="isRoute('/channels')"
+      />
+
       <!-- Demo Pages -->
       <v-list-item
         :prepend-icon="'mdi-translate'"
@@ -139,6 +147,13 @@
           :value="'logout'"
           @click="handleLogout"
         />
+        <v-list-item
+          :prepend-icon="'mdi-bell-ring'"
+          :title="t('hub.nav.notifications')"
+          :value="'notification-settings'"
+          :to="getLocalizedPath('/settings/notifications')"
+          :active="isRoute('/settings/notifications')"
+        />
       </template>
       <template v-else>
         <v-list-item
@@ -166,9 +181,9 @@ import { useI18n } from 'vue-i18n'
 import { useTheme } from 'vuetify'
 import { useAuthStore } from '@/stores/auth'
 import { useLocaleRouter } from '@/composables/useLocaleRouter'
-import { getSupportedLocales, type AppLocale } from '@/utils/localeDetection'
+import { getSupportedLocales } from '@/utils/localeDetection'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const theme = useTheme()
 const authStore = useAuthStore()
 const { currentLocale, switchLocale, getLocalizedPath, isRoute, goToLogin } = useLocaleRouter()

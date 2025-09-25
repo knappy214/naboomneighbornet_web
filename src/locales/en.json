@@ -210,6 +210,114 @@
       "strong": "Strong"
     }
   },
+  "hub": {
+    "nav": {
+      "channels": "Community Hub",
+      "notifications": "Notifications"
+    },
+    "pageTitle": "Community Hub Channels",
+    "pageSubtitle": "Coordinate with your neighbours in real time.",
+    "actions": {
+      "refresh": "Refresh",
+      "viewThreads": "Open threads",
+      "backToChannels": "Back to channels",
+      "backToChannel": "Back to channel"
+    },
+    "channels": {
+      "title": "Channels",
+      "members": "{count} members",
+      "membersLabel": "Members",
+      "unreadLabel": "Unread",
+      "activityLabel": "Last activity",
+      "mutedLabel": "Mute status"
+    },
+    "threads": {
+      "title": "Threads",
+      "previewTitle": "Latest activity",
+      "previewEmpty": "No recent updates in this channel.",
+      "empty": "No threads yet. Start the first conversation!",
+      "count": "{count} threads",
+      "author": "Started by {name}",
+      "replies": "{count} replies",
+      "byline": "Started by {author} • {time}",
+      "unknownTitle": "Untitled thread",
+      "unknownAuthor": "Unknown author",
+      "sideInfo": "Keep the conversation constructive and on topic.",
+      "tipRealtime": "Realtime updates keep everyone aligned.",
+      "tipSearch": "Use search to find historic alerts quickly.",
+      "tipNotifications": "Enable push notifications to react faster."
+    },
+    "search": {
+      "label": "Search threads",
+      "placeholder": "Search by title, author or keyword",
+      "clear": "Clear",
+      "resultsSummary": "Showing {count} of {total} results",
+      "rank": "Rank {rank}"
+    },
+    "posts": {
+      "count": "{count} replies",
+      "optimistic": "Sending…",
+      "empty": "No replies yet. Be the first to add your voice."
+    },
+    "composer": {
+      "label": "Reply",
+      "placeholder": "Share an update with your neighbours…",
+      "hint": "Markdown is supported. Press Ctrl+Enter to send.",
+      "clear": "Clear",
+      "post": "Reply",
+      "errorTitle": "Message not sent",
+      "errorBody": "We could not deliver your reply. Please try again."
+    },
+    "notifications": {
+      "title": "Push notifications",
+      "description": "Enable real-time alerts for new posts and mentions.",
+      "status": "Status",
+      "permission": "Permission",
+      "lastChecked": "Last checked",
+      "on": "Enabled",
+      "off": "Disabled",
+      "permissionGranted": "Allowed",
+      "permissionDenied": "Blocked",
+      "permissionPrompt": "Tap to enable",
+      "unsupported": "Not supported",
+      "blocked": "Push blocked",
+      "active": "Active",
+      "inactive": "Inactive",
+      "never": "Never",
+      "pageTitle": "Notification preferences",
+      "pageSubtitle": "Control how the hub reaches you.",
+      "pushTitle": "Web push",
+      "pushDescription": "Push keeps your browser in sync with critical alerts.",
+      "pushTip1": "Allow notifications in your browser when prompted.",
+      "pushTip2": "Add NeighborNet to your home screen for quicker access.",
+      "pushTip3": "Mute channels you do not need immediate updates from.",
+      "emailTitle": "Email summaries",
+      "emailDescription": "Email digests are sent daily to keep you in the loop.",
+      "emailDaily": "Daily digest",
+      "emailSecurity": "Security alerts"
+    },
+    "push": {
+      "enabled": "Push enabled",
+      "blocked": "Push blocked",
+      "pending": "Awaiting permission",
+      "unsupported": "Push unavailable"
+    },
+    "status": {
+      "online": "Online",
+      "connecting": "Connecting",
+      "reconnecting": "Reconnecting",
+      "offline": "Offline",
+      "muted": "Muted",
+      "active": "Active"
+    },
+    "time": {
+      "now": "Just now",
+      "minutes": "{count} min ago",
+      "hours": "{count} hr ago",
+      "days": "{count} d ago",
+      "unknown": "Unknown"
+    }
+  },
   "monitor": {
     "title": "Panic Monitor",
     "refresh": "Refresh",
