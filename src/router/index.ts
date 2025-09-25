@@ -31,6 +31,10 @@ const Monitor = () => import('@/pages/Monitor.vue')
 const PanicDashboard = () => import('@/pages/PanicDashboard.vue')
 const StoreDemo = () => import('@/components/StoreDemo.vue')
 const Profile = () => import('@/pages/Profile.vue')
+const ChannelsHub = () => import('@/pages/hub/Channels.vue')
+const ChannelThreads = () => import('@/pages/hub/ChannelThreads.vue')
+const ThreadView = () => import('@/pages/hub/ThreadView.vue')
+const NotificationSettings = () => import('@/pages/hub/NotificationSettings.vue')
 
 // Generate locale-prefixed routes
 const createLocaleRoutes = (): RouteRecordRaw[] => {
@@ -138,6 +142,50 @@ const createLocaleRoutes = (): RouteRecordRaw[] => {
             locale,
             title: 'SafeNaboom',
             description: 'Agricultural community security platform',
+          },
+        },
+        {
+          path: 'channels',
+          name: `channels-${locale}`,
+          component: ChannelsHub,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Channels',
+            description: 'Browse Community Hub channels',
+          },
+        },
+        {
+          path: 'channels/:id',
+          name: `channel-threads-${locale}`,
+          component: ChannelThreads,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Channel Threads',
+            description: 'Explore discussions within a channel',
+          },
+        },
+        {
+          path: 'threads/:id',
+          name: `thread-view-${locale}`,
+          component: ThreadView,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Thread View',
+            description: 'Read and reply to community discussions',
+          },
+        },
+        {
+          path: 'settings/notifications',
+          name: `notification-settings-${locale}`,
+          component: NotificationSettings,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Notification Settings',
+            description: 'Configure hub notifications and push alerts',
           },
         },
         {

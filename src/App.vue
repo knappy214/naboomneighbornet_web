@@ -16,13 +16,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
 import LocaleNavigation from '@/components/LocaleNavigation.vue'
 import ToastHost from '@/components/ToastHost.vue'
 import { detectLocale } from '@/utils/localeDetection'
 
 const { locale } = useI18n()
-const route = useRoute()
 
 onMounted(() => {
   // Detect locale from URL or other sources
