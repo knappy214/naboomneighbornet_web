@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { fetchThreadPosts, createPost } from '@/services/hub'
+import * as communityHubAPI from '@/services/communityHub'
 import type { HubPost, HubRealtimeEvent, PostComposerPayload } from '@/types/hub'
 
 const normalizePost = (threadId: string, payload: Record<string, unknown>): HubPost => ({
@@ -26,7 +26,9 @@ export const usePostsStore = defineStore('hub-posts', {
       this.loadingMap[threadId] = true
       this.errorMap[threadId] = null
       try {
-        this.postsByThread[threadId] = await fetchThreadPosts(threadId)
+        this.postsByThread[threadId] = await communityHubAPI.getPosts({
+          thread: parseInt(threadId),
+        })
       } catch (error) {
         this.errorMap[threadId] = (error as Error).message
       } finally {
@@ -48,7 +50,10 @@ export const usePostsStore = defineStore('hub-posts', {
       this.postsByThread[threadId] = [...collection]
 
       try {
-        const saved = await createPost(threadId, payload)
+        const saved = await communityHubAPI.createPost({
+          content: payload.body,
+          thread: parseInt(threadId),
+        })
         this.replacePost(threadId, optimisticPost.id, saved)
       } catch (error) {
         this.errorMap[threadId] = (error as Error).message

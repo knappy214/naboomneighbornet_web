@@ -20,6 +20,7 @@
   },
   "auth": {
     "email": "Email",
+    "username": "Username",
     "password": "Password",
     "forgot": "Forgot password?",
     "haveAccount": "Have an account?",
@@ -213,7 +214,13 @@
   "hub": {
     "nav": {
       "channels": "Community Hub",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "events": "Events",
+      "alerts": "Alerts",
+      "reports": "Reports",
+      "joinRequests": "Join Requests",
+      "invites": "Invites",
+      "search": "Search"
     },
     "pageTitle": "Community Hub Channels",
     "pageSubtitle": "Coordinate with your neighbours in real time.",
@@ -247,7 +254,7 @@
       "tipSearch": "Use search to find historic alerts quickly.",
       "tipNotifications": "Enable push notifications to react faster."
     },
-    "search": {
+    "threadSearch": {
       "label": "Search threads",
       "placeholder": "Search by title, author or keyword",
       "clear": "Clear",
@@ -316,6 +323,155 @@
       "hours": "{count} hr ago",
       "days": "{count} d ago",
       "unknown": "Unknown"
+    },
+    "events": {
+      "pageTitle": "Community Events",
+      "pageSubtitle": "Join and manage community events",
+      "createEvent": "Create Event",
+      "upcomingEvents": "Upcoming Events",
+      "pastEvents": "Past Events",
+      "noUpcoming": "No upcoming events",
+      "noPast": "No past events",
+      "location": "Location",
+      "locationPlaceholder": "Enter event location",
+      "dateTime": "Date & Time",
+      "maxAttendees": "Max Attendees",
+      "optional": "Optional",
+      "create": "Create",
+      "rsvp": "RSVP",
+      "updateRsvp": "Update RSVP",
+      "yourStatus": "Your status",
+      "status": {
+        "attending": "Attending",
+        "maybe": "Maybe",
+        "not_attending": "Not Attending"
+      },
+      "past": "Past",
+      "soon": "Soon",
+      "today": "Today",
+      "upcoming": "Upcoming",
+      "maxAttendeesCount": "Max {count} attendees"
+    },
+    "alerts": {
+      "pageTitle": "Community Alerts",
+      "pageSubtitle": "Urgent notifications and safety alerts",
+      "createAlert": "Create Alert",
+      "recent": "Recent Alerts",
+      "noAlerts": "No alerts available",
+      "urgent": "URGENT",
+      "viewThread": "View Thread",
+      "content": "Alert Content",
+      "contentPlaceholder": "Enter urgent alert message",
+      "channel": "Channel",
+      "selectChannel": "Select a channel",
+      "thread": "Thread",
+      "noThread": "No specific thread",
+      "create": "Create Alert"
+    },
+    "reports": {
+      "pageTitle": "Content Reports",
+      "pageSubtitle": "Manage content moderation and reports",
+      "reports": "Reports",
+      "noReports": "No reports to review",
+      "filterBy": "Filter by",
+      "filters": {
+        "all": "All",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "channel": "Channel",
+      "thread": "Thread",
+      "post": "Post",
+      "approve": "Approve",
+      "reject": "Reject",
+      "viewContent": "View Content",
+      "reasons": {
+        "inappropriate_content": "Inappropriate Content",
+        "spam": "Spam",
+        "harassment": "Harassment",
+        "violence": "Violence",
+        "other": "Other"
+      }
+    },
+    "joinRequests": {
+      "pageTitle": "Join Requests",
+      "pageSubtitle": "Manage channel membership requests",
+      "requests": "Join Requests",
+      "noRequests": "No pending join requests",
+      "filterBy": "Filter by",
+      "filters": {
+        "all": "All",
+        "pending": "Pending",
+        "approved": "Approved",
+        "declined": "Declined"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "declined": "Declined"
+      },
+      "requestFrom": "Request from user {user}",
+      "channel": "Channel",
+      "approve": "Approve",
+      "decline": "Decline"
+    },
+    "invites": {
+      "pageTitle": "Channel Invites",
+      "pageSubtitle": "Send and manage channel invitations",
+      "sendInvite": "Send Invite",
+      "sentInvites": "Sent Invites",
+      "sendNew": "Send New Invite",
+      "noInvites": "No invites sent yet",
+      "clickToSend": "Click to send a new invitation",
+      "email": "Email Address",
+      "emailPlaceholder": "Enter email address",
+      "role": "Role",
+      "roles": {
+        "member": "Member",
+        "moderator": "Moderator",
+        "manager": "Manager"
+      },
+      "message": "Message",
+      "optional": "Optional",
+      "messagePlaceholder": "Optional welcome message",
+      "send": "Send Invite",
+      "status": {
+        "sent": "Sent"
+      }
+    },
+    "search": {
+      "pageTitle": "Search Community",
+      "pageSubtitle": "Find content across all channels",
+      "results": "Search Results",
+      "noResults": "No results found",
+      "filters": "Search Filters",
+      "channel": "Channel",
+      "allChannels": "All Channels",
+      "contentType": "Content Type",
+      "threads": "Threads",
+      "posts": "Posts",
+      "alerts": "Alerts",
+      "dateRange": "Date Range",
+      "from": "From",
+      "to": "To",
+      "author": "Author",
+      "authorPlaceholder": "Search by author",
+      "clearFilters": "Clear Filters",
+      "applyFilters": "Apply Filters",
+      "by": "by",
+      "view": "View",
+      "rank": "Rank: {rank}",
+      "types": {
+        "thread": "Thread",
+        "post": "Post",
+        "alert": "Alert"
+      }
     }
   },
   "monitor": {

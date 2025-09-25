@@ -9,7 +9,7 @@ const router = useRouter()
 const store = useAuthStore()
 const { t } = useI18n()
 
-const email = ref('')
+const username = ref('')
 const password = ref('')
 const error = ref('')
 const isLoading = ref(false)
@@ -20,7 +20,7 @@ async function submit() {
 
   try {
     await store.login({
-      username: email.value, // Use email as username for the API
+      username: username.value,
       password: password.value,
     })
     router.push('/')
@@ -88,14 +88,14 @@ async function submit() {
               <form @submit.prevent="submit" class="space-y-4">
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text font-medium">{{ t('auth.email') }}</span>
+                    <span class="label-text font-medium">{{ t('auth.username') }}</span>
                   </label>
                   <input
-                    v-model="email"
-                    type="email"
-                    :placeholder="t('auth.email')"
+                    v-model="username"
+                    type="text"
+                    :placeholder="t('auth.username')"
                     class="input input-bordered w-full focus:input-primary"
-                    autocomplete="email"
+                    autocomplete="username"
                     required
                   />
                 </div>

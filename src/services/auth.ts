@@ -22,7 +22,7 @@ export async function login(credentials: LoginCredentials): Promise<LoginRespons
   try {
     console.log('🔐 [AUTH] Attempting login for user:', credentials.username)
 
-    const response = await api.post<LoginResponse>('/auth/login/', {
+    const response = await api.post<LoginResponse>('../auth/jwt/create/', {
       username: credentials.username,
       password: credentials.password,
     })
@@ -48,7 +48,7 @@ export async function refreshToken(): Promise<RefreshResponse> {
   try {
     console.log('🔄 [AUTH] Refreshing token')
 
-    const response = await api.post<RefreshResponse>('/auth/jwt/refresh/', {
+    const response = await api.post<RefreshResponse>('../auth/jwt/refresh/', {
       refresh: authStore.refreshToken,
     })
 

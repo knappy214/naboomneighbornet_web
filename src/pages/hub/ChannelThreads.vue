@@ -17,7 +17,7 @@
       <div class="grow space-y-4">
         <div class="rounded-box border border-base-200 bg-base-100 p-4 shadow-sm">
           <label class="block text-sm font-semibold text-base-content" for="thread-search">
-            {{ t('hub.search.label') }}
+            {{ t('hub.threadSearch.label') }}
           </label>
           <div class="mt-2 flex items-center gap-2">
             <input
@@ -25,7 +25,7 @@
               v-model="search"
               type="search"
               class="input input-bordered w-full"
-              :placeholder="t('hub.search.placeholder')"
+              :placeholder="t('hub.threadSearch.placeholder')"
             />
             <button
               type="button"
@@ -33,12 +33,15 @@
               @click="clearSearch"
               :disabled="!search"
             >
-              {{ t('hub.search.clear') }}
+              {{ t('hub.threadSearch.clear') }}
             </button>
           </div>
           <p v-if="search" class="mt-2 text-xs text-base-content/60">
             {{
-              t('hub.search.resultsSummary', { count: searchResults.length, total: searchTotal })
+              t('hub.threadSearch.resultsSummary', {
+                count: searchResults.length,
+                total: searchTotal,
+              })
             }}
           </p>
         </div>

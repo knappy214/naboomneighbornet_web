@@ -1,6 +1,32 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '@/lib/api'
+import { getAbsoluteAvatarUrl, getAbsoluteAvatarUrls } from '@/utils/avatarUrl'
+
+// Helper function to safely extract error message from unknown error
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (err && typeof err === 'object') {
+    const errorObj = err as Record<string, unknown>
+
+    // Check for axios error response
+    if (errorObj.response && typeof errorObj.response === 'object') {
+      const response = errorObj.response as Record<string, unknown>
+      if (response.data && typeof response.data === 'object') {
+        const data = response.data as Record<string, unknown>
+        if (typeof data.detail === 'string') {
+          return data.detail
+        }
+      }
+    }
+
+    // Check for direct message property
+    if (typeof errorObj.message === 'string') {
+      return errorObj.message
+    }
+  }
+
+  return fallback
+}
 
 // Types based on the API documentation
 export interface UserProfile {
@@ -76,7 +102,7 @@ export interface UserRole {
   id: number
   name: string
   description: string
-  permissions: Record<string, any>
+  permissions: Record<string, unknown>
   is_active: boolean
   created_at: string
   updated_at: string
@@ -179,10 +205,16 @@ export const useProfileStore = defineStore('profile', () => {
           }
         }
         if (profileData.avatar_info) {
-          avatarInfo.value = profileData.avatar_info
+          // Convert avatar URLs to absolute URLs
+          avatarInfo.value = {
+            ...profileData.avatar_info,
+            avatar: profileData.avatar_info.avatar
+              ? getAbsoluteAvatarUrls(profileData.avatar_info.avatar)
+              : undefined,
+          }
           // Set avatar_url on profile for easy access
           if (profile.value) {
-            profile.value.avatar_url = profileData.avatar_info.avatar?.url
+            profile.value.avatar_url = getAbsoluteAvatarUrl(profileData.avatar_info.avatar?.url)
           }
         }
       } else {
@@ -205,18 +237,24 @@ export const useProfileStore = defineStore('profile', () => {
           }
         }
         if (response.data.avatar_info) {
-          avatarInfo.value = response.data.avatar_info
+          // Convert avatar URLs to absolute URLs
+          avatarInfo.value = {
+            ...response.data.avatar_info,
+            avatar: response.data.avatar_info.avatar
+              ? getAbsoluteAvatarUrls(response.data.avatar_info.avatar)
+              : undefined,
+          }
           // Set avatar_url on profile for easy access
           if (profile.value) {
-            profile.value.avatar_url = response.data.avatar_info.avatar?.url
+            profile.value.avatar_url = getAbsoluteAvatarUrl(response.data.avatar_info.avatar?.url)
           }
         }
       }
 
       return profile.value
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Profile fetch error:', err)
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to fetch profile'
+      const errorMessage = getErrorMessage(err, 'Failed to fetch profile')
       setError(errorMessage)
       throw err
     } finally {
@@ -232,18 +270,23 @@ export const useProfileStore = defineStore('profile', () => {
       let response
       try {
         response = await api.put('/user-profiles/', data)
-      } catch (putError: any) {
-        if (putError.response?.status === 405) {
-          // If PUT is not allowed, try POST
-          response = await api.post('/user-profiles/update/', data)
+      } catch (putError: unknown) {
+        if (putError && typeof putError === 'object' && 'response' in putError) {
+          const errorObj = putError as { response?: { status?: number } }
+          if (errorObj.response?.status === 405) {
+            // If PUT is not allowed, try POST
+            response = await api.post('/user-profiles/update/', data)
+          } else {
+            throw putError
+          }
         } else {
           throw putError
         }
       }
       profile.value = response.data
       return response.data
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to update profile'
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to update profile')
       setError(errorMessage)
       throw err
     } finally {
@@ -263,10 +306,15 @@ export const useProfileStore = defineStore('profile', () => {
       let response
       try {
         response = await api.put('/user-profiles/', data)
-      } catch (putError: any) {
-        if (putError.response?.status === 405) {
-          // If PUT is not allowed, try POST
-          response = await api.post('/user-profiles/update/', data)
+      } catch (putError: unknown) {
+        if (putError && typeof putError === 'object' && 'response' in putError) {
+          const errorObj = putError as { response?: { status?: number } }
+          if (errorObj.response?.status === 405) {
+            // If PUT is not allowed, try POST
+            response = await api.post('/user-profiles/update/', data)
+          } else {
+            throw putError
+          }
         } else {
           throw putError
         }
@@ -277,9 +325,8 @@ export const useProfileStore = defineStore('profile', () => {
         profile.value.email = response.data.email
       }
       return response.data
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.detail || err.message || 'Failed to update basic info'
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to update basic info')
       setError(errorMessage)
       throw err
     } finally {
@@ -297,8 +344,8 @@ export const useProfileStore = defineStore('profile', () => {
       clearError()
       const response = await api.post('/user-profile/change-password/', data)
       return response.data
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to change password'
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to change password')
       setError(errorMessage)
       throw err
     } finally {
@@ -323,8 +370,8 @@ export const useProfileStore = defineStore('profile', () => {
       // Handle Wagtail API v2 format - extract items array
       groups.value = response.data.items || response.data
       return groups.value
-    } catch (err: any) {
-      console.warn('Groups endpoint not available:', err.response?.status, err.message)
+    } catch (err: unknown) {
+      console.warn('Groups endpoint not available:', err)
       // Set empty groups array as fallback
       groups.value = []
       // Don't set error or throw - this is optional data
@@ -343,8 +390,8 @@ export const useProfileStore = defineStore('profile', () => {
       // Handle Wagtail API v2 format - extract items array
       roles.value = response.data.items || response.data
       return roles.value
-    } catch (err: any) {
-      console.warn('Roles endpoint not available:', err.response?.status, err.message)
+    } catch (err: unknown) {
+      console.warn('Roles endpoint not available:', err)
       // Set empty roles array as fallback
       roles.value = []
       // Don't set error or throw - this is optional data
@@ -365,8 +412,8 @@ export const useProfileStore = defineStore('profile', () => {
         profile.value.group_memberships = response.data
       }
       return response.data
-    } catch (err: any) {
-      console.warn('Group memberships endpoint not available:', err.response?.status, err.message)
+    } catch (err: unknown) {
+      console.warn('Group memberships endpoint not available:', err)
       return []
     } finally {
       setLoading(false)
@@ -381,9 +428,8 @@ export const useProfileStore = defineStore('profile', () => {
       // Refresh group memberships
       await fetchGroupMemberships()
       return response.data
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.detail || err.message || 'Failed to create group membership'
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to create group membership')
       setError(errorMessage)
       throw err
     } finally {
@@ -399,9 +445,8 @@ export const useProfileStore = defineStore('profile', () => {
       // Refresh group memberships
       await fetchGroupMemberships()
       return response.data
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.detail || err.message || 'Failed to update group membership'
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to update group membership')
       setError(errorMessage)
       throw err
     } finally {
@@ -417,9 +462,8 @@ export const useProfileStore = defineStore('profile', () => {
       // Refresh group memberships
       await fetchGroupMemberships()
       return response.data
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.detail || err.message || 'Failed to delete group membership'
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to delete group membership')
       setError(errorMessage)
       throw err
     } finally {
@@ -436,8 +480,8 @@ export const useProfileStore = defineStore('profile', () => {
       // Refresh profile to get updated group memberships
       await fetchProfile()
       return response.data
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to join group'
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to join group')
       setError(errorMessage)
       throw err
     } finally {
@@ -454,8 +498,8 @@ export const useProfileStore = defineStore('profile', () => {
       // Refresh profile to get updated group memberships
       await fetchProfile()
       return response.data
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to leave group'
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to leave group')
       setError(errorMessage)
       throw err
     } finally {
@@ -481,8 +525,8 @@ export const useProfileStore = defineStore('profile', () => {
       // Refresh profile to get updated avatar info
       await fetchProfile()
       return response.data
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to upload avatar'
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to upload avatar')
       setError(errorMessage)
       throw err
     } finally {
@@ -500,8 +544,8 @@ export const useProfileStore = defineStore('profile', () => {
       // Refresh profile to get updated avatar info
       await fetchProfile()
       return response.data
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to delete avatar'
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to delete avatar')
       setError(errorMessage)
       throw err
     } finally {
@@ -528,9 +572,8 @@ export const useProfileStore = defineStore('profile', () => {
       // Refresh profile to get updated avatar info
       await fetchProfile()
       return response.data
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.detail || err.message || 'Failed to set existing avatar'
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Failed to set existing avatar')
       setError(errorMessage)
       throw err
     } finally {

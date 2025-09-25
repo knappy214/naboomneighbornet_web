@@ -154,6 +154,70 @@
           :to="getLocalizedPath('/settings/notifications')"
           :active="isRoute('/settings/notifications')"
         />
+
+        <!-- Community Hub Submenu -->
+        <v-list-group value="community-hub">
+          <template #activator="{ props }">
+            <v-list-item
+              v-bind="props"
+              :prepend-icon="'mdi-account-group'"
+              :title="t('hub.nav.channels')"
+            />
+          </template>
+
+          <v-list-item
+            :prepend-icon="'mdi-forum'"
+            :title="t('hub.nav.channels')"
+            :value="'channels'"
+            :to="getLocalizedPath('/channels')"
+            :active="isRoute('/channels')"
+          />
+          <v-list-item
+            :prepend-icon="'mdi-calendar'"
+            :title="t('hub.nav.events')"
+            :value="'events'"
+            :to="getLocalizedPath('/events')"
+            :active="isRoute('/events')"
+          />
+          <v-list-item
+            :prepend-icon="'mdi-alert'"
+            :title="t('hub.nav.alerts')"
+            :value="'alerts'"
+            :to="getLocalizedPath('/alerts')"
+            :active="isRoute('/alerts')"
+          />
+          <v-list-item
+            :prepend-icon="'mdi-magnify'"
+            :title="t('hub.nav.search')"
+            :value="'search'"
+            :to="getLocalizedPath('/search')"
+            :active="isRoute('/search')"
+          />
+
+          <!-- Moderation Tools (for moderators/managers) -->
+          <v-divider class="my-2" />
+          <v-list-item
+            :prepend-icon="'mdi-flag'"
+            :title="t('hub.nav.reports')"
+            :value="'reports'"
+            :to="getLocalizedPath('/reports')"
+            :active="isRoute('/reports')"
+          />
+          <v-list-item
+            :prepend-icon="'mdi-account-plus'"
+            :title="t('hub.nav.joinRequests')"
+            :value="'join-requests'"
+            :to="getLocalizedPath('/join-requests')"
+            :active="isRoute('/join-requests')"
+          />
+          <v-list-item
+            :prepend-icon="'mdi-email'"
+            :title="t('hub.nav.invites')"
+            :value="'invites'"
+            :to="getLocalizedPath('/invites')"
+            :active="isRoute('/invites')"
+          />
+        </v-list-group>
       </template>
       <template v-else>
         <v-list-item

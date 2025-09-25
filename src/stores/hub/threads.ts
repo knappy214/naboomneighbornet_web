@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { fetchThreads, searchThreads } from '@/services/hub'
+import * as communityHubAPI from '@/services/communityHub'
 import type { HubThread, HubRealtimeEvent } from '@/types/hub'
 
 const normalizeThread = (channelId: string, payload: Record<string, unknown>): HubThread => ({
@@ -46,7 +46,7 @@ export const useThreadsStore = defineStore('hub-threads', {
     async loadThreads(channelId: string) {
       this.loading = true
       try {
-        const threads = await fetchThreads(channelId)
+        const threads = await communityHubAPI.getThreads({ channel: parseInt(channelId) })
         this.threadsByChannel[channelId] = threads
       } finally {
         this.loading = false
@@ -70,9 +70,9 @@ export const useThreadsStore = defineStore('hub-threads', {
       this.searchLoading = true
 
       try {
-        const { results, total } = await searchThreads(channelId, query, controller.signal)
+        const results = await communityHubAPI.searchThreads(query, parseInt(channelId))
         this.searchResults[channelId] = results
-        this.searchTotals[channelId] = total
+        this.searchTotals[channelId] = results.length
         this.searchTerm = query
       } finally {
         if (this.controllers[channelId] === controller) {

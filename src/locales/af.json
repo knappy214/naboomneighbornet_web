@@ -20,6 +20,7 @@
   },
   "auth": {
     "email": "E-pos",
+    "username": "Gebruikersnaam",
     "password": "Wagwoord",
     "forgot": "Wagwoord vergeet?",
     "haveAccount": "Het jy 'n rekening?",
@@ -247,7 +248,7 @@
       "tipSearch": "Gebruik soek om ou waarskuwings vinnig te vind.",
       "tipNotifications": "Skakel stootkennisgewings aan vir vinniger reaksies."
     },
-    "search": {
+    "threadSearch": {
       "label": "Soek drade",
       "placeholder": "Soek volgens titel, outeur of sleutelwoord",
       "clear": "Maak skoon",
@@ -316,6 +317,155 @@
       "hours": "{count} u gelede",
       "days": "{count} d gelede",
       "unknown": "Onbekend"
+    },
+    "events": {
+      "pageTitle": "Gemeenskapsgeleenthede",
+      "pageSubtitle": "Sluit aan by en bestuur gemeenskapsgeleenthede",
+      "createEvent": "Skep Geleentheid",
+      "upcomingEvents": "Kommende Geleenthede",
+      "pastEvents": "Vorige Geleenthede",
+      "noUpcoming": "Geen komende geleenthede nie",
+      "noPast": "Geen vorige geleenthede nie",
+      "location": "Ligging",
+      "locationPlaceholder": "Voer geleentheidsligging in",
+      "dateTime": "Datum & Tyd",
+      "maxAttendees": "Maks Deelnemers",
+      "optional": "Opsioneel",
+      "create": "Skep",
+      "rsvp": "RSVP",
+      "updateRsvp": "Opdateer RSVP",
+      "yourStatus": "Jou status",
+      "status": {
+        "attending": "Woon by",
+        "maybe": "Miskien",
+        "not_attending": "Woon nie by nie"
+      },
+      "past": "Verlede",
+      "soon": "Binnekort",
+      "today": "Vandag",
+      "upcoming": "Kommend",
+      "maxAttendeesCount": "Maks {count} deelnemers"
+    },
+    "alerts": {
+      "pageTitle": "Gemeenskapskennisgewings",
+      "pageSubtitle": "Dringende kennisgewings en veiligheidskennisgewings",
+      "createAlert": "Skep Kennisgewing",
+      "recent": "Onlangse Kennisgewings",
+      "noAlerts": "Geen kennisgewings beskikbaar nie",
+      "urgent": "DRINGEND",
+      "viewThread": "Bekyk Draad",
+      "content": "Kennisgewing Inhoud",
+      "contentPlaceholder": "Voer dringende kennisgewing boodskap in",
+      "channel": "Kanaal",
+      "selectChannel": "Kies 'n kanaal",
+      "thread": "Draad",
+      "noThread": "Geen spesifieke draad nie",
+      "create": "Skep Kennisgewing"
+    },
+    "reports": {
+      "pageTitle": "Inhoud Verslae",
+      "pageSubtitle": "Bestuur inhoud moderering en verslae",
+      "reports": "Verslae",
+      "noReports": "Geen verslae om te hersien nie",
+      "filterBy": "Filtreer volgens",
+      "filters": {
+        "all": "Alles",
+        "pending": "Hangend",
+        "approved": "Goedgekeur",
+        "rejected": "Afgekeur"
+      },
+      "status": {
+        "pending": "Hangend",
+        "approved": "Goedgekeur",
+        "rejected": "Afgekeur"
+      },
+      "channel": "Kanaal",
+      "thread": "Draad",
+      "post": "Pos",
+      "approve": "Keur goed",
+      "reject": "Keur af",
+      "viewContent": "Bekyk Inhoud",
+      "reasons": {
+        "inappropriate_content": "Ongepaste Inhoud",
+        "spam": "Spam",
+        "harassment": "Teistering",
+        "violence": "Geweld",
+        "other": "Ander"
+      }
+    },
+    "joinRequests": {
+      "pageTitle": "Aansluit Versoeke",
+      "pageSubtitle": "Bestuur kanaal lidmaatskap versoeke",
+      "requests": "Aansluit Versoeke",
+      "noRequests": "Geen hangende aansluit versoeke nie",
+      "filterBy": "Filtreer volgens",
+      "filters": {
+        "all": "Alles",
+        "pending": "Hangend",
+        "approved": "Goedgekeur",
+        "declined": "Afgekeur"
+      },
+      "status": {
+        "pending": "Hangend",
+        "approved": "Goedgekeur",
+        "declined": "Afgekeur"
+      },
+      "requestFrom": "Versoek van gebruiker {user}",
+      "channel": "Kanaal",
+      "approve": "Keur goed",
+      "decline": "Keur af"
+    },
+    "invites": {
+      "pageTitle": "Kanaal Uitnodigings",
+      "pageSubtitle": "Stuur en bestuur kanaal uitnodigings",
+      "sendInvite": "Stuur Uitnodiging",
+      "sentInvites": "Gestuurde Uitnodigings",
+      "sendNew": "Stuur Nuwe Uitnodiging",
+      "noInvites": "Nog geen uitnodigings gestuur nie",
+      "clickToSend": "Klik om 'n nuwe uitnodiging te stuur",
+      "email": "E-pos Adres",
+      "emailPlaceholder": "Voer e-pos adres in",
+      "role": "Rol",
+      "roles": {
+        "member": "Lid",
+        "moderator": "Moderator",
+        "manager": "Bestuurder"
+      },
+      "message": "Boodskap",
+      "optional": "Opsioneel",
+      "messagePlaceholder": "Opsionele welkoms boodskap",
+      "send": "Stuur Uitnodiging",
+      "status": {
+        "sent": "Gestuur"
+      }
+    },
+    "search": {
+      "pageTitle": "Soek Gemeenskap",
+      "pageSubtitle": "Vind inhoud oor alle kanale",
+      "results": "Soek Resultate",
+      "noResults": "Geen resultate gevind nie",
+      "filters": "Soek Filters",
+      "channel": "Kanaal",
+      "allChannels": "Alle Kanale",
+      "contentType": "Inhoud Tipe",
+      "threads": "Drade",
+      "posts": "Posis",
+      "alerts": "Kennisgewings",
+      "dateRange": "Datum Reeks",
+      "from": "Van",
+      "to": "Tot",
+      "author": "Outeur",
+      "authorPlaceholder": "Soek volgens outeur",
+      "clearFilters": "Maak Filters Skoon",
+      "applyFilters": "Pas Filters Toe",
+      "by": "deur",
+      "view": "Bekyk",
+      "rank": "Rang: {rank}",
+      "types": {
+        "thread": "Draad",
+        "post": "Pos",
+        "alert": "Kennisgewing"
+      }
     }
   },
   "monitor": {

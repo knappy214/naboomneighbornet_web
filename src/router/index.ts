@@ -35,6 +35,12 @@ const ChannelsHub = () => import('@/pages/hub/Channels.vue')
 const ChannelThreads = () => import('@/pages/hub/ChannelThreads.vue')
 const ThreadView = () => import('@/pages/hub/ThreadView.vue')
 const NotificationSettings = () => import('@/pages/hub/NotificationSettings.vue')
+const Events = () => import('@/pages/hub/Events.vue')
+const Alerts = () => import('@/pages/hub/Alerts.vue')
+const Reports = () => import('@/pages/hub/Reports.vue')
+const JoinRequests = () => import('@/pages/hub/JoinRequests.vue')
+const Invites = () => import('@/pages/hub/Invites.vue')
+const Search = () => import('@/pages/hub/Search.vue')
 
 // Generate locale-prefixed routes
 const createLocaleRoutes = (): RouteRecordRaw[] => {
@@ -186,6 +192,72 @@ const createLocaleRoutes = (): RouteRecordRaw[] => {
             locale,
             title: 'Notification Settings',
             description: 'Configure hub notifications and push alerts',
+          },
+        },
+        {
+          path: 'events',
+          name: `events-${locale}`,
+          component: Events,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Events',
+            description: 'Community events and RSVP management',
+          },
+        },
+        {
+          path: 'alerts',
+          name: `alerts-${locale}`,
+          component: Alerts,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Alerts',
+            description: 'Community alerts and urgent notifications',
+          },
+        },
+        {
+          path: 'reports',
+          name: `reports-${locale}`,
+          component: Reports,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Reports',
+            description: 'Content moderation and reports management',
+          },
+        },
+        {
+          path: 'join-requests',
+          name: `join-requests-${locale}`,
+          component: JoinRequests,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Join Requests',
+            description: 'Manage channel join requests',
+          },
+        },
+        {
+          path: 'invites',
+          name: `invites-${locale}`,
+          component: Invites,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Invites',
+            description: 'Send and manage channel invitations',
+          },
+        },
+        {
+          path: 'search',
+          name: `search-${locale}`,
+          component: Search,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Search',
+            description: 'Search community content with advanced filters',
           },
         },
         {

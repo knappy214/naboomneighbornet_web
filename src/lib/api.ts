@@ -61,8 +61,7 @@ api.interceptors.response.use(undefined, async (error) => {
     try {
       console.log('Attempting token refresh...')
       // Use the same base URL as the main API instance
-      const refreshUrl =
-        (api.defaults.baseURL || '/api/v2').replace('/v2', '') + '/auth/jwt/refresh/'
+      const refreshUrl = (api.defaults.baseURL || '/api/v2') + '/../auth/jwt/refresh/'
       console.log('Refresh URL:', refreshUrl)
 
       const { data } = await axios.post(refreshUrl, {

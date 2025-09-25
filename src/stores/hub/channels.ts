@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { fetchChannels } from '@/services/hub'
-import { ChannelWebSocket } from '@/lib/ws'
+import * as communityHubAPI from '@/services/communityHub'
+import { createCommunityHubWebSocket } from '@/services/communityHubWebSocket'
 import { useAuthStore } from '@/stores/auth'
 import { useThreadsStore } from './threads'
 import { usePostsStore } from './posts'
@@ -13,7 +13,7 @@ export const useChannelsStore = defineStore('hub-channels', {
     error: null as string | null,
     activeChannelId: null as string | null,
     statuses: {} as Record<string, WebSocketStatus>,
-    sockets: new Map<string, ChannelWebSocket>(),
+    webSocket: null as ReturnType<typeof createCommunityHubWebSocket> | null,
   }),
   getters: {
     activeChannel(state): HubChannel | undefined {
@@ -29,7 +29,7 @@ export const useChannelsStore = defineStore('hub-channels', {
       this.loading = true
       this.error = null
       try {
-        this.channels = await fetchChannels()
+        this.channels = await communityHubAPI.getChannels()
         if (!this.activeChannelId && this.channels.length) {
           this.setActiveChannel(this.channels[0].id)
         }
@@ -41,46 +41,54 @@ export const useChannelsStore = defineStore('hub-channels', {
     },
     setActiveChannel(channelId: string) {
       this.activeChannelId = channelId
-      this.ensureSocket(channelId)
+      this.ensureWebSocket()
       const threadsStore = useThreadsStore()
       threadsStore.loadThreads(channelId)
     },
-    ensureSocket(channelId: string) {
+    ensureWebSocket() {
       const authStore = useAuthStore()
       const token = authStore.accessToken
-      if (!token) return
+      if (!token || this.webSocket) return
 
-      if (!this.sockets.has(channelId)) {
-        const manager = new ChannelWebSocket({
-          channelId,
-          token,
-          onEvent: (event) => this.handleRealtimeEvent(channelId, event),
-          onStatusChange: (status) => {
-            this.statuses[channelId] = status
-          },
+      this.webSocket = createCommunityHubWebSocket(token, (status) => {
+        // Update status for all channels
+        this.channels.forEach((channel) => {
+          this.statuses[channel.id] = status
         })
-        this.sockets.set(channelId, manager)
-        manager.connect()
-      }
+      })
+
+      // Set up event listeners
+      this.webSocket.addEventListener('thread.created', (event) => this.handleRealtimeEvent(event))
+      this.webSocket.addEventListener('thread.updated', (event) => this.handleRealtimeEvent(event))
+      this.webSocket.addEventListener('post.created', (event) => this.handleRealtimeEvent(event))
+      this.webSocket.addEventListener('post.updated', (event) => this.handleRealtimeEvent(event))
+      this.webSocket.addEventListener('alert.created', (event) => this.handleRealtimeEvent(event))
+      this.webSocket.addEventListener('event.created', (event) => this.handleRealtimeEvent(event))
     },
-    disconnectChannel(channelId: string) {
-      const socket = this.sockets.get(channelId)
-      socket?.disconnect()
-      this.sockets.delete(channelId)
-      this.statuses[channelId] = 'offline'
+    disconnectWebSocket() {
+      if (this.webSocket) {
+        this.webSocket.disconnect()
+        this.webSocket = null
+      }
+      this.channels.forEach((channel) => {
+        this.statuses[channel.id] = 'offline'
+      })
     },
     teardown() {
-      this.sockets.forEach((socket) => socket.disconnect())
-      this.sockets.clear()
+      this.disconnectWebSocket()
     },
-    handleRealtimeEvent(channelId: string, event: HubRealtimeEvent) {
+    handleRealtimeEvent(event: HubRealtimeEvent) {
       const threadsStore = useThreadsStore()
       const postsStore = usePostsStore()
+
+      // Extract channel ID from event data
+      const channelId = event.data?.channel?.id || event.data?.thread?.channel
+      if (!channelId) return
 
       switch (event.type) {
         case 'thread.created':
         case 'thread.updated':
-          threadsStore.applyRealtimeUpdate(channelId, event)
+          threadsStore.applyRealtimeUpdate(String(channelId), event)
           break
         case 'post.created':
         case 'post.updated':
@@ -90,7 +98,7 @@ export const useChannelsStore = defineStore('hub-channels', {
           break
       }
 
-      const channel = this.channels.find((c) => c.id === channelId)
+      const channel = this.channels.find((c) => c.id === String(channelId))
       if (channel) {
         channel.unreadCount += 1
         channel.lastActivity = new Date().toISOString()

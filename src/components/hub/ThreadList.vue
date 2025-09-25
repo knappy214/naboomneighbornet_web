@@ -23,7 +23,7 @@
           <div class="flex items-start justify-between gap-3">
             <h3 class="text-base font-semibold text-base-content">{{ thread.title }}</h3>
             <span v-if="thread.searchRank" class="badge badge-outline badge-sm">
-              {{ t('hub.search.rank', { rank: thread.searchRank?.toFixed(2) }) }}
+              {{ t('hub.threadSearch.rank', { rank: thread.searchRank?.toFixed(2) }) }}
             </span>
           </div>
           <p class="mt-1 text-sm text-base-content/70">{{ thread.lastReplySnippet }}</p>
@@ -59,7 +59,8 @@ const emptyState = computed(() => t(props.emptyKey ?? 'hub.threads.empty'))
 const threadLink = (threadId: string) => {
   const segments = route.path.split('/').filter(Boolean)
   const currentLocale = segments[0]
-  const localePrefix = currentLocale && ['en', 'af'].includes(currentLocale) ? currentLocale : locale.value
+  const localePrefix =
+    currentLocale && ['en', 'af'].includes(currentLocale) ? currentLocale : locale.value
   return `/${localePrefix}/threads/${threadId}`
 }
 
