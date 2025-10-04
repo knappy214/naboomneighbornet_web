@@ -1,0 +1,9 @@
+# IMPORTANT: the top-level key is `mcp_servers` rather than `mcpServers`.
+[mcp_servers.Context7]
+command = "npx"
+"args" = [
+       "-y",
+       "@upstash/context7-mcp@latest"
+     ]
+[mcp_servers.daisyUI]
+url = "https://gitmcp.io/saadeghi/daisyui"
