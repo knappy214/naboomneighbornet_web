@@ -36,27 +36,49 @@ export const vuetify = createVuetify({
       light: {
         dark: false,
         colors: {
-          primary: '#570df8',
-          secondary: '#f000b8',
-          accent: '#37cdbe',
-          error: '#f87272',
-          warning: '#fbbd23',
-          info: '#3abff8',
-          success: '#36d399',
+          primary: '#570df8', // DaisyUI light primary
+          secondary: '#f000b8', // DaisyUI light secondary
+          accent: '#37cdbe', // DaisyUI light accent
+          error: '#f87272', // DaisyUI light error
+          warning: '#fbbd23', // DaisyUI light warning
+          info: '#3abff8', // DaisyUI light info
+          success: '#36d399', // DaisyUI light success
+          surface: '#ffffff', // DaisyUI base-100
+          'surface-variant': '#f3f4f6', // DaisyUI base-200
+          'on-surface': '#1f2937', // DaisyUI base-content
+          'on-surface-variant': '#6b7280', // DaisyUI base-content/70
         },
       },
       business: {
         dark: true,
         colors: {
-          primary: '#1a365d',
-          secondary: '#2d3748',
-          accent: '#3182ce',
-          error: '#e53e3e',
-          warning: '#dd6b20',
-          info: '#3182ce',
-          success: '#38a169',
+          primary: '#1a365d', // DaisyUI business primary
+          secondary: '#2d3748', // DaisyUI business secondary
+          accent: '#3182ce', // DaisyUI business accent
+          error: '#e53e3e', // DaisyUI business error
+          warning: '#dd6b20', // DaisyUI business warning
+          info: '#3182ce', // DaisyUI business info
+          success: '#38a169', // DaisyUI business success
+          surface: '#1a202c', // DaisyUI business base-100
+          'surface-variant': '#2d3748', // DaisyUI business base-200
+          'on-surface': '#e2e8f0', // DaisyUI business base-content
+          'on-surface-variant': '#a0aec0', // DaisyUI business base-content/70
         },
       },
+    },
+  },
+  defaults: {
+    VTextField: {
+      variant: 'outlined',
+      density: 'comfortable',
+      hideDetails: 'auto',
+    },
+    VBtn: {
+      variant: 'elevated',
+      size: 'large',
+    },
+    VCard: {
+      elevation: 8,
     },
   },
 })

@@ -1,45 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed } from 'vue'
+import { useTheme } from '@/composables/useTheme'
 
-const themes = [
-  { name: 'light', label: 'Light', icon: '💡' },
-  { name: 'business', label: 'Business', icon: '🏢' },
-]
+const { currentTheme, currentThemeData, themes, setTheme, toggleTheme, initializeTheme } =
+  useTheme()
 
-const currentThemeIndex = ref(0)
-const currentTheme = ref(themes[currentThemeIndex.value]!)
+const currentThemeIndex = computed(() => {
+  return themes.value.findIndex((theme) => theme.name === currentTheme.value)
+})
 
 const cycleTheme = () => {
-  currentThemeIndex.value = (currentThemeIndex.value + 1) % themes.length
-  currentTheme.value = themes[currentThemeIndex.value]!
-  document.documentElement.setAttribute('data-theme', currentTheme.value.name)
-  localStorage.setItem('theme', currentTheme.value.name)
+  toggleTheme()
 }
 
 const selectTheme = (index: number) => {
-  currentThemeIndex.value = index
-  currentTheme.value = themes[index]!
-  document.documentElement.setAttribute('data-theme', currentTheme.value.name)
-  localStorage.setItem('theme', currentTheme.value.name)
+  const theme = themes.value[index]
+  if (theme) {
+    setTheme(theme.name)
+  }
 }
 
-onMounted(() => {
-  const savedTheme = localStorage.getItem('theme')
-  if (savedTheme) {
-    const themeIndex = themes.findIndex((t) => t.name === savedTheme)
-    if (themeIndex !== -1) {
-      currentThemeIndex.value = themeIndex
-      currentTheme.value = themes[themeIndex]!
-      document.documentElement.setAttribute('data-theme', currentTheme.value.name)
-    }
-  }
-})
+// Initialize theme on component mount
+initializeTheme()
 </script>
 
 <template>
   <div class="dropdown dropdown-end">
     <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
-      <div class="text-2xl">{{ currentTheme.icon }}</div>
+      <div class="text-2xl">{{ currentThemeData.icon }}</div>
     </div>
     <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-64 p-2 shadow-lg">
       <li class="menu-title">
@@ -48,7 +36,7 @@ onMounted(() => {
       <li v-for="(theme, index) in themes" :key="theme.name">
         <button
           @click="selectTheme(index)"
-          :class="{ active: currentThemeIndex === index }"
+          :class="{ 'menu-active': currentThemeIndex === index }"
           class="flex items-center gap-3"
         >
           <span class="text-xl">{{ theme.icon }}</span>

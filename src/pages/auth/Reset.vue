@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import api from '@/lib/api'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import AuthLayout from '@/components/AuthLayout.vue'
+import LoginLayout from '@/components/LoginLayout.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -51,7 +51,7 @@ async function reset() {
 </script>
 
 <template>
-  <AuthLayout>
+  <LoginLayout>
     <div class="card bg-base-100 shadow-2xl border border-base-300">
       <div class="card-body p-8">
         <!-- Header -->
@@ -156,5 +156,5 @@ async function reset() {
         </div>
       </div>
     </div>
-  </AuthLayout>
+  </LoginLayout>
 </template>

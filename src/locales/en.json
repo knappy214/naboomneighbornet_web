@@ -11,6 +11,8 @@
     "demo": "Demo",
     "themeDemo": "Theme Demo",
     "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
     "localeRouting": "Locale Routing",
     "safenaboom": "SafeNaboom",
     "storeDemo": "Store Demo",
@@ -28,7 +30,19 @@
     "sendLink": "Send reset link",
     "resetPassword": "Reset Password",
     "newPassword": "New Password",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "welcomeBack": "Welcome back to your community security dashboard",
+    "dontHaveAccount": "Don't have an account?",
+    "signingIn": "Signing in...",
+    "creatingAccount": "Creating account...",
+    "welcomeTo": "Welcome to",
+    "subtitle": "Your trusted agricultural community security platform. Stay connected, stay safe, and protect your farm together.",
+    "farmSecurity": "Farm security monitoring",
+    "neighborCommunication": "Neighbor farm communication",
+    "emergencyAlerts": "Emergency farm alerts",
+    "eventCoordination": "Agricultural event coordination",
+    "trustedBy": "Trusted by 500+ Farmers",
+    "joinCommunity": "Join your farming neighbors and help build a safer agricultural community together."
   },
   "$vuetify": {
     "dataIterator": {
@@ -533,7 +547,8 @@
     "error": "Error",
     "success": "Success",
     "refresh": "Refresh",
-    "select": "Select"
+    "select": "Select",
+    "active": "Active"
   },
   "panic": {
     "dashboard": {

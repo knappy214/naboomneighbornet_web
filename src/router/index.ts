@@ -25,6 +25,7 @@ const Forgot = () => import('@/pages/auth/Forgot.vue')
 const Reset = () => import('@/pages/auth/Reset.vue')
 const VuetifyI18nDemo = () => import('@/components/VuetifyI18nDemo.vue')
 const ThemeLocaleSwitcher = () => import('@/components/ThemeLocaleSwitcher.vue')
+const ThemeDemo = () => import('@/pages/ThemeDemo.vue')
 const LocaleRoutingDemo = () => import('@/pages/LocaleRoutingDemo.vue')
 const SafeNaboom = () => import('@/pages/SafeNaboom.vue')
 const Monitor = () => import('@/pages/Monitor.vue')
@@ -122,11 +123,11 @@ const createLocaleRoutes = (): RouteRecordRaw[] => {
         {
           path: 'theme-demo',
           name: `theme-demo-${locale}`,
-          component: ThemeLocaleSwitcher,
+          component: ThemeDemo,
           meta: {
             locale,
-            title: 'Theme & Locale Demo',
-            description: 'Demo page for theme and locale switching',
+            title: 'Theme Demo',
+            description: 'Comprehensive DaisyUI theme demonstration',
           },
         },
         {

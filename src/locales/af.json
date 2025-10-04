@@ -11,6 +11,8 @@
     "demo": "Demo",
     "themeDemo": "Tema Demo",
     "theme": "Tema",
+    "light": "Lig",
+    "dark": "Donker",
     "localeRouting": "Taal Roete",
     "safenaboom": "SafeNaboom",
     "storeDemo": "Stoor Demo",
@@ -28,7 +30,19 @@
     "sendLink": "Stuur herstel skakel",
     "resetPassword": "Herstel Wagwoord",
     "newPassword": "Nuwe Wagwoord",
-    "confirm": "Bevestig"
+    "confirm": "Bevestig",
+    "welcomeBack": "Welkom terug na jou gemeenskapsveiligheid dashboard",
+    "dontHaveAccount": "Het jy nie 'n rekening nie?",
+    "signingIn": "Teken tans in...",
+    "creatingAccount": "Skep rekening...",
+    "welcomeTo": "Welkom by",
+    "subtitle": "Jou vertroude landbougemeenskapsveiligheid platform. Bly verbind, bly veilig, en beskerm jou plaas saam.",
+    "farmSecurity": "Plaasveiligheid monitering",
+    "neighborCommunication": "Buurplaas kommunikasie",
+    "emergencyAlerts": "Noodplaas waarskuwings",
+    "eventCoordination": "Landbougeleentheid koördinering",
+    "trustedBy": "Vertrou deur 500+ Boere",
+    "joinCommunity": "Sluit by jou boerbuurmanne en help bou 'n veiliger landbougemeenskap saam."
   },
   "$vuetify": {
     "dataIterator": {
@@ -527,7 +541,8 @@
     "error": "Fout",
     "success": "Sukses",
     "refresh": "Verfris",
-    "select": "Kies"
+    "select": "Kies",
+    "active": "Aktief"
   },
   "panic": {
     "dashboard": {

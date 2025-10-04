@@ -8,6 +8,7 @@ import { vuetify } from './plugins/vuetify'
 import { useI18nStore } from './stores/i18n'
 import { useCacheStore } from './stores/cache'
 import { usePrefsStore } from './stores/hub/prefs'
+import { useThemeStore } from './stores/theme'
 import { piniaPluginPersistedstate } from './plugins/persistedState'
 // Import auth debugging utilities
 import './utils/authDebug'
@@ -35,9 +36,15 @@ app.use(vuetify)
 const i18nStore = useI18nStore()
 const cacheStore = useCacheStore()
 const prefsStore = usePrefsStore()
+const themeStore = useThemeStore()
 
 // Initialize stores
-Promise.all([i18nStore.initializeLocale(), cacheStore.initialize(), prefsStore.initialize()])
+Promise.all([
+  i18nStore.initializeLocale(),
+  cacheStore.initialize(),
+  prefsStore.initialize(),
+  themeStore.initializeTheme(),
+])
   .then(async () => {
     // COMMENTED OUT: Initialize data stores after i18n is ready
     // Only auth APIs are available for now

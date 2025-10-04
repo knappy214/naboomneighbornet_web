@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import api from '@/lib/api'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import AuthLayout from '@/components/AuthLayout.vue'
+import LoginLayout from '@/components/LoginLayout.vue'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -44,7 +44,7 @@ async function submit() {
 </script>
 
 <template>
-  <AuthLayout>
+  <LoginLayout>
     <div class="card bg-base-100 shadow-2xl border border-base-300">
       <div class="card-body p-8">
         <!-- Header -->
@@ -179,5 +179,5 @@ async function submit() {
         </div>
       </div>
     </div>
-  </AuthLayout>
+  </LoginLayout>
 </template>

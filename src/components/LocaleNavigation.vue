@@ -120,20 +120,7 @@
       <!-- Theme Switcher -->
       <v-list-item :prepend-icon="'mdi-palette'" :title="t('app.theme')" :value="'theme'">
         <template #append>
-          <v-btn-toggle
-            v-model="currentTheme"
-            mandatory
-            @update:model-value="changeTheme"
-            size="small"
-            density="compact"
-          >
-            <v-btn value="light" size="small">
-              <v-icon size="small">mdi-weather-sunny</v-icon>
-            </v-btn>
-            <v-btn value="business" size="small">
-              <v-icon size="small">mdi-weather-night</v-icon>
-            </v-btn>
-          </v-btn-toggle>
+          <ThemeSwitcher />
         </template>
       </v-list-item>
 
@@ -240,15 +227,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useTheme } from 'vuetify'
 import { useAuthStore } from '@/stores/auth'
 import { useLocaleRouter } from '@/composables/useLocaleRouter'
 import { getSupportedLocales } from '@/utils/localeDetection'
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
 
 const { t } = useI18n()
-const theme = useTheme()
 const authStore = useAuthStore()
 const { currentLocale, switchLocale, getLocalizedPath, isRoute, goToLogin } = useLocaleRouter()
 
@@ -257,8 +243,6 @@ const rail = ref(false)
 const supportedLocales = getSupportedLocales()
 
 const isAuthenticated = computed(() => authStore.accessToken && authStore.accessToken.length > 0)
-
-const currentTheme = ref(theme.current.value.dark ? 'business' : 'light')
 
 const currentLocaleIcon = computed(() => {
   const localeInfo = supportedLocales.find((l) => l.code === currentLocale.value)
@@ -272,22 +256,8 @@ const currentLocaleLabel = computed(() => {
 
 const logoUrl = '/logo.png'
 
-const changeTheme = (newTheme: string) => {
-  theme.global.name.value = newTheme
-  localStorage.setItem('theme', newTheme)
-  currentTheme.value = newTheme
-}
-
 const handleLogout = () => {
   authStore.clear()
   goToLogin()
 }
-
-// Watch for theme changes
-watch(
-  () => theme.current.value.dark,
-  (isDark) => {
-    currentTheme.value = isDark ? 'business' : 'light'
-  },
-)
 </script>
