@@ -4,7 +4,38 @@
 
     <!-- Main content -->
     <div class="drawer-content">
-      <!-- Page content here -->
+      <!-- Navbar for mobile -->
+      <div class="navbar bg-base-100 shadow-sm lg:hidden">
+        <div class="navbar-start">
+          <label for="nav-drawer" class="btn btn-ghost btn-circle">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </label>
+        </div>
+        <div class="navbar-center">
+          <router-link
+            :to="getLocalizedPath('/dashboard')"
+            class="btn btn-ghost text-xl font-bold text-primary flex items-center gap-3"
+          >
+            <img src="/logo.png" alt="Naboom NeighborNet Logo" class="w-8 h-8 object-contain" />
+            <span>Naboom NeighborNet</span>
+          </router-link>
+        </div>
+        <div class="navbar-end">
+          <ThemeSwitcher />
+        </div>
+      </div>
+
+      <!-- Page content -->
+      <main class="min-h-screen">
+        <RouterView />
+      </main>
     </div>
 
     <!-- Sidebar -->
@@ -372,6 +403,7 @@ import { useTheme } from '@/composables/useTheme'
 import { useLocaleRouter } from '@/composables/useLocaleRouter'
 import { useAuthStore } from '@/stores/auth'
 import { i18n } from '@/plugins/i18n'
+import ThemeSwitcher from './ThemeSwitcher.vue'
 
 const { t, locale } = useI18n()
 const route = useRoute()

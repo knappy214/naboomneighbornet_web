@@ -3,8 +3,8 @@
     <!-- Navigation Drawer - Only show for non-auth routes -->
     <LocaleNavigation v-if="!isAuthRoute" />
 
-    <!-- Main Content -->
-    <main class="min-h-screen">
+    <!-- Main Content for auth routes -->
+    <main v-if="isAuthRoute" class="min-h-screen">
       <RouterView />
     </main>
 
