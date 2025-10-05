@@ -1,8 +1,5 @@
 <template>
   <div class="min-h-screen bg-base-100">
-    <!-- Navigation -->
-    <AuthNav />
-
     <!-- Hero Section -->
     <div class="hero bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/5 py-16">
       <div class="hero-content text-center max-w-6xl">
@@ -452,7 +449,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import AuthNav from '@/components/AuthNav.vue'
 import AuthDebugPanel from '@/components/AuthDebugPanel.vue'
 
 // Reactive data

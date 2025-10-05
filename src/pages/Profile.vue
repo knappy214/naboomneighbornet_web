@@ -1,8 +1,5 @@
 <template>
   <div class="min-h-screen bg-base-100">
-    <!-- Navigation -->
-    <AuthNav />
-
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
       <!-- Loading State -->
@@ -505,7 +502,6 @@
 import { ref, onMounted, computed } from 'vue'
 import { useProfileStore } from '@/stores/profile'
 import { useI18n } from 'vue-i18n'
-import AuthNav from '@/components/AuthNav.vue'
 import PersonalInfoTab from '@/components/profile/PersonalInfoTab.vue'
 import ContactInfoTab from '@/components/profile/ContactInfoTab.vue'
 import EmergencyInfoTab from '@/components/profile/EmergencyInfoTab.vue'
