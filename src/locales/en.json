@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Naboom NeighborNet",
+    "title": "Naboom Community Hub",
     "language": "Language",
     "english": "English",
     "afrikaans": "Afrikaans",
@@ -18,7 +18,8 @@
     "storeDemo": "Store Demo",
     "monitor": "Panic Monitor",
     "panicDashboard": "Panic Dashboard",
-    "profile": "Profile"
+    "profile": "Profile",
+    "communityHub": "Community Hub"
   },
   "auth": {
     "email": "Email",
@@ -493,7 +494,8 @@
     "refresh": "Refresh",
     "select": "Select",
     "active": "Active",
-    "or": "OR"
+    "or": "OR",
+    "allRightsReserved": "All rights reserved"
   },
   "panic": {
     "dashboard": {

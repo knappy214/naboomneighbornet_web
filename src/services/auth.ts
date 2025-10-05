@@ -1,5 +1,6 @@
 import api from '@/lib/api'
 import { useAuthStore } from '@/stores/auth'
+import { jwtDecode } from 'jwt-decode'
 
 export interface LoginCredentials {
   username: string
@@ -13,6 +14,28 @@ export interface LoginResponse {
 
 export interface RefreshResponse {
   access: string
+}
+
+export interface JWTPayload {
+  exp: number
+  iat: number
+  user_id: number
+  username: string
+  [key: string]: unknown
+}
+
+/**
+ * Check if a JWT token is expired
+ */
+function isTokenExpired(token: string): boolean {
+  try {
+    const decoded = jwtDecode<JWTPayload>(token)
+    const currentTime = Math.floor(Date.now() / 1000)
+    return decoded.exp < currentTime
+  } catch (error) {
+    console.warn('🔍 [AUTH] Failed to decode token:', error)
+    return true // Consider invalid tokens as expired
+  }
 }
 
 /**
@@ -72,11 +95,22 @@ export function logout(): void {
 }
 
 /**
- * Check if user is authenticated
+ * Check if user is authenticated with valid token
  */
 export function isAuthenticated(): boolean {
   const authStore = useAuthStore()
-  return !!authStore.accessToken
+
+  if (!authStore.accessToken) {
+    return false
+  }
+
+  // Check if token is expired
+  if (isTokenExpired(authStore.accessToken)) {
+    console.log('🔍 [AUTH] Access token is expired')
+    return false
+  }
+
+  return true
 }
 
 /**
@@ -95,4 +129,37 @@ export function setTokens(access: string, refresh: string): void {
   authStore.setAccessToken(access)
   authStore.setRefreshToken(refresh)
   console.log('🔑 [AUTH] Tokens set successfully')
+}
+
+/**
+ * Validate token and refresh if needed
+ * Returns true if user is authenticated with valid token, false otherwise
+ */
+export async function validateAndRefreshToken(): Promise<boolean> {
+  const authStore = useAuthStore()
+
+  // If no tokens at all, user is not authenticated
+  if (!authStore.accessToken || !authStore.refreshToken) {
+    console.log('🔍 [AUTH] No tokens available')
+    return false
+  }
+
+  // Check if access token is expired
+  if (!isTokenExpired(authStore.accessToken)) {
+    console.log('✅ [AUTH] Access token is valid')
+    return true
+  }
+
+  // Access token is expired, try to refresh
+  console.log('🔄 [AUTH] Access token expired, attempting refresh')
+  try {
+    const response = await refreshToken()
+    authStore.setAccessToken(response.access)
+    console.log('✅ [AUTH] Token refresh successful')
+    return true
+  } catch (error) {
+    console.log('❌ [AUTH] Token refresh failed:', error)
+    // Tokens are cleared in refreshToken() on failure
+    return false
+  }
 }

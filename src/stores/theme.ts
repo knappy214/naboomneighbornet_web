@@ -14,7 +14,7 @@ export const useThemeStore = defineStore('theme', {
     currentTheme: 'light' as ThemeName,
     themes: [
       { name: 'light', label: 'Light', icon: '💡', isDark: false },
-      { name: 'business', label: 'Business', icon: '🏢', isDark: true },
+      { name: 'business', label: 'Dark', icon: '🌙', isDark: true },
     ] as Theme[],
   }),
 

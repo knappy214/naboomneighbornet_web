@@ -59,25 +59,28 @@ api.interceptors.response.use(undefined, async (error) => {
   const store = useAuthStore()
   if (error.response?.status === 401 && store.refreshToken) {
     try {
-      console.log('Attempting token refresh...')
+      console.log('🔄 [API] Attempting token refresh...')
       // Use the same base URL as the main API instance
       const refreshUrl = (api.defaults.baseURL || '/api/v2') + '/../auth/jwt/refresh/'
-      console.log('Refresh URL:', refreshUrl)
+      console.log('🔄 [API] Refresh URL:', refreshUrl)
 
       const { data } = await axios.post(refreshUrl, {
         refresh: store.refreshToken,
       })
 
-      console.log('Token refresh successful')
+      console.log('✅ [API] Token refresh successful')
       store.setAccessToken(data.access)
       error.config.headers.Authorization = `Bearer ${data.access}`
       return api.request(error.config)
     } catch (refreshError) {
-      console.error('Token refresh failed:', refreshError)
+      console.error('❌ [API] Token refresh failed:', refreshError)
       // Clear tokens if refresh fails
       store.clear()
-      // Redirect to login page
-      window.location.href = '/login'
+      // Redirect to login page with proper locale
+      const currentPath = window.location.pathname
+      const localeMatch = currentPath.match(/^\/([a-z]{2})\//)
+      const locale = localeMatch ? localeMatch[1] : 'en'
+      window.location.href = `/${locale}/login`
     }
   }
   return Promise.reject(error)

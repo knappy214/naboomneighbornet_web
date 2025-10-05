@@ -248,10 +248,19 @@
         <!-- Profile Dropdown -->
         <div class="dropdown dropdown-end">
           <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
-            <div
-              class="w-10 rounded-full bg-primary text-primary-content flex items-center justify-center"
-            >
-              <span class="text-lg font-bold">{{ userInitials }}</span>
+            <div class="w-10 rounded-full">
+              <img
+                v-if="profileStore.profile?.avatar_url"
+                :src="profileStore.profile.avatar_url"
+                :alt="`${profileStore.profile.first_name || 'User'} avatar`"
+                class="w-full h-full rounded-full object-cover"
+              />
+              <div
+                v-else
+                class="w-full h-full rounded-full bg-primary text-primary-content flex items-center justify-center"
+              >
+                <span class="text-lg font-bold">{{ userInitials }}</span>
+              </div>
             </div>
           </div>
           <ul
@@ -297,12 +306,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 // Theme functionality is handled by ThemeSwitcher component
 import { useLocaleRouter } from '@/composables/useLocaleRouter'
 import { useAuthStore } from '@/stores/auth'
+import { useProfileStore } from '@/stores/profile'
 import { i18n } from '@/plugins/i18n'
 import ThemeSwitcher from './ThemeSwitcher.vue'
 
@@ -311,6 +321,7 @@ const route = useRoute()
 // Theme functionality is handled by ThemeSwitcher component
 const { switchLocale, getLocalizedPath } = useLocaleRouter()
 const authStore = useAuthStore()
+const profileStore = useProfileStore()
 
 const supportedLocales = computed(() => {
   const availableLocales = i18n.global.availableLocales as string[]
@@ -332,7 +343,15 @@ const currentLocaleIcon = computed(() => {
 })
 
 const userInitials = computed(() => {
-  // For now, return a default initial since user object structure may vary
+  if (profileStore.profile?.first_name && profileStore.profile?.last_name) {
+    return `${profileStore.profile.first_name[0]}${profileStore.profile.last_name[0]}`.toUpperCase()
+  }
+  if (profileStore.profile?.first_name) {
+    return profileStore.profile.first_name[0]?.toUpperCase() || 'U'
+  }
+  if (profileStore.profile?.username) {
+    return profileStore.profile.username[0]?.toUpperCase() || 'U'
+  }
   return 'U'
 })
 
@@ -345,4 +364,15 @@ const logout = () => {
   // Navigate to login page
   window.location.href = '/login'
 }
+
+// Load profile data when component mounts
+onMounted(async () => {
+  if (authStore.isAuthenticated && !profileStore.profile) {
+    try {
+      await profileStore.fetchProfile()
+    } catch (error) {
+      console.warn('Failed to fetch profile for navbar:', error)
+    }
+  }
+})
 </script>

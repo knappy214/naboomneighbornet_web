@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { validateAndRefreshToken } from '@/services/auth'
 import { SUPPORT_LOCALES, type AppLocale } from '@/plugins/i18n'
 
 // Route meta interface for TypeScript support
@@ -348,10 +349,9 @@ const detectLocale = (path: string): AppLocale | null => {
   return null
 }
 
-// Enhanced navigation guards with async locale loading
+// Enhanced navigation guards with async locale loading and token validation
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  const isAuthenticated = authStore.accessToken && authStore.accessToken.length > 0
 
   // Extract locale from path
   const routeLocale = detectLocale(to.path)
@@ -381,7 +381,11 @@ router.beforeEach(async (to, from, next) => {
 
   // Check authentication requirements
   if (to.matched.some((record) => record.meta.requiresAuth)) {
+    // Validate and refresh token if user appears to be authenticated
+    const isAuthenticated = await validateAndRefreshToken()
+
     if (!isAuthenticated) {
+      console.log('🚫 [ROUTER] User not authenticated, redirecting to login')
       const loginPath = `/${routeLocale}/login`
       next({
         path: loginPath,
@@ -393,7 +397,10 @@ router.beforeEach(async (to, from, next) => {
 
   // Check guest requirements
   if (to.matched.some((record) => record.meta.requiresGuest)) {
-    if (isAuthenticated) {
+    // For guest routes, just check if tokens exist (don't validate them)
+    const hasTokens = authStore.accessToken && authStore.accessToken.length > 0
+    if (hasTokens) {
+      console.log('🚫 [ROUTER] Authenticated user accessing guest route, redirecting to dashboard')
       next(`/${routeLocale}/dashboard`)
       return
     }
