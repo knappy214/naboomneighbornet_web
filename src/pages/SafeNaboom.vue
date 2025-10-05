@@ -1,38 +1,39 @@
 <template>
-  <v-container fluid>
+  <div class="container mx-auto p-4 space-y-6">
     <!-- Page Header -->
-    <v-row class="mb-6">
-      <v-col cols="12">
-        <v-card class="elevation-4" color="primary">
-          <v-card-title class="d-flex align-center text-white">
-            <v-avatar class="mr-4" size="64">
-              <v-img :src="logoUrl" alt="SafeNaboom Logo" />
-            </v-avatar>
-            <div>
-              <h1 class="text-h3 font-weight-bold">{{ $t('safenaboom.title') }}</h1>
-              <p class="text-h6 mb-0">{{ $t('safenaboom.subtitle') }}</p>
+    <div class="card bg-primary text-primary-content shadow-xl">
+      <div class="card-body">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="avatar">
+              <div class="w-16 h-16 rounded-full">
+                <img :src="logoUrl" alt="SafeNaboom Logo" />
+              </div>
             </div>
-            <v-spacer />
-            <v-chip color="white" size="large" class="mr-2">
-              <v-icon start>mdi-shield-check</v-icon>
-              {{ $t('safenaboom.status') }}
-            </v-chip>
-          </v-card-title>
-        </v-card>
-      </v-col>
-    </v-row>
+            <div>
+              <h1 class="text-4xl font-bold">{{ t('safenaboom.title') }}</h1>
+              <p class="text-xl opacity-90">{{ t('safenaboom.subtitle') }}</p>
+            </div>
+          </div>
+          <div class="badge badge-lg bg-white text-primary">
+            <span class="text-lg">🛡️</span>
+            {{ t('safenaboom.status') }}
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Main Dashboard Grid -->
-    <v-row>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Left Column - Dashboard and Alerts -->
-      <v-col cols="12" lg="8">
+      <div class="lg:col-span-2 space-y-6">
         <!-- SafeNaboom Dashboard -->
-        <v-card class="mb-6" elevation="2">
-          <v-card-title>
-            <v-icon class="mr-2" color="primary">mdi-view-dashboard</v-icon>
-            {{ $t('safenaboom.dashboard.title') }}
-          </v-card-title>
-          <v-card-text>
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title text-xl mb-4">
+              <span class="text-2xl text-primary">📊</span>
+              {{ t('safenaboom.dashboard.title') }}
+            </h2>
             <SafeNaboomDashboard
               :farm-id="farmId"
               :show-stats="true"
@@ -40,23 +41,24 @@
               @quick-action="handleQuickAction"
               @view-details="handleViewDetails"
             />
-          </v-card-text>
-        </v-card>
+          </div>
+        </div>
 
         <!-- Farm Security Alerts -->
-        <v-card class="mb-6" elevation="2">
-          <v-card-title>
-            <v-icon class="mr-2" color="error">mdi-shield-alert</v-icon>
-            {{ $t('safenaboom.alerts.title') }}
-            <v-spacer />
-            <v-btn color="primary" variant="outlined" size="small" @click="handleCreateAlert">
-              <v-icon start>mdi-plus</v-icon>
-              {{ $t('safenaboom.alerts.create') }}
-            </v-btn>
-          </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col v-for="alert in securityAlerts" :key="alert.id" cols="12" md="6">
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="card-title text-xl">
+                <span class="text-2xl text-error">🚨</span>
+                {{ t('safenaboom.alerts.title') }}
+              </h2>
+              <button class="btn btn-primary btn-sm" @click="handleCreateAlert">
+                <span class="text-lg">➕</span>
+                {{ t('safenaboom.alerts.create') }}
+              </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div v-for="alert in securityAlerts" :key="alert.id" class="card bg-base-200">
                 <FarmSecurityAlert
                   :alert="alert"
                   :show-actions="true"
@@ -68,21 +70,21 @@
                   @secondary-action="handleSecondaryAction"
                   @emergency="handleEmergency"
                 />
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-col>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Right Column - Communication and Monitoring -->
-      <v-col cols="12" lg="4">
+      <div class="space-y-6">
         <!-- Neighbor Communication -->
-        <v-card class="mb-6" elevation="2">
-          <v-card-title>
-            <v-icon class="mr-2" color="info">mdi-account-group</v-icon>
-            {{ $t('safenaboom.communication.title') }}
-          </v-card-title>
-          <v-card-text>
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title text-xl mb-4">
+              <span class="text-2xl text-info">👥</span>
+              {{ t('safenaboom.communication.title') }}
+            </h2>
             <NeighborCommunication
               :farm-id="farmId"
               :show-composer="true"
@@ -93,101 +95,101 @@
               @reply="handleReply"
               @delete-message="handleDeleteMessage"
             />
-          </v-card-text>
-        </v-card>
+          </div>
+        </div>
 
         <!-- Equipment Monitoring -->
-        <v-card class="mb-6" elevation="2">
-          <v-card-title>
-            <v-icon class="mr-2" color="warning">mdi-tools</v-icon>
-            {{ $t('safenaboom.equipment.title') }}
-          </v-card-title>
-          <v-card-text>
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title text-xl mb-4">
+              <span class="text-2xl text-warning">⚙️</span>
+              {{ t('safenaboom.equipment.title') }}
+            </h2>
             <EquipmentMonitoring
               :farm-id="farmId"
-              :show-add-button="true"
-              @add-equipment="handleAddEquipment"
-              @view-details="handleEquipmentDetails"
+              :show-controls="true"
+              @equipment-status="handleEquipmentStatus"
+              @maintenance-alert="handleMaintenanceAlert"
+              @control-equipment="handleControlEquipment"
               @schedule-maintenance="handleScheduleMaintenance"
-              @report-issue="handleReportIssue"
-              @more-actions="handleEquipmentActions"
             />
-          </v-card-text>
-        </v-card>
+          </div>
+        </div>
 
         <!-- Weather Monitoring -->
-        <v-card class="mb-6" elevation="2">
-          <v-card-title>
-            <v-icon class="mr-2" color="success">mdi-weather-cloudy</v-icon>
-            {{ $t('safenaboom.weather.title') }}
-          </v-card-title>
-          <v-card-text>
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title text-xl mb-4">
+              <span class="text-2xl text-accent">🌤️</span>
+              {{ t('safenaboom.weather.title') }}
+            </h2>
             <WeatherMonitoring
               :farm-id="farmId"
-              :auto-refresh="true"
-              :refresh-interval="300000"
-              @refresh="handleWeatherRefresh"
-              @alert-clicked="handleWeatherAlert"
-              @recommendation-clicked="handleWeatherRecommendation"
+              :show-forecast="true"
+              @weather-alert="handleWeatherAlert"
+              @forecast-update="handleForecastUpdate"
             />
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- Quick Actions Floating Button -->
-    <v-fab v-model="showQuickActions" location="bottom end" size="large" color="primary">
-      <v-icon>mdi-plus</v-icon>
-      <v-fab
-        v-for="action in quickActions"
-        :key="action.key"
-        :color="action.color"
-        size="small"
-        location="top"
-        @click="handleQuickAction(action.key)"
-      >
-        <v-icon>{{ action.icon }}</v-icon>
-      </v-fab>
-    </v-fab>
+    <!-- Emergency Actions -->
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <h2 class="card-title text-xl mb-4">
+          <span class="text-2xl text-error">🚨</span>
+          {{ t('safenaboom.emergency.title') }}
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <button class="btn btn-error btn-lg" @click="handleEmergencyPanic">
+            <span class="text-2xl">🚨</span>
+            {{ t('safenaboom.emergency.panic') }}
+          </button>
+          <button class="btn btn-warning btn-lg" @click="handleEmergencyAlert">
+            <span class="text-2xl">⚠️</span>
+            {{ t('safenaboom.emergency.alert') }}
+          </button>
+          <button class="btn btn-info btn-lg" @click="handleEmergencyContact">
+            <span class="text-2xl">📞</span>
+            {{ t('safenaboom.emergency.contact') }}
+          </button>
+          <button class="btn btn-secondary btn-lg" @click="handleEmergencyReport">
+            <span class="text-2xl">📋</span>
+            {{ t('safenaboom.emergency.report') }}
+          </button>
+        </div>
+      </div>
+    </div>
 
-    <!-- Emergency Alert Dialog -->
-    <v-dialog v-model="showEmergencyDialog" max-width="500">
-      <v-card>
-        <v-card-title class="d-flex align-center">
-          <v-icon class="mr-2" color="error">mdi-alert-circle</v-icon>
-          {{ $t('safenaboom.emergency.title') }}
-        </v-card-title>
-        <v-card-text>
-          <v-textarea
-            v-model="emergencyMessage"
-            :label="$t('safenaboom.emergency.message')"
-            :placeholder="$t('safenaboom.emergency.placeholder')"
-            variant="outlined"
-            rows="3"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-btn
-            color="error"
-            variant="elevated"
-            :disabled="!emergencyMessage.trim()"
-            @click="handleSendEmergency"
+    <!-- Recent Activity -->
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <h2 class="card-title text-xl mb-4">
+          <span class="text-2xl text-info">📊</span>
+          {{ t('safenaboom.activity.title') }}
+        </h2>
+        <div class="space-y-3">
+          <div
+            v-for="activity in recentActivity"
+            :key="activity.id"
+            class="flex items-center gap-3 p-3 bg-base-200 rounded-lg"
           >
-            <v-icon start>mdi-send</v-icon>
-            {{ $t('safenaboom.emergency.send') }}
-          </v-btn>
-          <v-spacer />
-          <v-btn color="grey" variant="text" @click="showEmergencyDialog = false">
-            {{ $t('safenaboom.emergency.cancel') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-container>
+            <div class="text-2xl">{{ activity.icon }}</div>
+            <div class="flex-1">
+              <div class="font-medium">{{ activity.title }}</div>
+              <div class="text-sm text-base-content/70">{{ activity.description }}</div>
+            </div>
+            <div class="text-xs text-base-content/60">{{ activity.time }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SafeNaboomDashboard from '@/components/SafeNaboomDashboard.vue'
 import FarmSecurityAlert from '@/components/FarmSecurityAlert.vue'
@@ -195,323 +197,171 @@ import NeighborCommunication from '@/components/NeighborCommunication.vue'
 import EquipmentMonitoring from '@/components/EquipmentMonitoring.vue'
 import WeatherMonitoring from '@/components/WeatherMonitoring.vue'
 
-// TypeScript interfaces
-interface SafeNaboomSecurityAlert {
-  id: string
-  title: string
-  description: string
-  severity: 'low' | 'medium' | 'high' | 'critical'
-  category: 'intrusion' | 'equipment' | 'weather' | 'safety' | 'maintenance'
-  timestamp: Date
-  location: string
-  reportedBy: string
-  acknowledged?: boolean
-  dismissed?: boolean
-}
+const { t } = useI18n()
 
-interface QuickAction {
-  key: string
-  title: string
-  icon: string
-  color: string
-}
-
-interface Props {
+// Props
+const props = defineProps<{
   farmId?: string
-}
+}>()
 
-interface Emits {
-  (e: 'emergency-alert', message: string): void
-  (e: 'alert-created', alert: SafeNaboomSecurityAlert): void
-  (e: 'equipment-added'): void
-  (e: 'message-sent', content: string): void
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  farmId: 'default-farm',
-})
-
-const emit = defineEmits<Emits>()
-
-// Composables
-const { t, locale } = useI18n()
-
-// Reactive data
+// Mock data - replace with real data from stores
+const farmId = ref(props.farmId || 'farm-001')
 const logoUrl = '/logo.png'
-const showQuickActions = ref(false)
-const showEmergencyDialog = ref(false)
-const emergencyMessage = ref('')
 
-// Mock data
-const securityAlerts = computed<SafeNaboomSecurityAlert[]>(() => [
+const securityAlerts = ref([
   {
-    id: '1',
-    title: 'Intrusion Detected',
-    description: 'Motion detected in restricted area near the eastern fence',
+    id: 1,
+    type: 'motion',
     severity: 'high',
-    category: 'intrusion',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30),
-    location: 'Eastern Fence',
-    reportedBy: 'Security System',
-    acknowledged: false,
-    dismissed: false,
+    title: 'Motion Detected',
+    description: 'Unusual movement detected at Gate 1',
+    timestamp: new Date(),
+    location: 'Gate 1',
+    status: 'active',
   },
   {
-    id: '2',
-    title: 'Equipment Malfunction',
-    description: 'Irrigation system pump showing unusual pressure readings',
+    id: 2,
+    type: 'temperature',
     severity: 'medium',
-    category: 'equipment',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    location: 'Field B',
-    reportedBy: 'Equipment Monitor',
-    acknowledged: true,
-    dismissed: false,
-  },
-  {
-    id: '3',
-    title: 'Weather Warning',
-    description: 'Heavy rainfall expected this evening. Secure outdoor equipment.',
-    severity: 'low',
-    category: 'weather',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4),
-    location: 'Farm Wide',
-    reportedBy: 'Weather Service',
-    acknowledged: false,
-    dismissed: false,
+    title: 'Temperature Alert',
+    description: 'High temperature detected in storage area',
+    timestamp: new Date(Date.now() - 3600000),
+    location: 'Storage Area',
+    status: 'acknowledged',
   },
 ])
 
-const quickActions = computed<QuickAction[]>(() => [
+const recentActivity = ref([
   {
-    key: 'emergency',
-    title: t('safenaboom.quickActions.emergency'),
-    icon: 'mdi-alert-circle',
-    color: 'error',
+    id: 1,
+    title: 'Motion detected at Gate 1',
+    description: 'Security camera detected movement',
+    time: '2 min ago',
+    icon: '👁️',
   },
   {
-    key: 'report',
-    title: t('safenaboom.quickActions.report'),
-    icon: 'mdi-file-document',
-    color: 'warning',
+    id: 2,
+    title: 'Weather alert issued',
+    description: 'Heavy rain expected in 2 hours',
+    time: '15 min ago',
+    icon: '🌧️',
   },
   {
-    key: 'neighbors',
-    title: t('safenaboom.quickActions.neighbors'),
-    icon: 'mdi-account-group',
-    color: 'info',
-  },
-  {
-    key: 'equipment',
-    title: t('safenaboom.quickActions.equipment'),
-    icon: 'mdi-tools',
-    color: 'primary',
+    id: 3,
+    title: 'Neighbor check-in',
+    description: 'John Smith reported all clear',
+    time: '1 hour ago',
+    icon: '👋',
   },
 ])
 
 // Event handlers
 const handleAlertCreated = (alert: any) => {
-  // Convert DashboardSecurityAlert to SafeNaboomSecurityAlert
-  const convertedAlert: SafeNaboomSecurityAlert = {
-    id: alert.id,
-    title: alert.title,
-    description: alert.subtitle,
-    severity: alert.severity,
-    category: 'safety',
-    timestamp: new Date(),
-    location: 'Farm',
-    reportedBy: 'System',
-  }
-  emit('alert-created', convertedAlert)
+  console.log('Alert created:', alert)
 }
 
-const handleQuickAction = (actionKey: string) => {
-  switch (actionKey) {
-    case 'emergency':
-      showEmergencyDialog.value = true
-      break
-    case 'report':
-      // Handle report action
-      break
-    case 'neighbors':
-      // Handle neighbors action
-      break
-    case 'equipment':
-      // Handle equipment action
-      break
-  }
+const handleQuickAction = (action: string) => {
+  console.log('Quick action:', action)
 }
 
-const handleViewDetails = (itemId: string) => {
-  // Handle view details
+const handleViewDetails = (details: any) => {
+  console.log('View details:', details)
 }
 
 const handleCreateAlert = () => {
-  // Handle create alert
+  console.log('Create alert')
 }
 
 const handleAcknowledgeAlert = (alertId: string) => {
-  // Handle acknowledge alert
+  console.log('Acknowledge alert:', alertId)
 }
 
 const handleDismissAlert = (alertId: string) => {
-  // Handle dismiss alert
+  console.log('Dismiss alert:', alertId)
 }
 
 const handleViewAlertDetails = (alertId: string) => {
-  // Handle view alert details
+  console.log('View alert details:', alertId)
 }
 
 const handlePrimaryAction = (alertId: string) => {
-  // Handle primary action
+  console.log('Primary action for alert:', alertId)
 }
 
 const handleSecondaryAction = (alertId: string) => {
-  // Handle secondary action
+  console.log('Secondary action for alert:', alertId)
 }
 
 const handleEmergency = (alertId: string) => {
-  // Handle emergency
+  console.log('Emergency for alert:', alertId)
 }
 
-const handleNewMessage = () => {
-  // Handle new message
+const handleNewMessage = (message: any) => {
+  console.log('New message:', message)
 }
 
-const handleMessageClick = (message: any) => {
-  // Handle message click
+const handleMessageClick = (messageId: string) => {
+  console.log('Message click:', messageId)
 }
 
 const handleMessageNeighbor = (neighbor: any) => {
-  // Handle message neighbor
+  console.log('Message neighbor:', neighbor)
 }
 
-const handleSendMessage = (content: string) => {
-  emit('message-sent', content)
+const handleSendMessage = (message: any) => {
+  console.log('Send message:', message)
 }
 
-const handleReply = (message: any) => {
-  // Handle reply
+const handleReply = (messageId: string) => {
+  console.log('Reply to message:', messageId)
 }
 
 const handleDeleteMessage = (messageId: string) => {
-  // Handle delete message
+  console.log('Delete message:', messageId)
 }
 
-const handleAddEquipment = () => {
-  emit('equipment-added')
+const handleEquipmentStatus = (equipment: any) => {
+  console.log('Equipment status:', equipment)
 }
 
-const handleEquipmentDetails = (equipment: any) => {
-  // Handle equipment details
+const handleMaintenanceAlert = (equipment: any) => {
+  console.log('Maintenance alert:', equipment)
+}
+
+const handleControlEquipment = (equipment: any) => {
+  console.log('Control equipment:', equipment)
 }
 
 const handleScheduleMaintenance = (equipment: any) => {
-  // Handle schedule maintenance
-}
-
-const handleReportIssue = (equipment: any) => {
-  // Handle report issue
-}
-
-const handleEquipmentActions = (equipment: any) => {
-  // Handle equipment actions
-}
-
-const handleWeatherRefresh = () => {
-  // Handle weather refresh
+  console.log('Schedule maintenance:', equipment)
 }
 
 const handleWeatherAlert = (alert: any) => {
-  // Handle weather alert
+  console.log('Weather alert:', alert)
 }
 
-const handleWeatherRecommendation = (recommendation: any) => {
-  // Handle weather recommendation
+const handleForecastUpdate = (forecast: any) => {
+  console.log('Forecast update:', forecast)
 }
 
-const handleSendEmergency = () => {
-  if (emergencyMessage.value.trim()) {
-    emit('emergency-alert', emergencyMessage.value)
-    emergencyMessage.value = ''
-    showEmergencyDialog.value = false
-  }
+const handleEmergencyPanic = () => {
+  console.log('Emergency panic button pressed')
 }
+
+const handleEmergencyAlert = () => {
+  console.log('Emergency alert button pressed')
+}
+
+const handleEmergencyContact = () => {
+  console.log('Emergency contact button pressed')
+}
+
+const handleEmergencyReport = () => {
+  console.log('Emergency report button pressed')
+}
+
+onMounted(() => {
+  // Initialize component
+  console.log('SafeNaboom page mounted')
+})
 </script>
-
-<i18n>
-{
-  "en": {
-    "safenaboom": {
-      "title": "SafeNaboom",
-      "subtitle": "Agricultural Community Security Platform",
-      "status": "Active",
-      "dashboard": {
-        "title": "Farm Dashboard"
-      },
-      "alerts": {
-        "title": "Security Alerts",
-        "create": "Create Alert"
-      },
-      "communication": {
-        "title": "Neighbor Communication"
-      },
-      "equipment": {
-        "title": "Equipment Monitoring"
-      },
-      "weather": {
-        "title": "Weather Monitoring"
-      },
-      "quickActions": {
-        "emergency": "Emergency Alert",
-        "report": "File Report",
-        "neighbors": "Contact Neighbors",
-        "equipment": "Equipment Status"
-      },
-      "emergency": {
-        "title": "Emergency Alert",
-        "message": "Emergency Message",
-        "placeholder": "Describe the emergency situation...",
-        "send": "Send Alert",
-        "cancel": "Cancel"
-      }
-    }
-  },
-  "af": {
-    "safenaboom": {
-      "title": "SafeNaboom",
-      "subtitle": "Landbou Gemeenskap Sekuriteit Platform",
-      "status": "Aktief",
-      "dashboard": {
-        "title": "Plaas Dashboard"
-      },
-      "alerts": {
-        "title": "Sekuriteit Waarskuwings",
-        "create": "Skep Waarskuwing"
-      },
-      "communication": {
-        "title": "Buur Kommunikasie"
-      },
-      "equipment": {
-        "title": "Toerusting Monitering"
-      },
-      "weather": {
-        "title": "Weer Monitering"
-      },
-      "quickActions": {
-        "emergency": "Nood Waarskuwing",
-        "report": "Lêer Verslag",
-        "neighbors": "Kontak Bure",
-        "equipment": "Toerusting Status"
-      },
-      "emergency": {
-        "title": "Nood Waarskuwing",
-        "message": "Nood Boodskap",
-        "placeholder": "Beskryf die nood situasie...",
-        "send": "Stuur Waarskuwing",
-        "cancel": "Kanselleer"
-      }
-    }
-  }
-}
-</i18n>

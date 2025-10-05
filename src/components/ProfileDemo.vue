@@ -1,583 +1,196 @@
 <template>
-  <v-container fluid>
-    <v-row>
-      <v-col cols="12">
-        <v-card>
-          <v-card-title class="d-flex align-center">
-            <v-icon class="me-2">mdi-account-cog</v-icon>
-            Profile API Demo
-          </v-card-title>
+  <div class="container mx-auto p-4">
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <h2 class="card-title text-xl mb-4">
+          <span class="text-2xl">⚙️</span>
+          Profile API Demo
+        </h2>
 
-          <v-card-text>
-            <v-alert
-              type="info"
-              variant="tonal"
-              class="mb-4"
-              text="This demo shows how to use the Profile API endpoints. Make sure you're logged in and the backend server is running on localhost:8000."
-            />
+        <div class="space-y-4">
+          <!-- Info Alert -->
+          <div role="alert" class="alert alert-info">
+            <svg class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <h3 class="font-bold">Info</h3>
+              <div class="text-xs">
+                This demo shows how to use the Profile API endpoints. Make sure you're logged in and
+                the backend server is running on localhost:8000.
+              </div>
+            </div>
+          </div>
 
-            <v-alert
-              v-if="!isAuthenticated"
-              type="warning"
-              variant="tonal"
-              class="mb-4"
-              text="You need to be logged in to use the Profile API. Please log in first."
-            />
+          <!-- Authentication Alerts -->
+          <div v-if="!isAuthenticated" role="alert" class="alert alert-warning">
+            <svg class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+            <div>
+              <h3 class="font-bold">Warning</h3>
+              <div class="text-xs">
+                You need to be logged in to use the Profile API. Please log in first.
+              </div>
+            </div>
+          </div>
 
-            <v-alert
-              v-else-if="profileStore.error && profileStore.error.includes('Network Error')"
-              type="warning"
-              variant="tonal"
-              class="mb-4"
-              text="Network Error: Make sure the backend server is running on localhost:8000. You may need to start the Django backend server first."
-            />
+          <div
+            v-else-if="profileStore.error && profileStore.error.includes('Network Error')"
+            role="alert"
+            class="alert alert-warning"
+          >
+            <svg class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+            <div>
+              <h3 class="font-bold">Network Error</h3>
+              <div class="text-xs">
+                Make sure the backend server is running on localhost:8000. You may need to start the
+                Django backend server first.
+              </div>
+            </div>
+          </div>
 
-            <v-alert
-              v-else
-              type="success"
-              variant="tonal"
-              class="mb-4"
-              :text="`Authenticated with token length: ${authStore.accessToken?.length || 0} characters`"
-            />
+          <div v-else role="alert" class="alert alert-success">
+            <svg class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <h3 class="font-bold">Success</h3>
+              <div class="text-xs">
+                Authenticated with token length: {{ authStore.accessToken?.length || 0 }} characters
+              </div>
+            </div>
+          </div>
 
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-card variant="outlined">
-                  <v-card-title>Profile Store Actions</v-card-title>
-                  <v-card-text>
-                    <v-list density="compact">
-                      <v-list-item>
-                        <v-btn
-                          @click="loadProfile"
-                          color="primary"
-                          variant="outlined"
-                          size="small"
-                          :loading="profileStore.loading"
-                          :disabled="!isAuthenticated"
-                          class="me-2"
-                        >
-                          Load Profile
-                        </v-btn>
-                        <span class="text-caption">Fetch current user profile</span>
-                      </v-list-item>
+          <!-- Demo Sections -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Profile Store Actions -->
+            <div class="card bg-base-200">
+              <div class="card-body">
+                <h3 class="card-title text-lg">Profile Store Actions</h3>
+                <div class="space-y-2">
+                  <button
+                    class="btn btn-primary btn-sm w-full"
+                    @click="profileStore.fetchProfile"
+                    :disabled="profileStore.loading"
+                  >
+                    <span
+                      v-if="profileStore.loading"
+                      class="loading loading-spinner loading-xs"
+                    ></span>
+                    Fetch Profile
+                  </button>
+                  <button
+                    class="btn btn-secondary btn-sm w-full"
+                    @click="
+                      profileStore.updateProfile({ first_name: 'Updated', last_name: 'Name' })
+                    "
+                    :disabled="profileStore.loading"
+                  >
+                    <span
+                      v-if="profileStore.loading"
+                      class="loading loading-spinner loading-xs"
+                    ></span>
+                    Update Profile
+                  </button>
+                  <button
+                    class="btn btn-accent btn-sm w-full"
+                    @click="
+                      profileStore.changePassword({ old_password: 'old', new_password: 'new' })
+                    "
+                    :disabled="profileStore.loading"
+                  >
+                    <span
+                      v-if="profileStore.loading"
+                      class="loading loading-spinner loading-xs"
+                    ></span>
+                    Change Password
+                  </button>
+                </div>
+              </div>
+            </div>
 
-                      <v-list-item>
-                        <v-btn
-                          @click="loadStats"
-                          color="primary"
-                          variant="outlined"
-                          size="small"
-                          :loading="profileStore.loading"
-                          :disabled="!isAuthenticated"
-                          class="me-2"
-                        >
-                          Load Stats
-                        </v-btn>
-                        <span class="text-caption">Fetch profile statistics</span>
-                      </v-list-item>
+            <!-- Profile Data Display -->
+            <div class="card bg-base-200">
+              <div class="card-body">
+                <h3 class="card-title text-lg">Profile Data</h3>
+                <div v-if="profileStore.profile" class="space-y-2">
+                  <div class="flex justify-between">
+                    <span class="font-medium">Name:</span>
+                    <span
+                      >{{ profileStore.profile.first_name }}
+                      {{ profileStore.profile.last_name }}</span
+                    >
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="font-medium">Email:</span>
+                    <span>{{ profileStore.profile.email }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="font-medium">Phone:</span>
+                    <span>{{ profileStore.profile.phone || 'N/A' }}</span>
+                  </div>
+                </div>
+                <div v-else class="text-base-content/60 text-sm">No profile data loaded</div>
+              </div>
+            </div>
+          </div>
 
-                      <v-list-item>
-                        <v-btn
-                          @click="loadGroups"
-                          color="primary"
-                          variant="outlined"
-                          size="small"
-                          :loading="profileStore.loading"
-                          :disabled="!isAuthenticated"
-                          class="me-2"
-                        >
-                          Load Groups
-                        </v-btn>
-                        <span class="text-caption">Fetch available groups</span>
-                      </v-list-item>
+          <!-- Error Display -->
+          <div v-if="profileStore.error" class="alert alert-error">
+            <svg class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <h3 class="font-bold">Error</h3>
+              <div class="text-xs">{{ profileStore.error }}</div>
+            </div>
+          </div>
 
-                      <v-list-item>
-                        <v-btn
-                          @click="loadRoles"
-                          color="primary"
-                          variant="outlined"
-                          size="small"
-                          :loading="profileStore.loading"
-                          :disabled="!isAuthenticated"
-                          class="me-2"
-                        >
-                          Load Roles
-                        </v-btn>
-                        <span class="text-caption">Fetch available roles</span>
-                      </v-list-item>
-
-                      <v-list-item>
-                        <v-btn
-                          @click="checkBackendHealth"
-                          color="secondary"
-                          variant="outlined"
-                          size="small"
-                          class="me-2"
-                        >
-                          Check Backend
-                        </v-btn>
-                        <span class="text-caption">Test backend connectivity</span>
-                      </v-list-item>
-
-                      <v-list-item>
-                        <v-btn
-                          @click="checkAuthStatus"
-                          color="info"
-                          variant="outlined"
-                          size="small"
-                          class="me-2"
-                        >
-                          Check Auth
-                        </v-btn>
-                        <span class="text-caption">Check authentication status</span>
-                      </v-list-item>
-
-                      <v-list-item>
-                        <v-btn
-                          @click="testDirectAPI"
-                          color="warning"
-                          variant="outlined"
-                          size="small"
-                          class="me-2"
-                        >
-                          Test Direct API
-                        </v-btn>
-                        <span class="text-caption">Test API call with manual headers</span>
-                      </v-list-item>
-
-                      <v-list-item>
-                        <v-btn
-                          @click="testBackendEndpoints"
-                          color="error"
-                          variant="outlined"
-                          size="small"
-                          class="me-2"
-                        >
-                          Test All Endpoints
-                        </v-btn>
-                        <span class="text-caption">Test all backend endpoints</span>
-                      </v-list-item>
-
-                      <v-list-item>
-                        <v-btn
-                          @click="checkAuthStatus"
-                          color="info"
-                          variant="outlined"
-                          size="small"
-                          class="me-2"
-                        >
-                          Check Auth Status
-                        </v-btn>
-                        <span class="text-caption">Debug authentication details</span>
-                      </v-list-item>
-
-                      <v-list-item>
-                        <v-btn
-                          @click="verifyToken"
-                          color="success"
-                          variant="outlined"
-                          size="small"
-                          class="me-2"
-                        >
-                          Verify Token
-                        </v-btn>
-                        <span class="text-caption">Verify JWT token validity</span>
-                      </v-list-item>
-                    </v-list>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-card variant="outlined">
-                  <v-card-title>Profile Data</v-card-title>
-                  <v-card-text>
-                    <div v-if="profileStore.loading" class="text-center py-4">
-                      <v-progress-circular indeterminate color="primary" />
-                      <p class="mt-2">Loading...</p>
-                    </div>
-
-                    <div v-else-if="profileStore.error" class="text-center py-4">
-                      <v-alert type="error" variant="tonal">
-                        {{ profileStore.error }}
-                      </v-alert>
-                    </div>
-
-                    <div v-else-if="profileStore.profile">
-                      <v-list density="compact">
-                        <v-list-item>
-                          <v-list-item-title>Name</v-list-item-title>
-                          <template #append>
-                            <span class="text-caption">
-                              {{ profileStore.profile.first_name }}
-                              {{ profileStore.profile.last_name }}
-                            </span>
-                          </template>
-                        </v-list-item>
-
-                        <v-list-item>
-                          <v-list-item-title>Email</v-list-item-title>
-                          <template #append>
-                            <span class="text-caption">{{ profileStore.profile.email }}</span>
-                          </template>
-                        </v-list-item>
-
-                        <v-list-item>
-                          <v-list-item-title>Username</v-list-item-title>
-                          <template #append>
-                            <span class="text-caption">{{ profileStore.profile.username }}</span>
-                          </template>
-                        </v-list-item>
-
-                        <v-list-item>
-                          <v-list-item-title>Profile Completion</v-list-item-title>
-                          <template #append>
-                            <v-chip size="small" color="primary">
-                              {{ Math.round(profileStore.profileCompletion) }}%
-                            </v-chip>
-                          </template>
-                        </v-list-item>
-
-                        <v-list-item>
-                          <v-list-item-title>Active Groups</v-list-item-title>
-                          <template #append>
-                            <v-chip size="small" color="success">
-                              {{ profileStore.activeGroups.length }}
-                            </v-chip>
-                          </template>
-                        </v-list-item>
-                      </v-list>
-                    </div>
-
-                    <div v-else class="text-center py-4">
-                      <v-icon size="64" color="grey">mdi-account-outline</v-icon>
-                      <p class="text-grey">No profile data loaded</p>
-                    </div>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-
-            <!-- Groups and Roles Data -->
-            <v-row
-              v-if="profileStore.groups.length > 0 || profileStore.roles.length > 0"
-              class="mt-4"
-            >
-              <v-col cols="12" md="6" v-if="profileStore.groups.length > 0">
-                <v-card variant="outlined">
-                  <v-card-title>Available Groups</v-card-title>
-                  <v-card-text>
-                    <v-list density="compact">
-                      <v-list-item v-for="group in profileStore.groups" :key="group.id">
-                        <v-list-item-title>{{ group.name }}</v-list-item-title>
-                        <v-list-item-subtitle>{{ group.description }}</v-list-item-subtitle>
-                        <template #append>
-                          <v-chip
-                            :color="group.is_active ? 'success' : 'error'"
-                            size="small"
-                            variant="tonal"
-                          >
-                            {{ group.is_active ? 'Active' : 'Inactive' }}
-                          </v-chip>
-                        </template>
-                      </v-list-item>
-                    </v-list>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-
-              <v-col cols="12" md="6" v-if="profileStore.roles.length > 0">
-                <v-card variant="outlined">
-                  <v-card-title>Available Roles</v-card-title>
-                  <v-card-text>
-                    <v-list density="compact">
-                      <v-list-item v-for="role in profileStore.roles" :key="role.id">
-                        <v-list-item-title>{{ role.name }}</v-list-item-title>
-                        <v-list-item-subtitle>{{ role.description }}</v-list-item-subtitle>
-                        <template #append>
-                          <v-chip
-                            :color="role.is_active ? 'success' : 'error'"
-                            size="small"
-                            variant="tonal"
-                          >
-                            {{ role.is_active ? 'Active' : 'Inactive' }}
-                          </v-chip>
-                        </template>
-                      </v-list-item>
-                    </v-list>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-
-            <!-- API Response Display -->
-            <v-row v-if="apiResponse" class="mt-4">
-              <v-col cols="12">
-                <v-card variant="outlined">
-                  <v-card-title>API Response</v-card-title>
-                  <v-card-text>
-                    <v-textarea
-                      :model-value="JSON.stringify(apiResponse, null, 2)"
-                      readonly
-                      variant="outlined"
-                      rows="10"
-                      class="font-mono text-caption"
-                    />
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+          <!-- Loading State -->
+          <div v-if="profileStore.loading" class="flex justify-center">
+            <span class="loading loading-spinner loading-lg"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useProfileStore } from '@/stores/profile'
+import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useProfileStore } from '@/stores/profile'
 
-const profileStore = useProfileStore()
 const authStore = useAuthStore()
-const apiResponse = ref<any>(null)
+const profileStore = useProfileStore()
 
-const isAuthenticated = computed(() => {
-  return authStore.accessToken && authStore.accessToken.length > 0
-})
-
-const loadProfile = async () => {
-  try {
-    console.log('Auth Store State:', {
-      accessToken: authStore.accessToken ? 'Present' : 'Missing',
-      refreshToken: authStore.refreshToken ? 'Present' : 'Missing',
-      tokenLength: authStore.accessToken?.length || 0,
-    })
-
-    const response = await profileStore.fetchProfile()
-    apiResponse.value = response
-  } catch (error: any) {
-    console.error('Failed to load profile:', error)
-    console.error('Error details:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      headers: error.response?.headers,
-    })
-  }
-}
-
-const loadStats = async () => {
-  try {
-    const response = await profileStore.fetchStats()
-    apiResponse.value = response
-  } catch (error) {
-    console.error('Failed to load stats:', error)
-  }
-}
-
-const loadGroups = async () => {
-  try {
-    const response = await profileStore.fetchGroups()
-    apiResponse.value = response
-  } catch (error) {
-    console.error('Failed to load groups:', error)
-  }
-}
-
-const loadRoles = async () => {
-  try {
-    const response = await profileStore.fetchRoles()
-    apiResponse.value = response
-  } catch (error) {
-    console.error('Failed to load roles:', error)
-  }
-}
-
-const checkBackendHealth = async () => {
-  try {
-    const isProduction = window.location.hostname === 'naboomneighbornet.net.za'
-    const apiBase = isProduction
-      ? 'https://naboomneighbornet.net.za/api'
-      : 'http://localhost:8000/api'
-    const response = await fetch(apiBase + '/')
-    if (response.ok) {
-      console.log('Backend is reachable')
-      return true
-    } else {
-      console.log('Backend returned error:', response.status)
-      return false
-    }
-  } catch (error) {
-    console.log('Backend is not reachable:', error)
-    return false
-  }
-}
-
-const checkAuthStatus = () => {
-  console.log('=== Authentication Status Check ===')
-  console.log('Access Token:', authStore.accessToken ? 'Present' : 'Missing')
-  console.log('Refresh Token:', authStore.refreshToken ? 'Present' : 'Missing')
-  console.log('Token Length:', authStore.accessToken?.length || 0)
-  console.log('Is Authenticated:', isAuthenticated.value)
-  console.log(
-    'Local Storage Access Token:',
-    localStorage.getItem('accessToken') ? 'Present' : 'Missing',
-  )
-  console.log(
-    'Local Storage Refresh Token:',
-    localStorage.getItem('refreshToken') ? 'Present' : 'Missing',
-  )
-
-  if (authStore.accessToken) {
-    console.log('Token Preview:', authStore.accessToken.substring(0, 50) + '...')
-    console.log('Token Parts:', authStore.accessToken.split('.').length)
-
-    // Try to decode the JWT payload (without verification)
-    try {
-      const tokenParts = authStore.accessToken.split('.')
-      if (tokenParts.length === 3 && tokenParts[1]) {
-        const payload = JSON.parse(atob(tokenParts[1]))
-        console.log('Token Payload:', payload)
-        console.log('Token Expiry:', new Date(payload.exp * 1000))
-        console.log('Token Issued:', new Date(payload.iat * 1000))
-      } else {
-        console.error('Invalid JWT format - expected 3 parts, got', tokenParts.length)
-      }
-    } catch (e) {
-      console.error('Failed to decode token:', e)
-    }
-  }
-
-  // Test a simple API call to see if auth is working
-  if (authStore.accessToken) {
-    console.log('Testing authenticated API call...')
-    loadProfile()
-  } else {
-    console.warn('No access token available for testing')
-  }
-}
-
-const testDirectAPI = async () => {
-  console.log('=== Testing Direct API Call ===')
-
-  if (!authStore.accessToken) {
-    console.error('No access token available')
-    return
-  }
-
-  try {
-    const isProduction = window.location.hostname === 'naboomneighbornet.net.za'
-    const apiBase = isProduction ? 'https://naboomneighbornet.net.za' : 'http://localhost:8000'
-    const response = await fetch(`${apiBase}/api/v2/user-profiles/`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${authStore.accessToken}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-    })
-
-    console.log('Direct API Response Status:', response.status)
-    console.log('Direct API Response Headers:', Object.fromEntries(response.headers.entries()))
-
-    if (response.ok) {
-      const data = await response.json()
-      console.log('Direct API Response Data:', data)
-      apiResponse.value = data
-    } else {
-      const errorText = await response.text()
-      console.error('Direct API Error Status:', response.status)
-      console.error('Direct API Error Text:', errorText)
-
-      // Try to parse as JSON if possible
-      try {
-        const errorJson = JSON.parse(errorText)
-        console.error('Direct API Error JSON:', errorJson)
-      } catch (e) {
-        console.error('Error response is not JSON, likely HTML error page')
-      }
-    }
-  } catch (error) {
-    console.error('Direct API Call Failed:', error)
-  }
-}
-
-const testBackendEndpoints = async () => {
-  console.log('=== Testing Backend Endpoints ===')
-
-  const endpoints = [
-    '/api/v2/',
-    '/api/v2/user-profiles/',
-    '/api/v2/user-groups/',
-    '/api/v2/user-roles/',
-    '/api/auth/jwt/verify/',
-  ]
-
-  const isProduction = window.location.hostname === 'naboomneighbornet.net.za'
-  const apiBase = isProduction ? 'https://naboomneighbornet.net.za' : 'http://localhost:8000'
-
-  for (const endpoint of endpoints) {
-    try {
-      console.log(`Testing endpoint: ${endpoint}`)
-      const response = await fetch(`${apiBase}${endpoint}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${authStore.accessToken}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-      })
-
-      console.log(`${endpoint} - Status: ${response.status}`)
-
-      if (response.status === 200) {
-        const data = await response.json()
-        console.log(`${endpoint} - Success:`, data)
-      } else {
-        const text = await response.text()
-        console.log(`${endpoint} - Error:`, text.substring(0, 200) + '...')
-      }
-    } catch (error) {
-      console.error(`${endpoint} - Failed:`, error)
-    }
-  }
-}
-
-const verifyToken = async () => {
-  console.log('=== Verifying JWT Token ===')
-
-  if (!authStore.accessToken) {
-    console.error('No access token available')
-    return
-  }
-
-  try {
-    const isProduction = window.location.hostname === 'naboomneighbornet.net.za'
-    const apiBase = isProduction ? 'https://naboomneighbornet.net.za' : 'http://localhost:8000'
-    const response = await fetch(`${apiBase}/api/auth/jwt/verify/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({
-        token: authStore.accessToken,
-      }),
-    })
-
-    console.log('Token Verification Status:', response.status)
-
-    if (response.ok) {
-      const data = await response.json()
-      console.log('Token is valid:', data)
-    } else {
-      const errorText = await response.text()
-      console.error('Token verification failed:', errorText)
-    }
-  } catch (error) {
-    console.error('Token verification error:', error)
-  }
-}
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 </script>

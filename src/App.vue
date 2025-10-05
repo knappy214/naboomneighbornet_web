@@ -1,16 +1,15 @@
 <template>
-  <v-app>
-    <v-layout>
-      <!-- Navigation Drawer - Only show for non-auth routes -->
-      <LocaleNavigation v-if="!isAuthRoute" />
+  <div class="min-h-screen bg-base-100">
+    <!-- Navigation Drawer - Only show for non-auth routes -->
+    <LocaleNavigation v-if="!isAuthRoute" />
 
-      <!-- Main Content -->
-      <v-main>
-        <RouterView />
-      </v-main>
-    </v-layout>
+    <!-- Main Content -->
+    <main class="min-h-screen">
+      <RouterView />
+    </main>
+
     <ToastHost />
-  </v-app>
+  </div>
 </template>
 
 <script setup lang="ts">

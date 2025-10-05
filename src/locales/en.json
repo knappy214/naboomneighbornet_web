@@ -44,62 +44,6 @@
     "trustedBy": "Trusted by 500+ Farmers",
     "joinCommunity": "Join your farming neighbors and help build a safer agricultural community together."
   },
-  "$vuetify": {
-    "dataIterator": {
-      "noResultsText": "No matching records found",
-      "loadingText": "Loading items..."
-    },
-    "dataTable": {
-      "itemsPerPageText": "Rows per page:",
-      "ariaLabel": {
-        "sortDesc": "Sorted descending.",
-        "sortAsc": "Sorted ascending.",
-        "sortNone": "Not sorted.",
-        "activateNone": "Activate to remove sorting.",
-        "activateDesc": "Activate to sort descending.",
-        "activateAsc": "Activate to sort ascending."
-      },
-      "sortBy": "Sort by"
-    },
-    "noDataText": "No data available",
-    "carousel": {
-      "prev": "Previous visual",
-      "next": "Next visual",
-      "ariaLabel": {
-        "delimiter": "Carousel slide {0} of {1}"
-      }
-    },
-    "calendar": {
-      "moreEvents": "{0} more"
-    },
-    "fileInput": {
-      "counter": "{0} files",
-      "counterSize": "{0} files ({1} in total)"
-    },
-    "timePicker": {
-      "am": "AM",
-      "pm": "PM"
-    },
-    "pagination": {
-      "ariaLabel": {
-        "wrapper": "Pagination Navigation",
-        "next": "Next page",
-        "previous": "Previous page",
-        "page": "Go to page {0}",
-        "currentPage": "Page {0}, Current page"
-      }
-    },
-    "rating": {
-      "ariaLabel": {
-        "item": "Rating {0} of {1}"
-      }
-    },
-    "loading": "Loading...",
-    "infiniteLoading": {
-      "loadMore": "Load more",
-      "empty": "No more data"
-    }
-  },
   "storeDemo": {
     "title": "Store Demo",
     "subtitle": "Demonstration of i18n-aware Pinia stores with locale-sensitive caching",
@@ -548,7 +492,8 @@
     "success": "Success",
     "refresh": "Refresh",
     "select": "Select",
-    "active": "Active"
+    "active": "Active",
+    "or": "OR"
   },
   "panic": {
     "dashboard": {

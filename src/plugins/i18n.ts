@@ -23,12 +23,12 @@ export const i18n = createI18n({
   allowComposition: true,
   sync: true,
   warnHtmlMessage: false,
-  // Enable parameter interpolation for Vuetify compatibility
+  // Enable parameter interpolation for i18n compatibility
   pluralizationRules: {
     en: (choice: number) => (choice === 1 ? 0 : 1),
     af: (choice: number) => (choice === 1 ? 0 : 1),
   },
-  // Enable message format for Vuetify parameter handling
+  // Enable message format for parameter handling
   messageFormat: {
     message: true,
     messageSyntax: true,

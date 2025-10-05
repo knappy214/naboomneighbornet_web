@@ -1,146 +1,185 @@
 <template>
-  <v-card>
-    <v-card-title>
-      <v-icon class="mr-2">mdi-palette</v-icon>
-      {{ t('app.language') }} & Theme Switcher
-    </v-card-title>
-    <v-card-text>
-      <v-row>
+  <div class="card bg-base-100 shadow-lg">
+    <div class="card-body">
+      <h2 class="card-title text-lg mb-4">
+        <span class="text-xl">🎨</span>
+        {{ t('app.language') }} & Theme Switcher
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Language Switcher -->
-        <v-col cols="12" md="6">
-          <h4>{{ t('app.language') }}</h4>
-          <VuetifyLocaleSwitcher />
-          <v-divider class="my-2" />
-          <v-chip color="primary" size="small">
-            {{ t('app.language') }}: {{ currentLocale }}
-          </v-chip>
-        </v-col>
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold">{{ t('app.language') }}</h3>
+          <div class="dropdown dropdown-end w-full">
+            <div tabindex="0" role="button" class="btn btn-outline w-full justify-start">
+              <span class="text-lg">{{ currentLocaleIcon }}</span>
+              <span class="ml-2">{{ currentLocaleLabel }}</span>
+            </div>
+            <ul
+              tabindex="0"
+              class="dropdown-content menu bg-base-100 rounded-box z-[1] w-48 p-2 shadow-lg"
+            >
+              <li class="menu-title">
+                <span>{{ t('app.language') }}</span>
+              </li>
+              <li
+                v-for="localeOption in supportedLocales"
+                :key="localeOption.code"
+                @click="switchLocale(localeOption.code as 'en' | 'af')"
+                :class="{ 'menu-active': localeOption.code === currentLocale }"
+              >
+                <button class="flex items-center gap-3">
+                  <span class="text-lg">{{ localeOption.flag }}</span>
+                  <span>{{ localeOption.nativeName }}</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+          <div class="badge badge-primary">{{ t('app.language') }}: {{ currentLocale }}</div>
+        </div>
 
         <!-- Theme Switcher -->
-        <v-col cols="12" md="6">
-          <h4>Theme</h4>
-          <v-btn-toggle
-            v-model="currentTheme"
-            mandatory
-            @update:model-value="changeTheme"
-            class="mb-2"
-          >
-            <v-btn value="light" size="small">
-              <v-icon start>mdi-weather-sunny</v-icon>
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold">Theme</h3>
+          <div class="join w-full">
+            <button
+              class="btn join-item"
+              :class="{
+                'btn-primary': currentTheme === 'light',
+                'btn-outline': currentTheme !== 'light',
+              }"
+              @click="changeTheme('light')"
+            >
+              <span class="text-lg">☀️</span>
               Light
-            </v-btn>
-            <v-btn value="business" size="small">
-              <v-icon start>mdi-weather-night</v-icon>
+            </button>
+            <button
+              class="btn join-item"
+              :class="{
+                'btn-primary': currentTheme === 'business',
+                'btn-outline': currentTheme !== 'business',
+              }"
+              @click="changeTheme('business')"
+            >
+              <span class="text-lg">🌙</span>
               Business
-            </v-btn>
-          </v-btn-toggle>
-          <v-divider class="my-2" />
-          <v-chip color="secondary" size="small"> Theme: {{ currentTheme }} </v-chip>
-        </v-col>
-      </v-row>
+            </button>
+          </div>
+          <div class="badge badge-secondary">Theme: {{ currentTheme }}</div>
+        </div>
+      </div>
 
       <!-- Locale-specific theme preview -->
-      <v-divider class="my-4" />
-      <v-row>
-        <v-col cols="12">
-          <h4>Locale-specific Theme Preview</h4>
-          <v-alert
-            :type="currentLocale === 'af' ? 'info' : 'success'"
-            :color="currentLocale === 'af' ? 'info' : 'success'"
-            variant="tonal"
-          >
-            <template #prepend>
-              <v-icon>
-                {{ currentLocale === 'af' ? 'mdi-flag-south-africa' : 'mdi-flag' }}
-              </v-icon>
-            </template>
-            <div>
-              <strong>{{ t('app.title') }}</strong
-              ><br />
-              {{
-                currentLocale === 'af'
-                  ? "Hierdie is 'n voorbeeld van die Afrikaans tema met donkerder kleure vir beter leesbaarheid."
-                  : 'This is an example of the English theme with lighter colors for better readability.'
-              }}
+      <div class="divider my-6"></div>
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold">Locale-specific Theme Preview</h3>
+        <div
+          role="alert"
+          class="alert"
+          :class="currentLocale === 'af' ? 'alert-info' : 'alert-success'"
+        >
+          <svg class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path
+              v-if="currentLocale === 'af'"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+            <path
+              v-else
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div>
+            <h4 class="font-bold">
+              {{ currentLocale === 'af' ? 'Afrikaans Theme' : 'English Theme' }}
+            </h4>
+            <div class="text-sm">
+              {{ currentLocale === 'af' ? 'Afrikaanse tema is aktief' : 'English theme is active' }}
             </div>
-          </v-alert>
-        </v-col>
-      </v-row>
+          </div>
+        </div>
+      </div>
 
-      <!-- Theme colors preview -->
-      <v-divider class="my-4" />
-      <v-row>
-        <v-col cols="12">
-          <h4>Theme Colors</h4>
-          <v-row>
-            <v-col cols="3" v-for="(color, name) in themeColors" :key="name">
-              <v-card :color="color" height="60" class="d-flex align-center justify-center">
-                <span
-                  :class="
-                    name.includes('primary') || name.includes('secondary')
-                      ? 'text-white'
-                      : 'text-black'
-                  "
-                  class="text-caption font-weight-bold"
-                >
-                  {{ name }}
-                </span>
-              </v-card>
-            </v-col>
-          </v-row>
-        </v-col>
-      </v-row>
-    </v-card-text>
-  </v-card>
+      <!-- Current Settings Display -->
+      <div class="divider my-6"></div>
+      <div class="stats stats-vertical lg:stats-horizontal shadow">
+        <div class="stat">
+          <div class="stat-figure text-primary">
+            <span class="text-2xl">{{ currentLocaleIcon }}</span>
+          </div>
+          <div class="stat-title">{{ t('app.language') }}</div>
+          <div class="stat-value text-lg">{{ currentLocaleLabel }}</div>
+          <div class="stat-desc">{{ currentLocale }}</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-figure text-secondary">
+            <span class="text-2xl">{{ themeIcon }}</span>
+          </div>
+          <div class="stat-title">Theme</div>
+          <div class="stat-value text-lg">{{ currentTheme }}</div>
+          <div class="stat-desc">{{ themeMode }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useTheme, useLocale } from 'vuetify'
-import VuetifyLocaleSwitcher from './VuetifyLocaleSwitcher.vue'
-import { type AppLocale } from '@/plugins/i18n'
+import { useTheme } from '@/composables/useTheme'
+import { useLocaleRouter } from '@/composables/useLocaleRouter'
+import { i18n } from '@/plugins/i18n'
 
 const { t, locale } = useI18n()
-const theme = useTheme()
-const vuetifyLocale = useLocale()
+const { currentTheme, setTheme, availableThemes } = useTheme()
+const { switchLocale } = useLocaleRouter()
 
-const currentLocale = computed(() => locale.value as AppLocale)
-const currentTheme = ref(theme.current.value.dark ? 'business' : 'light')
-
-const themeColors = computed(() => {
-  const currentThemeObj = theme.current.value
-  return {
-    primary: currentThemeObj.colors.primary,
-    secondary: currentThemeObj.colors.secondary,
-    accent: currentThemeObj.colors.accent,
-    error: currentThemeObj.colors.error,
-    warning: currentThemeObj.colors.warning,
-    info: currentThemeObj.colors.info,
-    success: currentThemeObj.colors.success,
-  }
+const supportedLocales = computed(() => {
+  const availableLocales = i18n.global.availableLocales as string[]
+  return availableLocales.map((code) => {
+    switch (code) {
+      case 'en':
+        return { code, flag: '🇺🇸', nativeName: 'English' }
+      case 'af':
+        return { code, flag: '🇿🇦', nativeName: 'Afrikaans' }
+      default:
+        return { code, flag: '🌐', nativeName: code.toUpperCase() }
+    }
+  })
 })
 
-const changeTheme = (newTheme: string) => {
-  theme.global.name.value = newTheme
-  localStorage.setItem('theme', newTheme)
+const changeTheme = (theme: string) => {
+  setTheme(theme as 'light' | 'business')
 }
 
-// Watch for locale changes and adjust theme if needed
-watch(currentLocale, (newLocale) => {
-  // You can add locale-specific theme logic here
-  // For example, automatically switch to business theme for Afrikaans
-  if (newLocale === 'af' && currentTheme.value === 'light') {
-    // Optionally auto-switch to business theme for Afrikaans
-    // changeTheme('business')
-  }
+const currentLocale = computed(() => locale.value)
+
+const currentLocaleIcon = computed(() => {
+  const current = supportedLocales.value.find(
+    (l: { code: string; flag: string }) => l.code === locale.value,
+  )
+  return current?.flag || '🌐'
 })
 
-// Watch for theme changes
-watch(
-  () => theme.current.value.dark,
-  (isDark) => {
-    currentTheme.value = isDark ? 'business' : 'light'
-  },
-)
+const currentLocaleLabel = computed(() => {
+  const current = supportedLocales.value.find(
+    (l: { code: string; nativeName: string }) => l.code === locale.value,
+  )
+  return current?.nativeName || 'Language'
+})
+
+const themeIcon = computed(() => {
+  return currentTheme.value === 'light' ? '☀️' : '🌙'
+})
+
+const themeMode = computed(() => {
+  return currentTheme.value === 'light' ? 'Light Mode' : 'Dark Mode'
+})
 </script>

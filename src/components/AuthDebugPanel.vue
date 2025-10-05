@@ -1,197 +1,259 @@
 <template>
-  <v-card class="auth-debug-panel" elevation="2">
-    <v-card-title class="d-flex align-center">
-      <v-icon class="me-2">🔐</v-icon>
-      Authentication Debug Panel
-      <v-spacer />
-      <v-btn
-        icon="mdi-refresh"
-        size="small"
-        variant="text"
-        @click="refreshDebugInfo"
-        :loading="isLoading"
-      />
-    </v-card-title>
-
-    <v-card-text>
-      <v-alert v-if="debugInfo.accessToken.isExpired" type="warning" variant="tonal" class="mb-4">
-        <v-alert-title>⚠️ Access Token Expired</v-alert-title>
-        Your access token has expired. Try refreshing or logging in again.
-      </v-alert>
-
-      <v-alert v-if="!debugInfo.isAuthenticated" type="error" variant="tonal" class="mb-4">
-        <v-alert-title>❌ Not Authenticated</v-alert-title>
-        No access token found. Please log in.
-      </v-alert>
-
-      <v-alert
-        v-if="debugInfo.isAuthenticated && !debugInfo.accessToken.isExpired"
-        type="success"
-        variant="tonal"
-        class="mb-4"
-      >
-        <v-alert-title>✅ Authenticated</v-alert-title>
-        You are successfully authenticated.
-      </v-alert>
-
-      <v-expansion-panels>
-        <v-expansion-panel>
-          <v-expansion-panel-title>
-            <v-icon class="me-2">🎫</v-icon>
-            Access Token Details
-          </v-expansion-panel-title>
-          <v-expansion-panel-text>
-            <v-list density="compact">
-              <v-list-item>
-                <v-list-item-title>Status</v-list-item-title>
-                <v-list-item-subtitle>
-                  <v-chip :color="debugInfo.accessToken.isValid ? 'success' : 'error'" size="small">
-                    {{ debugInfo.accessToken.isValid ? 'Valid' : 'Invalid' }}
-                  </v-chip>
-                </v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>Expired</v-list-item-title>
-                <v-list-item-subtitle>
-                  <v-chip
-                    :color="debugInfo.accessToken.isExpired ? 'error' : 'success'"
-                    size="small"
-                  >
-                    {{ debugInfo.accessToken.isExpired ? 'Yes' : 'No' }}
-                  </v-chip>
-                </v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item v-if="debugInfo.accessToken.expiresAt">
-                <v-list-item-title>Expires At</v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ formatDate(debugInfo.accessToken.expiresAt) }}
-                </v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item v-if="debugInfo.accessToken.issuedAt">
-                <v-list-item-title>Issued At</v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ formatDate(debugInfo.accessToken.issuedAt) }}
-                </v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item v-if="debugInfo.accessToken.error">
-                <v-list-item-title>Error</v-list-item-title>
-                <v-list-item-subtitle class="text-error">
-                  {{ debugInfo.accessToken.error }}
-                </v-list-item-subtitle>
-              </v-list-item>
-            </v-list>
-          </v-expansion-panel-text>
-        </v-expansion-panel>
-
-        <v-expansion-panel>
-          <v-expansion-panel-title>
-            <v-icon class="me-2">🔄</v-icon>
-            Refresh Token Details
-          </v-expansion-panel-title>
-          <v-expansion-panel-text>
-            <v-list density="compact">
-              <v-list-item>
-                <v-list-item-title>Status</v-list-item-title>
-                <v-list-item-subtitle>
-                  <v-chip
-                    :color="debugInfo.refreshToken.isValid ? 'success' : 'error'"
-                    size="small"
-                  >
-                    {{ debugInfo.refreshToken.isValid ? 'Valid' : 'Invalid' }}
-                  </v-chip>
-                </v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>Expired</v-list-item-title>
-                <v-list-item-subtitle>
-                  <v-chip
-                    :color="debugInfo.refreshToken.isExpired ? 'error' : 'success'"
-                    size="small"
-                  >
-                    {{ debugInfo.refreshToken.isExpired ? 'Yes' : 'No' }}
-                  </v-chip>
-                </v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item v-if="debugInfo.refreshToken.expiresAt">
-                <v-list-item-title>Expires At</v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ formatDate(debugInfo.refreshToken.expiresAt) }}
-                </v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item v-if="debugInfo.refreshToken.error">
-                <v-list-item-title>Error</v-list-item-title>
-                <v-list-item-subtitle class="text-error">
-                  {{ debugInfo.refreshToken.error }}
-                </v-list-item-subtitle>
-              </v-list-item>
-            </v-list>
-          </v-expansion-panel-text>
-        </v-expansion-panel>
-
-        <v-expansion-panel>
-          <v-expansion-panel-title>
-            <v-icon class="me-2">💾</v-icon>
-            Local Storage
-          </v-expansion-panel-title>
-          <v-expansion-panel-text>
-            <v-list density="compact">
-              <v-list-item>
-                <v-list-item-title>Access Token</v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ debugInfo.localStorage.accessToken ? 'Present' : 'Missing' }}
-                </v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item>
-                <v-list-item-title>Refresh Token</v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ debugInfo.localStorage.refreshToken ? 'Present' : 'Missing' }}
-                </v-list-item-subtitle>
-              </v-list-item>
-            </v-list>
-          </v-expansion-panel-text>
-        </v-expansion-panel>
-      </v-expansion-panels>
-
-      <v-divider class="my-4" />
-
-      <div class="d-flex flex-wrap gap-2">
-        <v-btn
-          color="primary"
-          variant="outlined"
-          size="small"
-          @click="testAPIAuth"
-          :loading="isTestingAPI"
-        >
-          <v-icon class="me-1">🧪</v-icon>
-          Test API Auth
-        </v-btn>
-        <v-btn color="warning" variant="outlined" size="small" @click="clearAuth">
-          <v-icon class="me-1">🧹</v-icon>
-          Clear Auth
-        </v-btn>
-        <v-btn color="info" variant="outlined" size="small" @click="openConsole">
-          <v-icon class="me-1">🖥️</v-icon>
-          Open Console
-        </v-btn>
+  <div class="card bg-base-100 shadow-lg border border-base-200 max-w-2xl mx-auto">
+    <div class="card-body p-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="card-title text-xl">
+          <span class="text-2xl">🔐</span>
+          Authentication Debug Panel
+        </h2>
+        <button class="btn btn-ghost btn-sm" @click="refreshDebugInfo" :disabled="isLoading">
+          <span v-if="isLoading" class="loading loading-spinner loading-xs"></span>
+          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+        </button>
       </div>
 
-      <v-alert
-        v-if="testResult"
-        :type="testResult.success ? 'success' : 'error'"
-        variant="tonal"
-        class="mt-4"
-      >
-        <v-alert-title>
-          {{ testResult.success ? '✅ API Test Successful' : '❌ API Test Failed' }}
-        </v-alert-title>
-        <div v-if="testResult.message">{{ testResult.message }}</div>
-        <div v-if="testResult.details" class="mt-2">
-          <strong>Details:</strong>
-          <pre class="mt-1">{{ JSON.stringify(testResult.details, null, 2) }}</pre>
+      <!-- Alerts -->
+      <div v-if="debugInfo.accessToken.isExpired" role="alert" class="alert alert-warning mb-4">
+        <svg class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+          />
+        </svg>
+        <div>
+          <h3 class="font-bold">⚠️ Access Token Expired</h3>
+          <div class="text-xs">
+            Your access token has expired. Try refreshing or logging in again.
+          </div>
         </div>
-      </v-alert>
-    </v-card-text>
-  </v-card>
+      </div>
+
+      <div v-if="!debugInfo.isAuthenticated" role="alert" class="alert alert-error mb-4">
+        <svg class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <div>
+          <h3 class="font-bold">❌ Not Authenticated</h3>
+          <div class="text-xs">No access token found. Please log in.</div>
+        </div>
+      </div>
+
+      <div
+        v-if="debugInfo.isAuthenticated && !debugInfo.accessToken.isExpired"
+        role="alert"
+        class="alert alert-success mb-4"
+      >
+        <svg class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <div>
+          <h3 class="font-bold">✅ Authenticated</h3>
+          <div class="text-xs">You are successfully authenticated.</div>
+        </div>
+      </div>
+
+      <!-- Collapsible Sections -->
+      <div class="space-y-4">
+        <!-- Access Token Details -->
+        <div class="collapse collapse-arrow bg-base-200">
+          <input type="radio" name="debug-accordion" />
+          <div class="collapse-title text-lg font-medium">
+            <span class="text-xl mr-2">🎫</span>
+            Access Token Details
+          </div>
+          <div class="collapse-content">
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="font-medium">Status</span>
+                <div
+                  class="badge"
+                  :class="debugInfo.accessToken.isValid ? 'badge-success' : 'badge-error'"
+                >
+                  {{ debugInfo.accessToken.isValid ? 'Valid' : 'Invalid' }}
+                </div>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="font-medium">Expired</span>
+                <div
+                  class="badge"
+                  :class="debugInfo.accessToken.isExpired ? 'badge-error' : 'badge-success'"
+                >
+                  {{ debugInfo.accessToken.isExpired ? 'Yes' : 'No' }}
+                </div>
+              </div>
+              <div v-if="debugInfo.accessToken.expiresAt" class="flex justify-between items-center">
+                <span class="font-medium">Expires At</span>
+                <span class="text-sm text-base-content/70">{{
+                  formatDate(debugInfo.accessToken.expiresAt)
+                }}</span>
+              </div>
+              <div v-if="debugInfo.accessToken.issuedAt" class="flex justify-between items-center">
+                <span class="font-medium">Issued At</span>
+                <span class="text-sm text-base-content/70">{{
+                  formatDate(debugInfo.accessToken.issuedAt)
+                }}</span>
+              </div>
+              <div v-if="debugInfo.accessToken.error" class="flex justify-between items-center">
+                <span class="font-medium">Error</span>
+                <span class="text-sm text-error">{{ debugInfo.accessToken.error }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Refresh Token Details -->
+        <div class="collapse collapse-arrow bg-base-200">
+          <input type="radio" name="debug-accordion" />
+          <div class="collapse-title text-lg font-medium">
+            <span class="text-xl mr-2">🔄</span>
+            Refresh Token Details
+          </div>
+          <div class="collapse-content">
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="font-medium">Status</span>
+                <div
+                  class="badge"
+                  :class="debugInfo.refreshToken.isValid ? 'badge-success' : 'badge-error'"
+                >
+                  {{ debugInfo.refreshToken.isValid ? 'Valid' : 'Invalid' }}
+                </div>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="font-medium">Expired</span>
+                <div
+                  class="badge"
+                  :class="debugInfo.refreshToken.isExpired ? 'badge-error' : 'badge-success'"
+                >
+                  {{ debugInfo.refreshToken.isExpired ? 'Yes' : 'No' }}
+                </div>
+              </div>
+              <div
+                v-if="debugInfo.refreshToken.expiresAt"
+                class="flex justify-between items-center"
+              >
+                <span class="font-medium">Expires At</span>
+                <span class="text-sm text-base-content/70">{{
+                  formatDate(debugInfo.refreshToken.expiresAt)
+                }}</span>
+              </div>
+              <div v-if="debugInfo.refreshToken.error" class="flex justify-between items-center">
+                <span class="font-medium">Error</span>
+                <span class="text-sm text-error">{{ debugInfo.refreshToken.error }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Local Storage -->
+        <div class="collapse collapse-arrow bg-base-200">
+          <input type="radio" name="debug-accordion" />
+          <div class="collapse-title text-lg font-medium">
+            <span class="text-xl mr-2">💾</span>
+            Local Storage
+          </div>
+          <div class="collapse-content">
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="font-medium">Access Token</span>
+                <div
+                  class="badge"
+                  :class="debugInfo.localStorage.accessToken ? 'badge-success' : 'badge-error'"
+                >
+                  {{ debugInfo.localStorage.accessToken ? 'Present' : 'Missing' }}
+                </div>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="font-medium">Refresh Token</span>
+                <div
+                  class="badge"
+                  :class="debugInfo.localStorage.refreshToken ? 'badge-success' : 'badge-error'"
+                >
+                  {{ debugInfo.localStorage.refreshToken ? 'Present' : 'Missing' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider my-6"></div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap gap-2">
+        <button class="btn btn-outline btn-sm" @click="testAPIAuth" :disabled="isTestingAPI">
+          <span v-if="isTestingAPI" class="loading loading-spinner loading-xs"></span>
+          <span v-else class="text-lg">🧪</span>
+          Test API Auth
+        </button>
+        <button class="btn btn-outline btn-warning btn-sm" @click="clearAuth">
+          <span class="text-lg">🧹</span>
+          Clear Auth
+        </button>
+        <button class="btn btn-outline btn-info btn-sm" @click="openConsole">
+          <span class="text-lg">🖥️</span>
+          Open Console
+        </button>
+      </div>
+
+      <!-- Test Result Alert -->
+      <div
+        v-if="testResult"
+        role="alert"
+        class="alert mt-4"
+        :class="testResult.success ? 'alert-success' : 'alert-error'"
+      >
+        <svg class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path
+            v-if="testResult.success"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+          <path
+            v-else
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <div>
+          <h3 class="font-bold">
+            {{ testResult.success ? '✅ API Test Successful' : '❌ API Test Failed' }}
+          </h3>
+          <div v-if="testResult.message" class="text-sm">{{ testResult.message }}</div>
+          <div v-if="testResult.details" class="mt-2">
+            <strong class="text-sm">Details:</strong>
+            <pre class="mt-1 text-xs bg-base-300 p-2 rounded overflow-x-auto">{{
+              JSON.stringify(testResult.details, null, 2)
+            }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -265,18 +327,3 @@ onMounted(() => {
   refreshDebugInfo()
 })
 </script>
-
-<style scoped>
-.auth-debug-panel {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-pre {
-  font-size: 0.8em;
-  background: hsl(var(--b3) / 0.05);
-  padding: 8px;
-  border-radius: 4px;
-  overflow-x: auto;
-}
-</style>

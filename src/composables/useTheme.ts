@@ -1,32 +1,31 @@
 import { computed } from 'vue'
-import { useTheme as useVuetifyTheme } from 'vuetify'
 import { useThemeStore, type ThemeName } from '@/stores/theme'
 
 export function useTheme() {
   const themeStore = useThemeStore()
-  const vuetifyTheme = useVuetifyTheme()
 
   const currentTheme = computed(() => themeStore.currentTheme)
   const currentThemeData = computed(() => themeStore.currentThemeData)
   const isDarkMode = computed(() => themeStore.isDarkMode)
   const themes = computed(() => themeStore.themes)
+  const availableThemes = computed(() => ['light', 'business'])
 
   const setTheme = (themeName: ThemeName) => {
     themeStore.setTheme(themeName)
-    // Sync with Vuetify
-    vuetifyTheme.global.name.value = themeName
+    // Apply theme to HTML element for daisyUI
+    document.documentElement.setAttribute('data-theme', themeName)
   }
 
   const toggleTheme = () => {
     themeStore.toggleTheme()
-    // Sync with Vuetify
-    vuetifyTheme.global.name.value = themeStore.currentTheme
+    // Apply theme to HTML element for daisyUI
+    document.documentElement.setAttribute('data-theme', themeStore.currentTheme)
   }
 
   const initializeTheme = () => {
     themeStore.initializeTheme()
-    // Sync with Vuetify
-    vuetifyTheme.global.name.value = themeStore.currentTheme
+    // Apply theme to HTML element for daisyUI
+    document.documentElement.setAttribute('data-theme', themeStore.currentTheme)
   }
 
   return {
@@ -34,6 +33,7 @@ export function useTheme() {
     currentThemeData,
     isDarkMode,
     themes,
+    availableThemes,
     setTheme,
     toggleTheme,
     initializeTheme,

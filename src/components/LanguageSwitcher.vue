@@ -1,62 +1,67 @@
 <template>
-  <v-menu>
-    <template #activator="{ props }">
-      <v-btn
-        v-bind="props"
-        variant="text"
-        :prepend-icon="currentLocaleIcon"
-        class="text-capitalize"
+  <div class="dropdown dropdown-end">
+    <div tabindex="0" role="button" class="btn btn-ghost">
+      <span class="text-lg">{{ currentLocaleIcon }}</span>
+      <span class="ml-1">{{ currentLocaleLabel }}</span>
+    </div>
+    <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-48 p-2 shadow-lg">
+      <li class="menu-title">
+        <span>{{ t('app.language') }}</span>
+      </li>
+      <li
+        v-for="localeOption in supportedLocales"
+        :key="localeOption.code"
+        @click="changeLocale(localeOption.code as AppLocale)"
+        :class="{ 'menu-active': localeOption.code === currentLocale }"
       >
-        {{ currentLocaleLabel }}
-      </v-btn>
-    </template>
-    <v-list>
-      <v-list-item
-        v-for="locale in SUPPORT_LOCALES"
-        :key="locale"
-        :value="locale"
-        @click="changeLocale(locale)"
-        :active="locale === currentLocale"
-      >
-        <template #prepend>
-          <v-icon>{{ getLocaleIcon(locale) }}</v-icon>
-        </template>
-        <v-list-item-title>{{ getLocaleLabel(locale) }}</v-list-item-title>
-      </v-list-item>
-    </v-list>
-  </v-menu>
+        <button class="flex items-center gap-3">
+          <span class="text-lg">{{ localeOption.flag }}</span>
+          <span>{{ localeOption.nativeName }}</span>
+        </button>
+      </li>
+    </ul>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SUPPORT_LOCALES, type AppLocale } from '@/plugins/i18n'
+import { i18n } from '@/plugins/i18n'
 
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 
 const currentLocale = computed(() => locale.value as AppLocale)
 
-const currentLocaleIcon = computed(() => getLocaleIcon(currentLocale.value))
-const currentLocaleLabel = computed(() => getLocaleLabel(currentLocale.value))
+const supportedLocales = computed(() => {
+  const availableLocales = i18n.global.availableLocales as string[]
+  return availableLocales.map((code) => {
+    switch (code) {
+      case 'en':
+        return { code, flag: '🇺🇸', nativeName: 'English' }
+      case 'af':
+        return { code, flag: '🇿🇦', nativeName: 'Afrikaans' }
+      default:
+        return { code, flag: '🌐', nativeName: code.toUpperCase() }
+    }
+  })
+})
 
-const getLocaleIcon = (locale: AppLocale): string => {
-  const icons = {
-    en: 'mdi-flag',
-    af: 'mdi-flag-south-africa',
-  }
-  return icons[locale]
-}
+const currentLocaleIcon = computed(() => {
+  const current = supportedLocales.value.find(
+    (l: { code: string; flag: string }) => l.code === locale.value,
+  )
+  return current?.flag || '🌐'
+})
 
-const getLocaleLabel = (locale: AppLocale): string => {
-  const labels = {
-    en: 'English',
-    af: 'Afrikaans',
-  }
-  return labels[locale]
-}
+const currentLocaleLabel = computed(() => {
+  const current = supportedLocales.value.find(
+    (l: { code: string; nativeName: string }) => l.code === locale.value,
+  )
+  return current?.nativeName || 'Language'
+})
 
 const changeLocale = (newLocale: AppLocale) => {
   locale.value = newLocale
-  localStorage.setItem('locale', newLocale)
 }
 </script>

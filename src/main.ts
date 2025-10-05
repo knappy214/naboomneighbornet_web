@@ -4,7 +4,6 @@ import App from './App.vue'
 import router from './router'
 import './app.css'
 import { i18n } from './plugins/i18n'
-import { vuetify } from './plugins/vuetify'
 import { useI18nStore } from './stores/i18n'
 import { useCacheStore } from './stores/cache'
 import { usePrefsStore } from './stores/hub/prefs'
@@ -30,7 +29,6 @@ const app = createApp(App)
 app.use(pinia)
 app.use(router)
 app.use(i18n)
-app.use(vuetify)
 
 // Initialize stores after pinia is installed
 const i18nStore = useI18nStore()

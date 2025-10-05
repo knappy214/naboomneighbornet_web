@@ -1,465 +1,348 @@
 <template>
-  <v-container fluid>
+  <div class="container mx-auto p-4 space-y-6">
     <!-- Header Section -->
-    <v-row class="mb-6">
-      <v-col cols="12">
-        <v-card class="elevation-4" :color="themeColor">
-          <v-card-title class="d-flex align-center">
-            <v-avatar class="mr-4" size="48">
-              <v-img :src="logoUrl" alt="SafeNaboom Logo" />
-            </v-avatar>
-            <div>
-              <h1 class="text-h4 font-weight-bold">{{ $t('dashboard.title') }}</h1>
-              <p class="text-subtitle-1 mb-0">{{ $t('dashboard.subtitle') }}</p>
+    <div class="card bg-primary text-primary-content shadow-xl">
+      <div class="card-body">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="avatar">
+              <div class="w-12 h-12 rounded-full">
+                <img :src="logoUrl" alt="SafeNaboom Logo" />
+              </div>
             </div>
-            <v-spacer />
-            <v-chip :color="statusColor" size="large" class="mr-2">
-              <v-icon start>{{ statusIcon }}</v-icon>
-              {{ $t('dashboard.status') }}
-            </v-chip>
-          </v-card-title>
-        </v-card>
-      </v-col>
-    </v-row>
+            <div>
+              <h1 class="text-3xl font-bold">{{ t('dashboard.title') }}</h1>
+              <p class="text-lg opacity-90">{{ t('dashboard.subtitle') }}</p>
+            </div>
+          </div>
+          <div class="badge badge-lg" :class="statusBadgeClass">
+            <span class="text-lg">{{ statusIcon }}</span>
+            {{ t('dashboard.status') }}
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Stats Cards -->
-    <v-row class="mb-6">
-      <v-col v-for="stat in stats" :key="stat.key" cols="12" sm="6" md="3">
-        <v-card class="elevation-2" :color="stat.color" height="120">
-          <v-card-text class="d-flex flex-column justify-center align-center text-center">
-            <v-icon :color="stat.iconColor" size="32" class="mb-2">
-              {{ stat.icon }}
-            </v-icon>
-            <div class="text-h4 font-weight-bold">{{ stat.value }}</div>
-            <div class="text-caption">{{ $t(stat.label) }}</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div
+        v-for="stat in stats"
+        :key="stat.key"
+        class="card bg-base-100 shadow-lg"
+        :class="stat.colorClass"
+      >
+        <div class="card-body text-center">
+          <div class="text-4xl mb-2" :class="stat.iconColorClass">
+            {{ stat.icon }}
+          </div>
+          <div class="text-3xl font-bold">{{ stat.value }}</div>
+          <div class="text-sm opacity-70">{{ t(stat.label) }}</div>
+        </div>
+      </div>
+    </div>
 
     <!-- Main Content Grid -->
-    <v-row>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Farm Security Panel -->
-      <v-col cols="12" md="8">
-        <v-card class="elevation-2" height="400">
-          <v-card-title>
-            <v-icon class="mr-2" color="primary">mdi-shield-check</v-icon>
-            {{ $t('dashboard.farmSecurity.title') }}
-          </v-card-title>
-          <v-card-text>
-            <v-list>
-              <v-list-item
-                v-for="alert in securityAlerts"
-                :key="alert.id"
-                :prepend-icon="alert.icon"
-                :title="$t(alert.title)"
-                :subtitle="$t(alert.subtitle)"
-              >
-                <template #append>
-                  <v-chip
-                    :color="
-                      alert.severity === 'high'
-                        ? 'error'
-                        : alert.severity === 'medium'
-                          ? 'warning'
-                          : 'success'
-                    "
-                    size="small"
-                  >
-                    {{ $t(`dashboard.farmSecurity.severity.${alert.severity}`) }}
-                  </v-chip>
-                </template>
-              </v-list-item>
-            </v-list>
-          </v-card-text>
-          <v-card-actions>
-            <v-btn color="primary" variant="outlined">
-              <v-icon start>mdi-plus</v-icon>
-              {{ $t('dashboard.farmSecurity.addAlert') }}
-            </v-btn>
-            <v-spacer />
-            <v-btn color="secondary" variant="text">
-              {{ $t('dashboard.farmSecurity.viewAll') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-
-      <!-- Quick Actions Panel -->
-      <v-col cols="12" md="4">
-        <v-card class="elevation-2" height="400">
-          <v-card-title>
-            <v-icon class="mr-2" color="accent">mdi-lightning-bolt</v-icon>
-            {{ $t('dashboard.quickActions.title') }}
-          </v-card-title>
-          <v-card-text>
-            <v-list>
-              <v-list-item
-                v-for="action in quickActions"
-                :key="action.key"
-                :prepend-icon="action.icon"
-                :title="$t(action.title)"
-                :subtitle="$t(action.subtitle)"
-                @click="handleQuickAction(action.key)"
-                class="cursor-pointer"
-              >
-                <template #append>
-                  <v-icon>mdi-chevron-right</v-icon>
-                </template>
-              </v-list-item>
-            </v-list>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- Recent Activity -->
-    <v-row class="mt-6">
-      <v-col cols="12">
-        <v-card class="elevation-2">
-          <v-card-title>
-            <v-icon class="mr-2" color="info">mdi-history</v-icon>
-            {{ $t('dashboard.recentActivity.title') }}
-          </v-card-title>
-          <v-card-text>
-            <v-timeline density="compact">
-              <v-timeline-item
-                v-for="activity in recentActivities"
-                :key="activity.id"
-                :dot-color="activity.color"
-                size="small"
-              >
-                <template #icon>
-                  <v-icon :color="activity.color" size="16">
-                    {{ activity.icon }}
-                  </v-icon>
-                </template>
-                <div>
-                  <div class="text-body-2 font-weight-medium">
-                    {{ $t(activity.title) }}
-                  </div>
-                  <div class="text-caption text-medium-emphasis">
-                    {{ formatTime(activity.timestamp) }}
+      <div class="lg:col-span-2">
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <h2 class="card-title text-xl mb-4">
+              <span class="text-2xl text-primary">🛡️</span>
+              {{ t('dashboard.farmSecurity.title') }}
+            </h2>
+            <div class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                  v-for="alert in farmAlerts"
+                  :key="alert.id"
+                  class="alert"
+                  :class="alert.severityClass"
+                >
+                  <span class="text-lg">{{ alert.icon }}</span>
+                  <div>
+                    <div class="font-bold">{{ alert.title }}</div>
+                    <div class="text-xs">{{ alert.time }}</div>
                   </div>
                 </div>
-              </v-timeline-item>
-            </v-timeline>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions Panel -->
+      <div class="space-y-4">
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <h3 class="card-title text-lg mb-4">
+              <span class="text-xl text-secondary">⚡</span>
+              {{ t('dashboard.quickActions.title') }}
+            </h3>
+            <div class="space-y-2">
+              <button
+                v-for="action in quickActions"
+                :key="action.key"
+                class="btn btn-outline w-full justify-start"
+                @click="action.action"
+              >
+                <span class="text-lg">{{ action.icon }}</span>
+                {{ t(action.label) }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weather Panel -->
+        <div class="card bg-base-100 shadow-lg">
+          <div class="card-body">
+            <h3 class="card-title text-lg mb-4">
+              <span class="text-xl text-accent">🌤️</span>
+              {{ t('dashboard.weather.title') }}
+            </h3>
+            <div class="text-center">
+              <div class="text-4xl mb-2">{{ weatherIcon }}</div>
+              <div class="text-2xl font-bold">{{ weather.temperature }}°C</div>
+              <div class="text-sm opacity-70">{{ weather.condition }}</div>
+              <div class="text-xs opacity-60 mt-2">{{ weather.location }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <h2 class="card-title text-xl mb-4">
+          <span class="text-2xl text-info">📊</span>
+          {{ t('dashboard.recentActivity.title') }}
+        </h2>
+        <div class="space-y-3">
+          <div
+            v-for="activity in recentActivity"
+            :key="activity.id"
+            class="flex items-center gap-3 p-3 bg-base-200 rounded-lg"
+          >
+            <div class="text-2xl">{{ activity.icon }}</div>
+            <div class="flex-1">
+              <div class="font-medium">{{ activity.title }}</div>
+              <div class="text-sm text-base-content/70">{{ activity.description }}</div>
+            </div>
+            <div class="text-xs text-base-content/60">{{ activity.time }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Emergency Contacts -->
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <h2 class="card-title text-xl mb-4">
+          <span class="text-2xl text-error">🚨</span>
+          {{ t('dashboard.emergencyContacts.title') }}
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-for="contact in emergencyContacts" :key="contact.id" class="card bg-base-200">
+            <div class="card-body text-center">
+              <div class="text-3xl mb-2">{{ contact.icon }}</div>
+              <div class="font-bold">{{ contact.name }}</div>
+              <div class="text-sm opacity-70">{{ contact.role }}</div>
+              <button class="btn btn-primary btn-sm mt-2 w-full">
+                {{ contact.phone }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useTheme } from 'vuetify'
 
-// TypeScript interfaces
-interface StatItem {
-  key: string
-  value: string | number
-  label: string
-  color: string
-  icon: string
-  iconColor: string
-}
+const { t } = useI18n()
 
-interface DashboardSecurityAlert {
-  id: string
-  title: string
-  subtitle: string
-  icon: string
-  severity: 'low' | 'medium' | 'high'
-}
+const logoUrl = '/logo.png'
 
-interface QuickAction {
-  key: string
-  title: string
-  subtitle: string
-  icon: string
-}
-
-interface Activity {
-  id: string
-  title: string
-  timestamp: Date
-  icon: string
-  color: string
-}
-
-// Props and emits
-interface Props {
-  farmId?: string
-  showStats?: boolean
-}
-
-interface Emits {
-  (e: 'alert-created', alert: DashboardSecurityAlert): void
-  (e: 'quick-action', action: string): void
-  (e: 'view-details', itemId: string): void
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  farmId: '',
-  showStats: true,
+// Mock data - replace with real data from stores
+const status = ref('operational')
+const weather = ref({
+  temperature: 24,
+  condition: 'Sunny',
+  location: 'Naboomspruit, South Africa',
 })
 
-const emit = defineEmits<Emits>()
-
-// Composables
-const { t, locale } = useI18n()
-const theme = useTheme()
-
-// Reactive data
-const logoUrl = '/logo.png'
-const isOnline = ref(true)
-
-// Computed properties
-const themeColor = computed(() => (theme.current.value.dark ? 'surface' : 'primary'))
-const statusColor = computed(() => (isOnline.value ? 'success' : 'error'))
-const statusIcon = computed(() => (isOnline.value ? 'mdi-wifi' : 'mdi-wifi-off'))
-
-const stats = computed<StatItem[]>(() => [
-  {
-    key: 'farms',
-    value: 12,
-    label: 'dashboard.stats.farms',
-    color: 'primary',
-    icon: 'mdi-home-group',
-    iconColor: 'primary',
-  },
+const stats = ref([
   {
     key: 'alerts',
-    value: 3,
-    label: 'dashboard.stats.alerts',
-    color: 'warning',
-    icon: 'mdi-alert',
-    iconColor: 'warning',
+    value: '3',
+    label: 'dashboard.stats.activeAlerts',
+    icon: '🚨',
+    colorClass: 'bg-error text-error-content',
+    iconColorClass: 'text-error',
+  },
+  {
+    key: 'cameras',
+    value: '12',
+    label: 'dashboard.stats.cameras',
+    icon: '📹',
+    colorClass: 'bg-info text-info-content',
+    iconColorClass: 'text-info',
+  },
+  {
+    key: 'sensors',
+    value: '8',
+    label: 'dashboard.stats.sensors',
+    icon: '📡',
+    colorClass: 'bg-success text-success-content',
+    iconColorClass: 'text-success',
   },
   {
     key: 'neighbors',
-    value: 8,
+    value: '24',
     label: 'dashboard.stats.neighbors',
-    color: 'info',
-    icon: 'mdi-account-group',
-    iconColor: 'info',
-  },
-  {
-    key: 'uptime',
-    value: '99.9%',
-    label: 'dashboard.stats.uptime',
-    color: 'success',
-    icon: 'mdi-timer',
-    iconColor: 'success',
+    icon: '👥',
+    colorClass: 'bg-warning text-warning-content',
+    iconColorClass: 'text-warning',
   },
 ])
 
-const securityAlerts = computed<DashboardSecurityAlert[]>(() => [
+const farmAlerts = ref([
   {
-    id: '1',
-    title: 'dashboard.farmSecurity.alerts.intrusion',
-    subtitle: 'dashboard.farmSecurity.alerts.intrusionDesc',
-    icon: 'mdi-shield-alert',
-    severity: 'high',
+    id: 1,
+    title: 'Motion Detected',
+    time: '2 minutes ago',
+    severity: 'warning',
+    icon: '👁️',
+    severityClass: 'alert-warning',
   },
   {
-    id: '2',
-    title: 'dashboard.farmSecurity.alerts.equipment',
-    subtitle: 'dashboard.farmSecurity.alerts.equipmentDesc',
-    icon: 'mdi-tools',
-    severity: 'medium',
+    id: 2,
+    title: 'Gate Opened',
+    time: '15 minutes ago',
+    severity: 'info',
+    icon: '🚪',
+    severityClass: 'alert-info',
   },
   {
-    id: '3',
-    title: 'dashboard.farmSecurity.alerts.weather',
-    subtitle: 'dashboard.farmSecurity.alerts.weatherDesc',
-    icon: 'mdi-weather-windy',
-    severity: 'low',
+    id: 3,
+    title: 'Temperature Alert',
+    time: '1 hour ago',
+    severity: 'error',
+    icon: '🌡️',
+    severityClass: 'alert-error',
   },
 ])
 
-const quickActions = computed<QuickAction[]>(() => [
+const quickActions = ref([
   {
-    key: 'emergency',
-    title: 'dashboard.quickActions.emergency',
-    subtitle: 'dashboard.quickActions.emergencyDesc',
-    icon: 'mdi-alert-circle',
+    key: 'panic',
+    label: 'dashboard.quickActions.panic',
+    icon: '🚨',
+    action: () => console.log('Panic button clicked'),
   },
   {
-    key: 'report',
-    title: 'dashboard.quickActions.report',
-    subtitle: 'dashboard.quickActions.reportDesc',
-    icon: 'mdi-file-document',
+    key: 'camera',
+    label: 'dashboard.quickActions.viewCameras',
+    icon: '📹',
+    action: () => console.log('View cameras clicked'),
   },
   {
     key: 'neighbors',
-    title: 'dashboard.quickActions.neighbors',
-    subtitle: 'dashboard.quickActions.neighborsDesc',
-    icon: 'mdi-account-group',
+    label: 'dashboard.quickActions.contactNeighbors',
+    icon: '👥',
+    action: () => console.log('Contact neighbors clicked'),
   },
   {
-    key: 'settings',
-    title: 'dashboard.quickActions.settings',
-    subtitle: 'dashboard.quickActions.settingsDesc',
-    icon: 'mdi-cog',
+    key: 'reports',
+    label: 'dashboard.quickActions.generateReport',
+    icon: '📊',
+    action: () => console.log('Generate report clicked'),
   },
 ])
 
-const recentActivities = computed<Activity[]>(() => [
+const recentActivity = ref([
   {
-    id: '1',
-    title: 'dashboard.recentActivity.farmJoined',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    icon: 'mdi-account-plus',
-    color: 'success',
+    id: 1,
+    title: 'Motion detected at Gate 1',
+    description: 'Security camera detected movement',
+    time: '2 min ago',
+    icon: '👁️',
   },
   {
-    id: '2',
-    title: 'dashboard.recentActivity.alertResolved',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    icon: 'mdi-check-circle',
-    color: 'info',
+    id: 2,
+    title: 'Weather alert issued',
+    description: 'Heavy rain expected in 2 hours',
+    time: '15 min ago',
+    icon: '🌧️',
   },
   {
-    id: '3',
-    title: 'dashboard.recentActivity.equipmentUpdated',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
-    icon: 'mdi-tools',
-    color: 'warning',
+    id: 3,
+    title: 'Neighbor check-in',
+    description: 'John Smith reported all clear',
+    time: '1 hour ago',
+    icon: '👋',
   },
 ])
 
-// Methods
-const handleQuickAction = (actionKey: string) => {
-  emit('quick-action', actionKey)
-}
+const emergencyContacts = ref([
+  {
+    id: 1,
+    name: 'Emergency Services',
+    role: 'Police/Fire/Medical',
+    phone: '10111',
+    icon: '🚨',
+  },
+  {
+    id: 2,
+    name: 'Farm Security',
+    role: 'Private Security',
+    phone: '012 345 6789',
+    icon: '🛡️',
+  },
+  {
+    id: 3,
+    name: 'Neighbor Network',
+    role: 'Community Alert',
+    phone: '012 345 6790',
+    icon: '👥',
+  },
+])
 
-const formatTime = (timestamp: Date): string => {
-  const now = new Date()
-  const diff = now.getTime() - timestamp.getTime()
-  const minutes = Math.floor(diff / (1000 * 60))
-  const hours = Math.floor(diff / (1000 * 60 * 60))
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
-  if (minutes < 60) {
-    return t('dashboard.recentActivity.timeAgo.minutes', { count: minutes })
-  } else if (hours < 24) {
-    return t('dashboard.recentActivity.timeAgo.hours', { count: hours })
-  } else {
-    return t('dashboard.recentActivity.timeAgo.days', { count: days })
+const statusIcon = computed(() => {
+  switch (status.value) {
+    case 'operational':
+      return '✅'
+    case 'warning':
+      return '⚠️'
+    case 'error':
+      return '❌'
+    default:
+      return '❓'
   }
-}
+})
+
+const statusBadgeClass = computed(() => {
+  switch (status.value) {
+    case 'operational':
+      return 'badge-success'
+    case 'warning':
+      return 'badge-warning'
+    case 'error':
+      return 'badge-error'
+    default:
+      return 'badge-neutral'
+  }
+})
+
+const weatherIcon = computed(() => {
+  const temp = weather.value.temperature
+  if (temp > 30) return '🌞'
+  if (temp > 20) return '☀️'
+  if (temp > 10) return '⛅'
+  return '❄️'
+})
 </script>
-
-<i18n>
-{
-  "en": {
-    "dashboard": {
-      "title": "SafeNaboom Dashboard",
-      "subtitle": "Your agricultural community security hub",
-      "status": "Online",
-      "stats": {
-        "farms": "Connected Farms",
-        "alerts": "Active Alerts",
-        "neighbors": "Neighbors Online",
-        "uptime": "System Uptime"
-      },
-      "farmSecurity": {
-        "title": "Farm Security",
-        "addAlert": "Add Alert",
-        "viewAll": "View All",
-        "severity": {
-          "low": "Low",
-          "medium": "Medium",
-          "high": "High"
-        },
-        "alerts": {
-          "intrusion": "Intrusion Detected",
-          "intrusionDesc": "Motion detected in restricted area",
-          "equipment": "Equipment Alert",
-          "equipmentDesc": "Irrigation system needs attention",
-          "weather": "Weather Warning",
-          "weatherDesc": "High winds expected tonight"
-        }
-      },
-      "quickActions": {
-        "title": "Quick Actions",
-        "emergency": "Emergency Alert",
-        "emergencyDesc": "Send emergency notification",
-        "report": "File Report",
-        "reportDesc": "Report suspicious activity",
-        "neighbors": "Contact Neighbors",
-        "neighborsDesc": "Send message to nearby farms",
-        "settings": "Settings",
-        "settingsDesc": "Configure your preferences"
-      },
-      "recentActivity": {
-        "title": "Recent Activity",
-        "farmJoined": "New farm joined the network",
-        "alertResolved": "Security alert resolved",
-        "equipmentUpdated": "Equipment status updated",
-        "timeAgo": {
-          "minutes": "{count} minutes ago",
-          "hours": "{count} hours ago",
-          "days": "{count} days ago"
-        }
-      }
-    }
-  },
-  "af": {
-    "dashboard": {
-      "title": "SafeNaboom Dashboard",
-      "subtitle": "Jou landbou gemeenskap sekuriteit sentrum",
-      "status": "Aanlyn",
-      "stats": {
-        "farms": "Verbindde Plase",
-        "alerts": "Aktiewe Waarskuwings",
-        "bure": "Bure Aanlyn",
-        "uptime": "Stelsel Bedryfstyd"
-      },
-      "farmSecurity": {
-        "title": "Plaas Sekuriteit",
-        "addAlert": "Voeg Waarskuwing By",
-        "viewAll": "Bekyk Alles",
-        "severity": {
-          "low": "Laag",
-          "medium": "Medium",
-          "high": "Hoog"
-        },
-        "alerts": {
-          "intrusion": "Indringing Bespeur",
-          "intrusionDesc": "Beweging bespeur in beperkte area",
-          "equipment": "Toerusting Waarskuwing",
-          "equipmentDesc": "Besproeiing stelsel benodig aandag",
-          "weather": "Weer Waarskuwing",
-          "weatherDesc": "Hoë winde verwag vanaand"
-        }
-      },
-      "quickActions": {
-        "title": "Vinnige Aksies",
-        "emergency": "Nood Waarskuwing",
-        "emergencyDesc": "Stuur nood kennisgewing",
-        "report": "Lêer Verslag",
-        "reportDesc": "Rapporteer verdagte aktiwiteit",
-        "neighbors": "Kontak Bure",
-        "neighborsDesc": "Stuur boodskap aan nabye plase",
-        "settings": "Instellings",
-        "settingsDesc": "Konfigureer jou voorkeure"
-      },
-      "recentActivity": {
-        "title": "Onlangse Aktiwiteit",
-        "farmJoined": "Nuwe plaas by die netwerk aangesluit",
-        "alertResolved": "Sekuriteit waarskuwing opgelos",
-        "equipmentUpdated": "Toerusting status opdateer",
-        "timeAgo": {
-          "minutes": "{count} minute gelede",
-          "hours": "{count} ure gelede",
-          "days": "{count} dae gelede"
-        }
-      }
-    }
-  }
-}
-</i18n>

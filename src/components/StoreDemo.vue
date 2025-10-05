@@ -1,458 +1,215 @@
 <template>
-  <v-container>
-    <v-card class="elevation-2">
-      <v-card-title class="d-flex align-center">
-        <v-icon class="mr-2" color="primary">mdi-database</v-icon>
-        {{ $t('storeDemo.title') }}
-        <v-chip color="warning" size="small" class="ml-2">
-          {{ $t('storeDemo.mockData') }}
-        </v-chip>
-      </v-card-title>
+  <div class="container mx-auto p-4">
+    <div class="card bg-base-100 shadow-lg">
+      <div class="card-body">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="card-title text-xl">
+            <span class="text-2xl text-primary">🗄️</span>
+            {{ t('storeDemo.title') }}
+          </h2>
+          <div class="badge badge-warning">{{ t('storeDemo.mockData') }}</div>
+        </div>
 
-      <v-card-text>
-        <!-- Locale Management -->
-        <v-card class="mb-4" variant="outlined">
-          <v-card-title class="text-h6">
-            <v-icon class="mr-2">mdi-translate</v-icon>
-            {{ $t('storeDemo.localeManagement') }}
-          </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-list density="compact">
-                  <v-list-item>
-                    <template #prepend>
-                      <v-icon>mdi-web</v-icon>
-                    </template>
-                    <v-list-item-title>{{ $t('storeDemo.currentLocale') }}</v-list-item-title>
-                    <v-list-item-subtitle
-                      >{{ localeInfo.nativeName }} ({{ currentLocale }})</v-list-item-subtitle
+        <div class="space-y-6">
+          <!-- Locale Management -->
+          <div class="card bg-base-200">
+            <div class="card-body">
+              <h3 class="card-title text-lg">
+                <span class="text-xl">🌐</span>
+                {{ t('storeDemo.localeManagement') }}
+              </h3>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="space-y-3">
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg">🌐</span>
+                    <div>
+                      <div class="font-medium">{{ t('storeDemo.currentLocale') }}</div>
+                      <div class="text-sm text-base-content/70">
+                        {{ localeInfo.nativeName }} ({{ currentLocale }})
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg">🏳️</span>
+                    <div>
+                      <div class="font-medium">{{ t('storeDemo.localeFlag') }}</div>
+                      <div class="text-sm text-base-content/70">{{ localeInfo.flag }}</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg">📝</span>
+                    <div>
+                      <div class="font-medium">{{ t('storeDemo.textDirection') }}</div>
+                      <div class="text-sm text-base-content/70">
+                        {{ localeInfo.direction.toUpperCase() }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <h4 class="font-semibold">{{ t('storeDemo.availableLocales') }}</h4>
+                  <div class="space-y-1">
+                    <div
+                      v-for="locale in availableLocales"
+                      :key="locale.code"
+                      class="flex items-center justify-between p-2 bg-base-100 rounded"
                     >
-                  </v-list-item>
-                  <v-list-item>
-                    <template #prepend>
-                      <v-icon>mdi-flag</v-icon>
-                    </template>
-                    <v-list-item-title>{{ $t('storeDemo.localeFlag') }}</v-list-item-title>
-                    <v-list-item-subtitle>{{ localeInfo.flag }}</v-list-item-subtitle>
-                  </v-list-item>
-                  <v-list-item>
-                    <template #prepend>
-                      <v-icon>mdi-format-text-direction-ltr</v-icon>
-                    </template>
-                    <v-list-item-title>{{ $t('storeDemo.textDirection') }}</v-list-item-title>
-                    <v-list-item-subtitle>{{
-                      localeInfo.direction.toUpperCase()
-                    }}</v-list-item-subtitle>
-                  </v-list-item>
-                </v-list>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-btn-toggle
-                  v-model="currentLocale"
-                  mandatory
-                  @update:model-value="handleLocaleChange"
-                  class="mb-4"
-                >
-                  <v-btn
-                    v-for="locale in availableLocaleInfo"
-                    :key="locale.code"
-                    :value="locale.code"
-                    :prepend-icon="locale.flag"
-                  >
-                    {{ locale.nativeName }}
-                  </v-btn>
-                </v-btn-toggle>
-
-                <v-btn
-                  color="primary"
-                  variant="outlined"
-                  @click="refreshLocaleData"
-                  :loading="isLocaleChanging"
-                  class="mr-2"
-                >
-                  <v-icon start>mdi-refresh</v-icon>
-                  {{ $t('storeDemo.refreshData') }}
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-
-        <!-- Cache Management -->
-        <v-card class="mb-4" variant="outlined">
-          <v-card-title class="text-h6">
-            <v-icon class="mr-2">mdi-cached</v-icon>
-            {{ $t('storeDemo.cacheManagement') }}
-          </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-list density="compact">
-                  <v-list-item>
-                    <template #prepend>
-                      <v-icon>mdi-database</v-icon>
-                    </template>
-                    <v-list-item-title>{{ $t('storeDemo.cacheSize') }}</v-list-item-title>
-                    <v-list-item-subtitle>{{ cacheSize }} entries</v-list-item-subtitle>
-                  </v-list-item>
-                  <v-list-item>
-                    <template #prepend>
-                      <v-icon>mdi-memory</v-icon>
-                    </template>
-                    <v-list-item-title>{{ $t('storeDemo.memoryUsage') }}</v-list-item-title>
-                    <v-list-item-subtitle>{{ formatBytes(memoryUsage) }}</v-list-item-subtitle>
-                  </v-list-item>
-                  <v-list-item>
-                    <template #prepend>
-                      <v-icon>mdi-target</v-icon>
-                    </template>
-                    <v-list-item-title>{{ $t('storeDemo.hitRate') }}</v-list-item-title>
-                    <v-list-item-subtitle>{{ hitRate.toFixed(1) }}%</v-list-item-subtitle>
-                  </v-list-item>
-                </v-list>
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-btn
-                  color="warning"
-                  variant="outlined"
-                  @click="clearCacheForCurrentLocale"
-                  class="mr-2 mb-2"
-                >
-                  <v-icon start>mdi-delete</v-icon>
-                  {{ $t('storeDemo.clearLocaleCache') }}
-                </v-btn>
-
-                <v-btn color="error" variant="outlined" @click="clearAllCache" class="mr-2 mb-2">
-                  <v-icon start>mdi-delete-forever</v-icon>
-                  {{ $t('storeDemo.clearAllCache') }}
-                </v-btn>
-
-                <v-btn color="info" variant="outlined" @click="optimizeCache" class="mb-2">
-                  <v-icon start>mdi-tune</v-icon>
-                  {{ $t('storeDemo.optimizeCache') }}
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-
-        <!-- Data Stores -->
-        <v-card class="mb-4" variant="outlined">
-          <v-card-title class="text-h6">
-            <v-icon class="mr-2">mdi-database-cog</v-icon>
-            {{ $t('storeDemo.dataStores') }}
-          </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col v-for="store in dataStores" :key="store.name" cols="12" sm="6" md="4">
-                <v-card variant="outlined" class="h-100">
-                  <v-card-title class="text-subtitle-1">
-                    <v-icon class="mr-2" :color="store.color">{{ store.icon }}</v-icon>
-                    {{ store.name }}
-                  </v-card-title>
-                  <v-card-text>
-                    <v-list density="compact">
-                      <v-list-item>
-                        <template #prepend>
-                          <v-icon>mdi-loading</v-icon>
-                        </template>
-                        <v-list-item-title>{{ $t('storeDemo.loading') }}</v-list-item-title>
-                        <v-list-item-subtitle>
-                          <v-chip :color="store.isLoading ? 'warning' : 'success'" size="small">
-                            {{ store.isLoading ? $t('storeDemo.yes') : $t('storeDemo.no') }}
-                          </v-chip>
-                        </v-list-item-subtitle>
-                      </v-list-item>
-                      <v-list-item>
-                        <template #prepend>
-                          <v-icon>mdi-database</v-icon>
-                        </template>
-                        <v-list-item-title>{{ $t('storeDemo.hasData') }}</v-list-item-title>
-                        <v-list-item-subtitle>
-                          <v-chip :color="store.hasData ? 'success' : 'error'" size="small">
-                            {{ store.hasData ? $t('storeDemo.yes') : $t('storeDemo.no') }}
-                          </v-chip>
-                        </v-list-item-subtitle>
-                      </v-list-item>
-                      <v-list-item>
-                        <template #prepend>
-                          <v-icon>mdi-alert</v-icon>
-                        </template>
-                        <v-list-item-title>{{ $t('storeDemo.error') }}</v-list-item-title>
-                        <v-list-item-subtitle>
-                          <v-chip :color="store.hasError ? 'error' : 'success'" size="small">
-                            {{ store.hasError ? $t('storeDemo.yes') : $t('storeDemo.no') }}
-                          </v-chip>
-                        </v-list-item-subtitle>
-                      </v-list-item>
-                    </v-list>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-btn
-                      color="primary"
-                      variant="text"
-                      size="small"
-                      @click="store.refresh"
-                      :loading="store.isLoading"
-                    >
-                      <v-icon start>mdi-refresh</v-icon>
-                      {{ $t('storeDemo.refresh') }}
-                    </v-btn>
-                    <v-spacer />
-                    <v-btn color="error" variant="text" size="small" @click="store.clear">
-                      <v-icon start>mdi-delete</v-icon>
-                      {{ $t('storeDemo.clear') }}
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-
-        <!-- API Test -->
-        <v-card variant="outlined">
-          <v-card-title class="text-h6">
-            <v-icon class="mr-2">mdi-api</v-icon>
-            {{ $t('storeDemo.apiTest') }}
-          </v-card-title>
-          <v-card-text>
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="apiEndpoint"
-                  :label="$t('storeDemo.apiEndpoint')"
-                  variant="outlined"
-                  density="compact"
-                  :placeholder="'/api/test'"
-                />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-btn
-                  color="primary"
-                  variant="elevated"
-                  @click="testApiCall"
-                  :loading="apiLoading"
-                  class="mr-2"
-                >
-                  <v-icon start>mdi-send</v-icon>
-                  {{ $t('storeDemo.testApi') }}
-                </v-btn>
-
-                <v-btn color="secondary" variant="outlined" @click="clearApiResult">
-                  <v-icon start>mdi-delete</v-icon>
-                  {{ $t('storeDemo.clearResult') }}
-                </v-btn>
-              </v-col>
-            </v-row>
-
-            <v-divider class="my-4" />
-
-            <div v-if="apiResult">
-              <h4 class="text-h6 mb-2">{{ $t('storeDemo.apiResult') }}</h4>
-              <v-card variant="outlined">
-                <v-card-text>
-                  <pre class="text-caption">{{ JSON.stringify(apiResult, null, 2) }}</pre>
-                </v-card-text>
-              </v-card>
+                      <span class="text-sm">{{ locale.flag }} {{ locale.nativeName }}</span>
+                      <div
+                        class="badge badge-sm"
+                        :class="locale.code === currentLocale ? 'badge-primary' : 'badge-ghost'"
+                      >
+                        {{ locale.code }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </v-card-text>
-        </v-card>
-      </v-card-text>
-    </v-card>
-  </v-container>
+          </div>
+
+          <!-- Theme Management -->
+          <div class="card bg-base-200">
+            <div class="card-body">
+              <h3 class="card-title text-lg">
+                <span class="text-xl">🎨</span>
+                {{ t('storeDemo.themeManagement') }}
+              </h3>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="space-y-3">
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg">🌞</span>
+                    <div>
+                      <div class="font-medium">{{ t('storeDemo.currentTheme') }}</div>
+                      <div class="text-sm text-base-content/70">{{ currentTheme }}</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg">🎯</span>
+                    <div>
+                      <div class="font-medium">{{ t('storeDemo.themeMode') }}</div>
+                      <div class="text-sm text-base-content/70">{{ themeMode }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <h4 class="font-semibold">{{ t('storeDemo.availableThemes') }}</h4>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div
+                      v-for="theme in availableThemes"
+                      :key="theme"
+                      class="flex items-center justify-between p-2 bg-base-100 rounded"
+                    >
+                      <span class="text-sm">{{ theme }}</span>
+                      <div
+                        class="badge badge-sm"
+                        :class="theme === currentTheme ? 'badge-primary' : 'badge-ghost'"
+                      >
+                        {{ theme === currentTheme ? 'Active' : 'Inactive' }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Store State Display -->
+          <div class="card bg-base-200">
+            <div class="card-body">
+              <h3 class="card-title text-lg">
+                <span class="text-xl">📊</span>
+                {{ t('storeDemo.storeState') }}
+              </h3>
+              <div class="space-y-4">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div class="stat bg-base-100 rounded-lg">
+                    <div class="stat-figure text-primary">
+                      <span class="text-2xl">🌐</span>
+                    </div>
+                    <div class="stat-title">{{ t('storeDemo.locale') }}</div>
+                    <div class="stat-value text-lg">{{ currentLocale }}</div>
+                  </div>
+                  <div class="stat bg-base-100 rounded-lg">
+                    <div class="stat-figure text-secondary">
+                      <span class="text-2xl">🎨</span>
+                    </div>
+                    <div class="stat-title">{{ t('storeDemo.theme') }}</div>
+                    <div class="stat-value text-lg">{{ currentTheme }}</div>
+                  </div>
+                  <div class="stat bg-base-100 rounded-lg">
+                    <div class="stat-figure text-accent">
+                      <span class="text-2xl">⚙️</span>
+                    </div>
+                    <div class="stat-title">{{ t('storeDemo.settings') }}</div>
+                    <div class="stat-value text-lg">{{ settingsCount }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="card bg-base-200">
+            <div class="card-body">
+              <h3 class="card-title text-lg">
+                <span class="text-xl">⚡</span>
+                {{ t('storeDemo.actions') }}
+              </h3>
+              <div class="flex flex-wrap gap-2">
+                <button class="btn btn-primary btn-sm" @click="switchLocale('en')">
+                  Switch to English
+                </button>
+                <button class="btn btn-secondary btn-sm" @click="switchLocale('af')">
+                  Switch to Afrikaans
+                </button>
+                <button class="btn btn-accent btn-sm" @click="setTheme('light')">
+                  Light Theme
+                </button>
+                <button class="btn btn-neutral btn-sm" @click="setTheme('business')">
+                  Dark Theme
+                </button>
+                <button class="btn btn-outline btn-sm" @click="resetSettings">
+                  Reset Settings
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useStores, useCacheManagement } from '@/composables/useStores'
-import api from '@/lib/api'
+import { useTheme } from '@/composables/useTheme'
+import { useLocaleRouter } from '@/composables/useLocaleRouter'
 
-const { t } = useI18n()
-// Get all stores (data stores are mocked for now)
-const stores = useStores()
-const cacheManagement = useCacheManagement()
+const { t, locale } = useI18n()
+const { currentTheme, setTheme, availableThemes } = useTheme()
+const { switchLocale } = useLocaleRouter()
 
-// Reactive data
-const apiEndpoint = ref('/api/test')
-const apiLoading = ref(false)
-const apiResult = ref<any>(null)
+const currentLocale = computed(() => locale.value)
+const themeMode = computed(() => (currentTheme.value === 'light' ? 'Light' : 'Dark'))
 
-// Computed properties
-const currentLocale = computed(() => stores.i18n.currentLocale)
-const localeInfo = computed(() => stores.i18n.localeInfo)
-const availableLocaleInfo = computed(() => stores.i18n.availableLocaleInfo)
-const isLocaleChanging = computed(() => stores.i18n.state.isLocaleChanging)
-
-const cacheSize = computed(() => cacheManagement.cacheSize.value)
-const memoryUsage = computed(() => cacheManagement.memoryUsage.value)
-const hitRate = computed(() => cacheManagement.hitRate.value)
-
-const dataStores = computed(() => [
-  {
-    name: 'Farms',
-    icon: 'mdi-home-group',
-    color: 'primary',
-    ...stores.farms,
-  },
-  {
-    name: 'Alerts',
-    icon: 'mdi-alert',
-    color: 'warning',
-    ...stores.alerts,
-  },
-  {
-    name: 'Equipment',
-    icon: 'mdi-tools',
-    color: 'info',
-    ...stores.equipment,
-  },
-  {
-    name: 'Weather',
-    icon: 'mdi-weather-cloudy',
-    color: 'success',
-    ...stores.weather,
-  },
-  {
-    name: 'Neighbors',
-    icon: 'mdi-account-group',
-    color: 'accent',
-    ...stores.neighbors,
-  },
+const availableLocales = computed(() => [
+  { code: 'en', flag: '🇺🇸', nativeName: 'English' },
+  { code: 'af', flag: '🇿🇦', nativeName: 'Afrikaans' },
 ])
 
-// Methods
-const handleLocaleChange = async (newLocale: string) => {
-  await stores.i18n.changeLocale(newLocale as any)
-}
-
-const refreshLocaleData = async () => {
-  await Promise.all([
-    stores.farms.refresh(),
-    stores.alerts.refresh(),
-    stores.equipment.refresh(),
-    stores.weather.refresh(),
-    stores.neighbors.refresh(),
-  ])
-}
-
-const clearCacheForCurrentLocale = () => {
-  cacheManagement.clearCacheForLocale(currentLocale.value)
-}
-
-const clearAllCache = () => {
-  cacheManagement.clearAllCache()
-}
-
-const optimizeCache = () => {
-  cacheManagement.optimizeCache()
-}
-
-const testApiCall = async () => {
-  apiLoading.value = true
-  apiResult.value = null
-
-  try {
-    const response = await api.get(apiEndpoint.value)
-    apiResult.value = response
-  } catch (error: any) {
-    apiResult.value = {
-      error: error.message,
-      status: error.status,
-      timestamp: new Date().toISOString(),
-    }
-  } finally {
-    apiLoading.value = false
-  }
-}
-
-const clearApiResult = () => {
-  apiResult.value = null
-}
-
-const formatBytes = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
-
-onMounted(() => {
-  // Initialize data stores
-  Promise.all([
-    stores.farms.fetch(),
-    stores.alerts.fetch(),
-    stores.equipment.fetch(),
-    stores.weather.fetch(),
-    stores.neighbors.fetch(),
-  ])
+const localeInfo = computed(() => {
+  const current = availableLocales.value.find((l) => l.code === currentLocale.value)
+  return current || { code: 'en', flag: '🇺🇸', nativeName: 'English', direction: 'ltr' }
 })
-</script>
 
-<i18n>
-{
-  "en": {
-    "storeDemo": {
-      "title": "Store Management Demo",
-      "localeManagement": "Locale Management",
-      "currentLocale": "Current Locale",
-      "localeFlag": "Locale Flag",
-      "textDirection": "Text Direction",
-      "refreshData": "Refresh Data",
-      "cacheManagement": "Cache Management",
-      "cacheSize": "Cache Size",
-      "memoryUsage": "Memory Usage",
-      "hitRate": "Hit Rate",
-      "clearLocaleCache": "Clear Locale Cache",
-      "clearAllCache": "Clear All Cache",
-      "optimizeCache": "Optimize Cache",
-      "dataStores": "Data Stores",
-      "loading": "Loading",
-      "hasData": "Has Data",
-      "error": "Error",
-      "yes": "Yes",
-      "no": "No",
-      "refresh": "Refresh",
-      "clear": "Clear",
-      "apiTest": "API Test",
-      "apiEndpoint": "API Endpoint",
-      "testApi": "Test API",
-      "clearResult": "Clear Result",
-      "apiResult": "API Result"
-    }
-  },
-  "af": {
-    "storeDemo": {
-      "title": "Stoor Bestuur Demo",
-      "localeManagement": "Taal Bestuur",
-      "currentLocale": "Huidige Taal",
-      "localeFlag": "Taal Vlag",
-      "textDirection": "Teks Rigting",
-      "refreshData": "Verfris Data",
-      "cacheManagement": "Kas Bestuur",
-      "cacheSize": "Kas Grootte",
-      "memoryUsage": "Geheue Gebruik",
-      "hitRate": "Treffer Koers",
-      "clearLocaleCache": "Skep Taal Kas",
-      "clearAllCache": "Skep Alle Kas",
-      "optimizeCache": "Optimeer Kas",
-      "dataStores": "Data Stores",
-      "loading": "Laai",
-      "hasData": "Het Data",
-      "error": "Fout",
-      "yes": "Ja",
-      "no": "Nee",
-      "refresh": "Verfris",
-      "clear": "Skep",
-      "apiTest": "API Toets",
-      "apiEndpoint": "API Eindpunt",
-      "testApi": "Toets API",
-      "clearResult": "Skep Resultaat",
-      "apiResult": "API Resultaat"
-    }
-  }
+const settingsCount = computed(() => {
+  return availableThemes.value.length + availableLocales.value.length
+})
+
+const resetSettings = () => {
+  setTheme('light')
+  switchLocale('en')
 }
-</i18n>
+</script>

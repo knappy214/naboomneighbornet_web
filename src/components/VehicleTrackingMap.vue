@@ -77,7 +77,7 @@ const vehiclesStore = useVehiclesStore()
 const { vehicles, tracks, isLoading, fetchVehicles, fetchTracks } = vehiclesStore
 
 let maplibre: MapLibreModule | null = null
-let selectedVehicle = ref<string>('')
+const selectedVehicle = ref<string>('')
 
 const VEHICLE_SOURCE = 'vehicle-source'
 const VEHICLE_LAYER = 'vehicle-circles'

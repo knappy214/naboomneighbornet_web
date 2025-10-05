@@ -44,62 +44,6 @@
     "trustedBy": "Vertrou deur 500+ Boere",
     "joinCommunity": "Sluit by jou boerbuurmanne en help bou 'n veiliger landbougemeenskap saam."
   },
-  "$vuetify": {
-    "dataIterator": {
-      "noResultsText": "Geen ooreenstemmende rekords gevind nie",
-      "loadingText": "Laai items..."
-    },
-    "dataTable": {
-      "itemsPerPageText": "Rye per bladsy:",
-      "ariaLabel": {
-        "sortDesc": "Gesorteer dalend.",
-        "sortAsc": "Gesorteer stygend.",
-        "sortNone": "Nie gesorteer nie.",
-        "activateNone": "Aktiveer om sortering te verwyder.",
-        "activateDesc": "Aktiveer om dalend te sorteer.",
-        "activateAsc": "Aktiveer om stygend te sorteer."
-      },
-      "sortBy": "Sorteer volgens"
-    },
-    "noDataText": "Geen data beskikbaar nie",
-    "carousel": {
-      "prev": "Vorige visuele",
-      "next": "Volgende visuele",
-      "ariaLabel": {
-        "delimiter": "Carousel skyf {0} van {1}"
-      }
-    },
-    "calendar": {
-      "moreEvents": "{0} meer"
-    },
-    "fileInput": {
-      "counter": "{0} lêers",
-      "counterSize": "{0} lêers ({1} totaal)"
-    },
-    "timePicker": {
-      "am": "VM",
-      "pm": "NM"
-    },
-    "pagination": {
-      "ariaLabel": {
-        "wrapper": "Bladsy Navigasie",
-        "next": "Volgende bladsy",
-        "previous": "Vorige bladsy",
-        "page": "Gaan na bladsy {0}",
-        "currentPage": "Bladsy {0}, Huidige bladsy"
-      }
-    },
-    "rating": {
-      "ariaLabel": {
-        "item": "Gradering {0} van {1}"
-      }
-    },
-    "loading": "Laai...",
-    "infiniteLoading": {
-      "loadMore": "Laai meer",
-      "empty": "Geen meer data nie"
-    }
-  },
   "storeDemo": {
     "title": "Stoor Demo",
     "subtitle": "Demonstrasie van i18n-bewuste Pinia stores met lokaal-sensitiewe kas",
@@ -542,7 +486,8 @@
     "success": "Sukses",
     "refresh": "Verfris",
     "select": "Kies",
-    "active": "Aktief"
+    "active": "Aktief",
+    "or": "OF"
   },
   "panic": {
     "dashboard": {

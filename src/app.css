@@ -51,36 +51,3 @@ textarea {
     @apply border-2 border-base-content;
   }
 }
-
-/* Vuetify + DaisyUI Integration */
-.v-text-field {
-  --v-field-input-padding-top: 16px;
-  --v-field-input-padding-bottom: 16px;
-}
-
-.v-btn {
-  font-weight: 600;
-  text-transform: none;
-  letter-spacing: normal;
-}
-
-/* Ensure Vuetify components respect DaisyUI theme colors */
-html[data-theme='light'] .v-theme--light {
-  --v-theme-primary: #570df8;
-  --v-theme-secondary: #f000b8;
-  --v-theme-accent: #37cdbe;
-  --v-theme-error: #f87272;
-  --v-theme-warning: #fbbd23;
-  --v-theme-info: #3abff8;
-  --v-theme-success: #36d399;
-}
-
-html[data-theme='business'] .v-theme--dark {
-  --v-theme-primary: #1a365d;
-  --v-theme-secondary: #2d3748;
-  --v-theme-accent: #3182ce;
-  --v-theme-error: #e53e3e;
-  --v-theme-warning: #dd6b20;
-  --v-theme-info: #3182ce;
-  --v-theme-success: #38a169;
-}

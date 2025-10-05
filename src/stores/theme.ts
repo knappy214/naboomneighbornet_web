@@ -46,15 +46,7 @@ export const useThemeStore = defineStore('theme', {
         // Apply DaisyUI theme
         document.documentElement.setAttribute('data-theme', themeData.name)
         document.documentElement.classList.toggle('dark', themeData.isDark)
-
-        // Sync with Vuetify theme
-        this.syncVuetifyTheme(themeData.name)
       }
-    },
-
-    syncVuetifyTheme(themeName: ThemeName) {
-      // This will be called from the composable to sync with Vuetify
-      // The actual Vuetify theme switching will be handled in the composable
     },
 
     loadFromStorage() {

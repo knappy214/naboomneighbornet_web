@@ -17,14 +17,11 @@ declare module 'vue-router' {
 }
 
 // Lazy-loaded components with improved loading
-const Home = () => import('@/pages/Home.vue')
 const Dashboard = () => import('@/pages/Dashboard.vue')
 const Login = () => import('@/pages/auth/Login.vue')
 const Register = () => import('@/pages/auth/Register.vue')
 const Forgot = () => import('@/pages/auth/Forgot.vue')
 const Reset = () => import('@/pages/auth/Reset.vue')
-const VuetifyI18nDemo = () => import('@/components/VuetifyI18nDemo.vue')
-const ThemeLocaleSwitcher = () => import('@/components/ThemeLocaleSwitcher.vue')
 const ThemeDemo = () => import('@/pages/ThemeDemo.vue')
 const LocaleRoutingDemo = () => import('@/pages/LocaleRoutingDemo.vue')
 const SafeNaboom = () => import('@/pages/SafeNaboom.vue')
@@ -108,16 +105,6 @@ const createLocaleRoutes = (): RouteRecordRaw[] => {
             locale,
             title: 'Reset Password',
             description: 'Password reset page',
-          },
-        },
-        {
-          path: 'demo',
-          name: `demo-${locale}`,
-          component: VuetifyI18nDemo,
-          meta: {
-            locale,
-            title: 'Vuetify i18n Demo',
-            description: 'Demo page for Vuetify internationalization',
           },
         },
         {

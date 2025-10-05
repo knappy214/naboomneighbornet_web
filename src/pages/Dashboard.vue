@@ -4,44 +4,46 @@
     <AuthNav />
 
     <!-- Hero Section -->
-    <div class="hero bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 py-12">
+    <div class="hero bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/5 py-16">
       <div class="hero-content text-center max-w-6xl">
         <div class="flex flex-col items-center">
-          <div class="flex items-center gap-4 mb-6">
+          <div class="flex items-center gap-4 mb-8">
             <div class="avatar">
-              <div class="w-16 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+              <div
+                class="w-20 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2 shadow-lg"
+              >
                 <img src="/logo.png" alt="Naboom NeighborNet Logo" />
               </div>
             </div>
             <div class="text-left">
-              <h1 class="text-4xl md:text-5xl font-bold text-base-content drop-shadow-lg">
-                SafeNaboom
-              </h1>
-              <p class="text-lg text-base-content/90 drop-shadow-md">Community Security Hub</p>
+              <h1 class="text-4xl md:text-6xl font-bold text-primary drop-shadow-lg">SafeNaboom</h1>
+              <p class="text-xl text-base-content/90 drop-shadow-md font-medium">
+                Community Security Hub
+              </p>
             </div>
           </div>
 
-          <div class="max-w-3xl">
-            <h2 class="text-2xl md:text-3xl font-semibold text-base-content drop-shadow-lg mb-4">
+          <div class="max-w-4xl">
+            <h2 class="text-3xl md:text-4xl font-bold text-base-content drop-shadow-lg mb-6">
               Welcome to Your Farm Community
             </h2>
-            <p class="text-lg text-base-content/90 drop-shadow-md mb-8 leading-relaxed">
+            <p class="text-xl text-base-content/90 drop-shadow-md mb-10 leading-relaxed">
               Your agricultural community security dashboard is ready. Stay connected, stay safe,
               and protect your harvest with real-time monitoring and instant alerts.
             </p>
 
             <!-- Quick Action Buttons -->
-            <div class="flex flex-wrap justify-center gap-3 mb-8">
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
               <button class="btn btn-error btn-lg shadow-lg hover:shadow-xl transition-all">
-                <span class="text-xl">🚨</span>
+                <span class="text-2xl">🚨</span>
                 Emergency Alert
               </button>
               <button class="btn btn-warning btn-lg shadow-lg hover:shadow-xl transition-all">
-                <span class="text-xl">📊</span>
+                <span class="text-2xl">📊</span>
                 Farm Status
               </button>
               <button class="btn btn-info btn-lg shadow-lg hover:shadow-xl transition-all">
-                <span class="text-xl">👥</span>
+                <span class="text-2xl">👥</span>
                 Community
               </button>
             </div>
@@ -57,27 +59,19 @@
         <AuthDebugPanel />
       </div>
       <!-- Status Overview Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         <!-- Connected Farms Card -->
-        <div
-          class="card bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30 shadow-lg hover:shadow-xl transition-all"
-        >
-          <div class="card-body p-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-3xl font-bold text-base-content drop-shadow-lg">12</div>
-                <div class="text-sm font-medium text-base-content/90 drop-shadow-md">
-                  Connected Farms
-                </div>
-                <div class="text-xs text-base-content/80 drop-shadow-sm mt-1">
-                  Active in your network
-                </div>
-              </div>
-              <div class="text-4xl opacity-90 drop-shadow-md">🌾</div>
+        <div class="stats shadow-lg hover:shadow-xl transition-all duration-300">
+          <div class="stat">
+            <div class="stat-figure text-primary">
+              <div class="text-4xl">🌾</div>
             </div>
-            <div class="mt-3">
-              <div class="flex items-center text-xs text-base-content drop-shadow-sm">
-                <span class="w-2 h-2 bg-success rounded-full mr-2 shadow-sm"></span>
+            <div class="stat-title">Connected Farms</div>
+            <div class="stat-value text-primary">12</div>
+            <div class="stat-desc">Active in your network</div>
+            <div class="stat-actions">
+              <div class="badge badge-success gap-2">
+                <div class="w-2 h-2 bg-success rounded-full"></div>
                 +2 this week
               </div>
             </div>
@@ -85,25 +79,17 @@
         </div>
 
         <!-- Active Alerts Card -->
-        <div
-          class="card bg-gradient-to-br from-warning/20 to-warning/10 border border-warning/30 shadow-lg hover:shadow-xl transition-all"
-        >
-          <div class="card-body p-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-3xl font-bold text-base-content drop-shadow-lg">3</div>
-                <div class="text-sm font-medium text-base-content/90 drop-shadow-md">
-                  Active Alerts
-                </div>
-                <div class="text-xs text-base-content/80 drop-shadow-sm mt-1">
-                  Requiring attention
-                </div>
-              </div>
-              <div class="text-4xl opacity-90 drop-shadow-md">🚨</div>
+        <div class="stats shadow-lg hover:shadow-xl transition-all duration-300">
+          <div class="stat">
+            <div class="stat-figure text-warning">
+              <div class="text-4xl">🚨</div>
             </div>
-            <div class="mt-3">
-              <div class="flex items-center text-xs text-base-content drop-shadow-sm">
-                <span class="w-2 h-2 bg-warning rounded-full mr-2 shadow-sm"></span>
+            <div class="stat-title">Active Alerts</div>
+            <div class="stat-value text-warning">3</div>
+            <div class="stat-desc">Requiring attention</div>
+            <div class="stat-actions">
+              <div class="badge badge-warning gap-2">
+                <div class="w-2 h-2 bg-warning rounded-full"></div>
                 1 high priority
               </div>
             </div>
@@ -111,23 +97,17 @@
         </div>
 
         <!-- Neighbors Online Card -->
-        <div
-          class="card bg-gradient-to-br from-info/20 to-info/10 border border-info/30 shadow-lg hover:shadow-xl transition-all"
-        >
-          <div class="card-body p-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-3xl font-bold text-base-content drop-shadow-lg">8</div>
-                <div class="text-sm font-medium text-base-content/90 drop-shadow-md">
-                  Neighbors Online
-                </div>
-                <div class="text-xs text-base-content/80 drop-shadow-sm mt-1">Currently active</div>
-              </div>
-              <div class="text-4xl opacity-90 drop-shadow-md">👥</div>
+        <div class="stats shadow-lg hover:shadow-xl transition-all duration-300">
+          <div class="stat">
+            <div class="stat-figure text-info">
+              <div class="text-4xl">👥</div>
             </div>
-            <div class="mt-3">
-              <div class="flex items-center text-xs text-base-content drop-shadow-sm">
-                <span class="w-2 h-2 bg-info rounded-full mr-2 shadow-sm"></span>
+            <div class="stat-title">Neighbors Online</div>
+            <div class="stat-value text-info">8</div>
+            <div class="stat-desc">Currently active</div>
+            <div class="stat-actions">
+              <div class="badge badge-info gap-2">
+                <div class="w-2 h-2 bg-info rounded-full"></div>
                 Peak hours
               </div>
             </div>
@@ -135,23 +115,17 @@
         </div>
 
         <!-- System Uptime Card -->
-        <div
-          class="card bg-gradient-to-br from-success/20 to-success/10 border border-success/30 shadow-lg hover:shadow-xl transition-all"
-        >
-          <div class="card-body p-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-3xl font-bold text-base-content drop-shadow-lg">99.9%</div>
-                <div class="text-sm font-medium text-base-content/90 drop-shadow-md">
-                  System Uptime
-                </div>
-                <div class="text-xs text-base-content/80 drop-shadow-sm mt-1">Last 30 days</div>
-              </div>
-              <div class="text-4xl opacity-90 drop-shadow-md">⚡</div>
+        <div class="stats shadow-lg hover:shadow-xl transition-all duration-300">
+          <div class="stat">
+            <div class="stat-figure text-success">
+              <div class="text-4xl">⚡</div>
             </div>
-            <div class="mt-3">
-              <div class="flex items-center text-xs text-base-content drop-shadow-sm">
-                <span class="w-2 h-2 bg-success rounded-full mr-2 shadow-sm"></span>
+            <div class="stat-title">System Uptime</div>
+            <div class="stat-value text-success">99.9%</div>
+            <div class="stat-desc">Last 30 days</div>
+            <div class="stat-actions">
+              <div class="badge badge-success gap-2">
+                <div class="w-2 h-2 bg-success rounded-full"></div>
                 All systems operational
               </div>
             </div>
@@ -482,7 +456,7 @@ import AuthNav from '@/components/AuthNav.vue'
 import AuthDebugPanel from '@/components/AuthDebugPanel.vue'
 
 // Reactive data
-const isOnline = ref(true)
+// const isOnline = ref(true) // Removed unused variable
 
 // Debug panel (show in development)
 const showDebugPanel = ref(import.meta.env.DEV)

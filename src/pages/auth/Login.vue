@@ -1,93 +1,134 @@
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { useI18n } from 'vue-i18n'
-import { useLocaleRouter } from '@/composables/useLocaleRouter'
-import LoginLayout from '@/components/LoginLayout.vue'
-
-const router = useRouter()
-const store = useAuthStore()
-const { t } = useI18n()
-const { getLocalizedPath } = useLocaleRouter()
-
-const username = ref('')
-const password = ref('')
-const error = ref('')
-const isLoading = ref(false)
-const showPassword = ref(false)
-
-// Form validation
-const isFormValid = computed(() => {
-  return username.value.trim().length > 0 && password.value.length > 0
-})
-
-async function submit() {
-  if (!isFormValid.value) return
-
-  error.value = ''
-  isLoading.value = true
-
-  try {
-    await store.login({
-      username: username.value.trim(),
-      password: password.value,
-    })
-    router.push('/')
-  } catch (e: unknown) {
-    console.error('Login error:', e)
-    const errorMessage =
-      (e as { response?: { data?: { detail?: string; error?: string } } })?.response?.data
-        ?.detail ||
-      (e as { response?: { data?: { detail?: string; error?: string } } })?.response?.data?.error ||
-      'Login failed'
-    error.value = errorMessage
-  } finally {
-    isLoading.value = false
-  }
-}
-
-function togglePasswordVisibility() {
-  showPassword.value = !showPassword.value
-}
-</script>
-
 <template>
   <LoginLayout>
-    <!-- Main Login Container -->
     <div class="min-h-screen flex flex-col lg:flex-row">
+      <!-- Left Side - Welcome Content -->
+      <div
+        class="flex-1 flex items-center p-8 lg:p-16 bg-gradient-to-br from-primary/15 via-secondary/10 to-accent/10"
+      >
+        <div class="w-full max-w-2xl mx-auto text-center lg:text-left">
+          <h1 class="text-5xl font-bold text-base-content mb-4 leading-tight">
+            {{ t('auth.welcomeTo') }}
+          </h1>
+          <h1 class="text-5xl font-bold text-primary mb-8 leading-tight drop-shadow-sm">
+            {{ t('app.title') }}
+          </h1>
+          <p class="text-xl text-base-content/85 leading-relaxed mb-12 font-medium">
+            {{ t('auth.subtitle') }}
+          </p>
+
+          <!-- Features List -->
+          <div class="space-y-4 mb-12">
+            <div
+              class="flex items-center gap-4 p-3 rounded-lg bg-base-100/30 backdrop-blur-sm border border-base-300/50 hover:bg-base-100/50 transition-all duration-200"
+            >
+              <div class="badge badge-success badge-md p-3 shadow-sm">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <span class="text-lg text-base-content/90 font-semibold">
+                {{ t('auth.farmSecurity') }}
+              </span>
+            </div>
+            <div
+              class="flex items-center gap-4 p-3 rounded-lg bg-base-100/30 backdrop-blur-sm border border-base-300/50 hover:bg-base-100/50 transition-all duration-200"
+            >
+              <div class="badge badge-success badge-md p-3 shadow-sm">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <span class="text-lg text-base-content/90 font-semibold">
+                {{ t('auth.neighborCommunication') }}
+              </span>
+            </div>
+            <div
+              class="flex items-center gap-4 p-3 rounded-lg bg-base-100/30 backdrop-blur-sm border border-base-300/50 hover:bg-base-100/50 transition-all duration-200"
+            >
+              <div class="badge badge-warning badge-md p-3 shadow-sm">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <span class="text-lg text-base-content/90 font-semibold">
+                {{ t('auth.emergencyAlerts') }}
+              </span>
+            </div>
+            <div
+              class="flex items-center gap-4 p-3 rounded-lg bg-base-100/30 backdrop-blur-sm border border-base-300/50 hover:bg-base-100/50 transition-all duration-200"
+            >
+              <div class="badge badge-success badge-md p-3 shadow-sm">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <span class="text-lg text-base-content/90 font-semibold">
+                {{ t('auth.eventCoordination') }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Trust Indicators -->
+          <div
+            class="card bg-base-100/60 backdrop-blur-md shadow-lg border border-base-300/70 hover:shadow-xl transition-all duration-300"
+          >
+            <div class="card-body p-6">
+              <h3 class="card-title text-xl mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                {{ t('auth.trustedBy') }}
+              </h3>
+              <p class="text-base-content/80 text-base font-medium leading-relaxed">
+                {{ t('auth.joinCommunity') }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Right Side - Login Form Card -->
-      <div class="flex-1 flex items-center justify-center p-4 lg:p-8">
+      <div class="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div class="w-full max-w-md">
+          <!-- Clean daisyUI Card -->
           <div class="card bg-base-100 shadow-2xl">
             <div class="card-body p-8">
-              <!-- Logo and Header -->
-              <div class="text-center mb-8">
-                <div class="avatar placeholder mb-6">
+              <!-- Header -->
+              <div class="text-center mb-6">
+                <div class="avatar placeholder mb-4">
                   <div
-                    class="bg-primary text-primary-content rounded-full w-20 h-20 flex items-center justify-center shadow-lg"
+                    class="bg-primary text-primary-content rounded-full w-16 h-16 flex items-center justify-center shadow-lg"
                   >
-                    <img
-                      src="/logo.png"
-                      alt="Naboom NeighborNet Logo"
-                      class="w-12 h-12 object-contain"
-                    />
+                    <img src="/logo.png" alt="Logo" class="w-10 h-10 object-contain" />
                   </div>
                 </div>
-                <h1 class="text-4xl font-bold text-base-content mb-2">{{ t('app.login') }}</h1>
-                <p class="text-base-content/70 text-lg">
-                  {{ t('auth.welcomeBack') }}
-                </p>
+                <h1 class="text-2xl font-bold text-primary mb-2">{{ t('app.login') }}</h1>
+                <p class="text-base-content/70 text-sm">{{ t('auth.welcomeBack') }}</p>
               </div>
 
               <!-- Error Alert -->
-              <div v-if="error" role="alert" class="alert alert-error mb-6">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="stroke-current shrink-0 h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
+              <div v-if="error" role="alert" class="alert alert-error mb-4">
+                <svg class="stroke-current shrink-0 h-4 w-4" fill="none" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -95,21 +136,21 @@ function togglePasswordVisibility() {
                     d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span class="font-medium">{{ error }}</span>
+                <span class="text-sm">{{ error }}</span>
               </div>
 
               <!-- Login Form -->
-              <form @submit.prevent="submit" class="space-y-6">
+              <form @submit.prevent="submit" class="space-y-4">
                 <!-- Username Field -->
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text">{{ t('auth.username') }}</span>
+                    <span class="label-text font-medium">{{ t('auth.username') }}</span>
                   </label>
                   <input
                     v-model="username"
                     type="text"
                     :placeholder="t('auth.username')"
-                    class="input input-bordered input-lg w-full"
+                    class="input input-bordered w-full"
                     autocomplete="username"
                     required
                   />
@@ -118,25 +159,25 @@ function togglePasswordVisibility() {
                 <!-- Password Field -->
                 <div class="form-control">
                   <label class="label">
-                    <span class="label-text">{{ t('auth.password') }}</span>
+                    <span class="label-text font-medium">{{ t('auth.password') }}</span>
                   </label>
                   <div class="relative">
                     <input
                       v-model="password"
                       :type="showPassword ? 'text' : 'password'"
                       :placeholder="t('auth.password')"
-                      class="input input-bordered input-lg w-full pr-12"
+                      class="input input-bordered w-full pr-10"
                       autocomplete="current-password"
                       required
                     />
                     <button
                       type="button"
                       @click="togglePasswordVisibility"
-                      class="absolute inset-y-0 right-0 flex items-center pr-3"
+                      class="absolute inset-y-0 right-0 flex items-center pr-3 hover:bg-base-200 rounded-r-lg"
                     >
                       <svg
                         v-if="!showPassword"
-                        class="h-5 w-5 text-base-content/50"
+                        class="h-4 w-4 text-base-content/60"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -156,7 +197,7 @@ function togglePasswordVisibility() {
                       </svg>
                       <svg
                         v-else
-                        class="h-5 w-5 text-base-content/50"
+                        class="h-4 w-4 text-base-content/60"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -174,10 +215,7 @@ function togglePasswordVisibility() {
 
                 <!-- Forgot Password Link -->
                 <div class="text-right">
-                  <router-link
-                    to="/forgot"
-                    class="link link-primary hover:link-hover text-sm font-medium"
-                  >
+                  <router-link to="/forgot" class="link link-primary link-hover text-sm">
                     {{ t('auth.forgot') }}?
                   </router-link>
                 </div>
@@ -185,13 +223,13 @@ function togglePasswordVisibility() {
                 <!-- Login Button -->
                 <button
                   type="submit"
-                  class="btn btn-primary btn-lg w-full mt-8"
+                  class="btn btn-primary w-full mt-4"
                   :disabled="!isFormValid || isLoading"
                 >
-                  <span v-if="isLoading" class="loading loading-spinner loading-sm"></span>
+                  <span v-if="isLoading" class="loading loading-spinner loading-xs"></span>
                   <svg
                     v-else
-                    class="w-5 h-5 mr-2"
+                    class="w-4 h-4 mr-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -208,16 +246,15 @@ function togglePasswordVisibility() {
               </form>
 
               <!-- Divider -->
-              <div class="divider my-8">or</div>
+              <div class="divider my-4 text-base-content/60">
+                <span class="px-3 bg-base-100 text-xs">{{ t('common.or') }}</span>
+              </div>
 
               <!-- Register Link -->
               <div class="text-center">
-                <p class="text-base-content/70 mb-4">{{ t('auth.dontHaveAccount') }}</p>
-                <router-link
-                  :to="getLocalizedPath('/register')"
-                  class="btn btn-outline btn-lg w-full"
-                >
-                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <p class="text-base-content/70 mb-3 text-sm">{{ t('auth.dontHaveAccount') }}</p>
+                <router-link :to="getLocalizedPath('/register')" class="btn btn-outline w-full">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       stroke-linecap="round"
                       stroke-linejoin="round"
@@ -232,102 +269,58 @@ function togglePasswordVisibility() {
           </div>
         </div>
       </div>
-
-      <!-- Left Side - Welcome Content -->
-      <div
-        class="flex-1 flex items-center p-8 lg:p-16 bg-gradient-to-br from-primary/10 to-secondary/10"
-      >
-        <div class="w-full max-w-2xl mx-auto text-center lg:text-left">
-          <h1 class="text-6xl font-bold text-base-content mb-4 leading-tight">
-            {{ t('auth.welcomeTo') }}
-          </h1>
-          <h1 class="text-6xl font-bold text-primary mb-8 leading-tight">
-            {{ t('app.title') }}
-          </h1>
-          <p class="text-xl text-base-content/80 leading-relaxed mb-12">
-            {{ t('auth.subtitle') }}
-          </p>
-
-          <!-- Features List -->
-          <div class="space-y-4 mb-12">
-            <div class="flex items-center gap-4">
-              <div class="badge badge-success badge-lg p-3">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fill-rule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-              <span class="text-lg text-base-content/80 font-medium">
-                {{ t('auth.farmSecurity') }}
-              </span>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="badge badge-success badge-lg p-3">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fill-rule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-              <span class="text-lg text-base-content/80 font-medium">
-                {{ t('auth.neighborCommunication') }}
-              </span>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="badge badge-warning badge-lg p-3">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fill-rule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-              <span class="text-lg text-base-content/80 font-medium">
-                {{ t('auth.emergencyAlerts') }}
-              </span>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="badge badge-success badge-lg p-3">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fill-rule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-              <span class="text-lg text-base-content/80 font-medium">
-                {{ t('auth.eventCoordination') }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Trust Indicators -->
-          <div class="card bg-base-100/50 backdrop-blur-sm shadow-lg border border-base-300">
-            <div class="card-body p-6">
-              <h3 class="card-title text-xl mb-4 flex items-center gap-2">
-                <svg class="w-6 h-6 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fill-rule="evenodd"
-                    d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                {{ t('auth.trustedBy') }}
-              </h3>
-              <p class="text-base-content/70 text-sm">
-                {{ t('auth.joinCommunity') }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </LoginLayout>
 </template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/stores/auth'
+import { useToasts } from '@/composables/useToasts'
+import { useLocaleRouter } from '@/composables/useLocaleRouter'
+import LoginLayout from '@/components/LoginLayout.vue'
+
+const router = useRouter()
+const { t } = useI18n()
+const authStore = useAuthStore()
+const { push: showToast } = useToasts()
+const { getLocalizedPath } = useLocaleRouter()
+
+// Form data
+const username = ref('')
+const password = ref('')
+const showPassword = ref(false)
+const isLoading = ref(false)
+const error = ref('')
+
+// Form validation
+const isFormValid = computed(() => {
+  return username.value.trim().length > 0 && password.value.length > 0
+})
+
+// Toggle password visibility
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
+
+// Submit form
+const submit = async () => {
+  if (!isFormValid.value) return
+
+  isLoading.value = true
+  error.value = ''
+
+  try {
+    await authStore.login({ username: username.value, password: password.value })
+    showToast({ title: t('auth.loginSuccess'), message: '', variant: 'success' })
+    router.push(getLocalizedPath('/dashboard'))
+  } catch (err: unknown) {
+    error.value = (err as Error)?.message || t('auth.loginError')
+    showToast({ title: error.value, message: '', variant: 'error' })
+  } finally {
+    isLoading.value = false
+  }
+}
+</script>

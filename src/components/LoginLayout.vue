@@ -1,64 +1,20 @@
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useTheme } from '@/composables/useTheme'
-import { getSupportedLocales } from '@/utils/localeDetection'
-import { useLocaleRouter } from '@/composables/useLocaleRouter'
-
-const { t, locale } = useI18n()
-const { currentTheme, currentThemeData, setTheme } = useTheme()
-const { switchLocale } = useLocaleRouter()
-
-const supportedLocales = getSupportedLocales()
-
-const currentLocaleIcon = computed(() => {
-  const localeInfo = supportedLocales.find((l) => l.code === locale.value)
-  return localeInfo?.flag || '🌐'
-})
-
-const currentLocaleLabel = computed(() => {
-  const localeInfo = supportedLocales.find((l) => l.code === locale.value)
-  return localeInfo?.nativeName || locale.value.toUpperCase()
-})
-
-const themeIcon = computed(() => {
-  return currentThemeData.value?.icon || '🌙'
-})
-
-const themeLabel = computed(() => {
-  return currentThemeData.value?.label || 'Theme'
-})
-
-const changeTheme = (newTheme: string) => {
-  setTheme(newTheme as 'light' | 'business')
-}
-</script>
-
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-base-200 to-base-300">
-    <!-- Background Pattern -->
-    <div class="absolute inset-0 opacity-5">
-      <div class="absolute inset-0 bg-dot-pattern"></div>
-    </div>
-
-    <!-- Clean Header with Language and Theme Switchers -->
-    <div class="navbar bg-base-100/80 backdrop-blur-sm shadow-sm">
+  <div class="min-h-screen bg-base-200">
+    <!-- Clean daisyUI Navbar -->
+    <div class="navbar bg-base-100 shadow-sm">
       <div class="navbar-start">
-        <router-link
-          to="/"
-          class="btn btn-ghost text-xl font-bold text-primary flex items-center gap-3"
-        >
-          <img src="/logo.png" alt="Naboom NeighborNet Logo" class="w-8 h-8 object-contain" />
+        <router-link to="/" class="btn btn-ghost text-xl font-bold text-primary">
+          <img src="/logo.png" alt="Logo" class="w-8 h-8 mr-2" />
           {{ t('app.title') }}
         </router-link>
       </div>
 
-      <div class="navbar-end">
-        <!-- Language Switcher -->
+      <div class="navbar-end gap-2">
+        <!-- Language Dropdown -->
         <div class="dropdown dropdown-end">
           <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
             <span class="text-lg">{{ currentLocaleIcon }}</span>
-            <span class="hidden sm:inline">{{ currentLocaleLabel }}</span>
+            <span class="hidden sm:inline ml-1">{{ currentLocaleLabel }}</span>
           </div>
           <ul
             tabindex="0"
@@ -70,7 +26,7 @@ const changeTheme = (newTheme: string) => {
             <li
               v-for="localeOption in supportedLocales"
               :key="localeOption.code"
-              @click="switchLocale(localeOption.code)"
+              @click="switchLocale(localeOption.code as 'en' | 'af')"
               :class="{ 'menu-active': localeOption.code === locale }"
             >
               <button class="flex items-center gap-3">
@@ -81,11 +37,11 @@ const changeTheme = (newTheme: string) => {
           </ul>
         </div>
 
-        <!-- Theme Switcher -->
+        <!-- Theme Dropdown -->
         <div class="dropdown dropdown-end">
           <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
             <div class="text-lg">{{ themeIcon }}</div>
-            <span class="hidden sm:inline">{{ themeLabel }}</span>
+            <span class="hidden sm:inline ml-1">{{ themeLabel }}</span>
           </div>
           <ul
             tabindex="0"
@@ -98,9 +54,9 @@ const changeTheme = (newTheme: string) => {
               <button class="flex items-center gap-3">
                 <span class="text-lg">💡</span>
                 <span>{{ t('app.light') }}</span>
-                <span v-if="currentTheme === 'light'" class="badge badge-primary badge-sm">
-                  {{ t('common.active') }}
-                </span>
+                <span v-if="currentTheme === 'light'" class="badge badge-primary badge-sm">{{
+                  t('common.active')
+                }}</span>
               </button>
             </li>
             <li
@@ -110,9 +66,9 @@ const changeTheme = (newTheme: string) => {
               <button class="flex items-center gap-3">
                 <span class="text-lg">🏢</span>
                 <span>{{ t('app.dark') }}</span>
-                <span v-if="currentTheme === 'business'" class="badge badge-primary badge-sm">
-                  {{ t('common.active') }}
-                </span>
+                <span v-if="currentTheme === 'business'" class="badge badge-primary badge-sm">{{
+                  t('common.active')
+                }}</span>
               </button>
             </li>
           </ul>
@@ -121,28 +77,67 @@ const changeTheme = (newTheme: string) => {
     </div>
 
     <!-- Main Content -->
-    <main class="flex items-center justify-center min-h-[calc(100vh-4rem)] p-6">
-      <div class="w-full max-w-6xl">
-        <slot />
-      </div>
+    <main>
+      <slot></slot>
     </main>
 
     <!-- Footer -->
-    <footer class="footer footer-center p-4 bg-base-100/50 backdrop-blur-sm text-base-content">
-      <div class="flex flex-col items-center gap-2">
-        <div class="flex items-center gap-2">
-          <img src="/logo.png" alt="Naboom NeighborNet Logo" class="w-6 h-6 object-contain" />
-          <span class="font-semibold">{{ t('app.title') }}</span>
-        </div>
-        <p class="text-sm opacity-70">{{ t('auth.subtitle') }}</p>
-      </div>
+    <footer class="footer footer-center p-4 bg-base-300 text-base-content">
+      <aside>
+        <p>© 2024 {{ t('app.title') }}. {{ t('common.allRightsReserved') }}.</p>
+      </aside>
     </footer>
   </div>
 </template>
 
-<style scoped>
-.bg-dot-pattern {
-  background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
-  background-size: 20px 20px;
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useTheme } from '@/composables/useTheme'
+import { useLocaleRouter } from '@/composables/useLocaleRouter'
+import { i18n } from '@/plugins/i18n'
+
+const { t, locale } = useI18n()
+const { currentTheme, setTheme } = useTheme()
+const { switchLocale } = useLocaleRouter()
+
+const supportedLocales = computed(() => {
+  const availableLocales = i18n.global.availableLocales as string[]
+  return availableLocales.map((code) => {
+    switch (code) {
+      case 'en':
+        return { code, flag: '🇺🇸', nativeName: 'English' }
+      case 'af':
+        return { code, flag: '🇿🇦', nativeName: 'Afrikaans' }
+      default:
+        return { code, flag: '🌐', nativeName: code.toUpperCase() }
+    }
+  })
+})
+
+const changeTheme = (theme: string) => {
+  setTheme(theme as 'light' | 'business')
 }
-</style>
+
+const currentLocaleIcon = computed(() => {
+  const current = supportedLocales.value.find(
+    (l: { code: string; flag: string }) => l.code === locale.value,
+  )
+  return current?.flag || '🌐'
+})
+
+const currentLocaleLabel = computed(() => {
+  const current = supportedLocales.value.find(
+    (l: { code: string; nativeName: string }) => l.code === locale.value,
+  )
+  return current?.nativeName || 'Language'
+})
+
+const themeIcon = computed(() => {
+  return currentTheme.value === 'light' ? '💡' : '🏢'
+})
+
+const themeLabel = computed(() => {
+  return currentTheme.value === 'light' ? t('app.light') : t('app.dark')
+})
+</script>
