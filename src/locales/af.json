@@ -170,6 +170,36 @@
     }
   },
   "hub": {
+    "communityHub": {
+      "title": "Gemeenskapsentrum",
+      "subtitle": "Koppel, kommunikeer en werk saam met jou bure",
+      "stats": {
+        "channels": "Kanale",
+        "activeChannels": "Aktiewe kanale",
+        "events": "Gebeurtenisse",
+        "upcomingEvents": "Kommende gebeurtenisse",
+        "alerts": "Waarskuwings",
+        "activeAlerts": "Aktiewe waarskuwings"
+      },
+      "navigation": {
+        "channels": "Kanale",
+        "channelsDesc": "Blaai deur en sluit aan by gemeenskapsbesprekingskanale",
+        "events": "Gebeurtenisse",
+        "eventsDesc": "Bekyk en bestuur gemeenskapsgebeurtenisse en vergaderings",
+        "alerts": "Waarskuwings",
+        "alertsDesc": "Bly ingelig oor dringende gemeenskapskennisgewings",
+        "search": "Soek",
+        "searchDesc": "Vind besprekings, gebeurtenisse en gemeenskapsinhoud",
+        "reports": "Rapporte",
+        "reportsDesc": "Bestuur inhoudmoderasie en gemeenskapsrapporte",
+        "settings": "Instellings",
+        "settingsDesc": "Stel jou kennisgewing- en privaatheidvoorkeure op"
+      },
+      "recentActivity": {
+        "title": "Onlangse Aktiwiteit",
+        "noActivity": "Geen onlangse aktiwiteit om te vertoon nie"
+      }
+    },
     "nav": {
       "channels": "Gemeenskapsentrum",
       "notifications": "Kennisgewings"

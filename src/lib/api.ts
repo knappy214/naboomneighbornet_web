@@ -3,27 +3,34 @@ import { useAuthStore } from '@/stores/auth'
 import { i18n } from '@/plugins/i18n'
 
 // Determine the correct API base URL
-const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost'
-const isProduction = window.location.hostname === 'naboomneighbornet.net.za'
-
 const getApiBaseUrl = () => {
   // If environment variables are set, use them
   if (import.meta.env.VITE_API_V2_BASE) return import.meta.env.VITE_API_V2_BASE
   if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL
   if (import.meta.env.VITE_API_BASE) return import.meta.env.VITE_API_BASE
 
-  // If running on production domain, use production API v2
-  if (isProduction) return 'https://naboomneighbornet.net.za/api/v2'
+  // Check if we're in development mode - prioritize import.meta.env.DEV
+  if (import.meta.env.DEV) return '/api/v2'
 
-  // For development, use localhost v2
-  if (isDevelopment) return 'http://localhost:8000/api/v2'
+  // Check if we're running on localhost
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return '/api/v2'
+  }
+
+  // Check if we're running on production domain
+  if (typeof window !== 'undefined' && window.location.hostname === 'naboomneighbornet.net.za') {
+    return 'https://naboomneighbornet.net.za/api/v2'
+  }
 
   // Fallback to production v2
   return 'https://naboomneighbornet.net.za/api/v2'
 }
 
+// Get the base URL
+const baseURL = getApiBaseUrl()
+
 const api = axios.create({
-  baseURL: getApiBaseUrl(),
+  baseURL,
 })
 
 // Debug the API configuration
@@ -31,7 +38,13 @@ console.log('API Configuration:', {
   VITE_API_V2_BASE: import.meta.env.VITE_API_V2_BASE,
   VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
   VITE_API_BASE: import.meta.env.VITE_API_BASE,
-  finalBaseURL: api.defaults.baseURL,
+  isDevelopment:
+    import.meta.env.DEV ||
+    (typeof window !== 'undefined' && window.location.hostname === 'localhost'),
+  isProduction:
+    typeof window !== 'undefined' && window.location.hostname === 'naboomneighbornet.net.za',
+  finalBaseURL: baseURL,
+  apiBaseURL: api.defaults.baseURL,
 })
 
 api.interceptors.request.use((config) => {
@@ -41,7 +54,17 @@ api.interceptors.request.use((config) => {
   // Debug logging
   console.log('API Request - Auth Token:', t ? 'Present' : 'Missing')
   console.log('API Request - URL:', config.url)
+  console.log('API Request - Base URL:', config.baseURL)
   console.log('API Request - Full URL:', (config.baseURL || '') + (config.url || ''))
+  console.log(
+    'API Request - Is Development:',
+    import.meta.env.DEV ||
+      (typeof window !== 'undefined' && window.location.hostname === 'localhost'),
+  )
+  console.log(
+    'API Request - Window Location:',
+    typeof window !== 'undefined' ? window.location.hostname : 'undefined',
+  )
 
   if (t) {
     config.headers.Authorization = `Bearer ${t}`

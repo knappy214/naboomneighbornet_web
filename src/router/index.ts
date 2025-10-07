@@ -30,6 +30,7 @@ const Monitor = () => import('@/pages/Monitor.vue')
 const PanicDashboard = () => import('@/pages/PanicDashboard.vue')
 const StoreDemo = () => import('@/components/StoreDemo.vue')
 const Profile = () => import('@/pages/Profile.vue')
+const CommunityHub = () => import('@/pages/hub/CommunityHub.vue')
 const ChannelsHub = () => import('@/pages/hub/Channels.vue')
 const ChannelThreads = () => import('@/pages/hub/ChannelThreads.vue')
 const ThreadView = () => import('@/pages/hub/ThreadView.vue')
@@ -137,6 +138,17 @@ const createLocaleRoutes = (): RouteRecordRaw[] => {
             locale,
             title: 'SafeNaboom',
             description: 'Agricultural community security platform',
+          },
+        },
+        {
+          path: 'community-hub',
+          name: `community-hub-${locale}`,
+          component: CommunityHub,
+          meta: {
+            requiresAuth: true,
+            locale,
+            title: 'Community Hub',
+            description: 'Main Community Hub dashboard',
           },
         },
         {

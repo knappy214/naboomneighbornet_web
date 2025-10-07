@@ -1,8 +1,9 @@
 import axios from 'axios'
-import api from '@/lib/api'
+import { useAuthStore } from '@/stores/auth'
 import { handleApiError, createUserErrorMessage, type ErrorContext } from '@/utils/errorHandler'
 import type {
   Incident,
+  IncidentEventType,
   IncidentFilters,
   IncidentPriority,
   IncidentStatus,
@@ -32,12 +33,40 @@ interface IncidentApiResponse {
 
 const DEFAULT_BASE_URL = '/panic/api'
 
+const getPanicBaseUrl = () => {
+  // If specific panic base URL is set, use it
+  if (import.meta.env.VITE_PANIC_BASE) return import.meta.env.VITE_PANIC_BASE
+
+  // If API base is set, construct panic URL from it
+  if (import.meta.env.VITE_API_BASE) {
+    return `${import.meta.env.VITE_API_BASE}${DEFAULT_BASE_URL}`
+  }
+
+  // Production fallback
+  if (typeof window !== 'undefined' && window.location.hostname === 'naboomneighbornet.net.za') {
+    return 'https://naboomneighbornet.net.za/panic/api'
+  }
+
+  // Development fallback - use relative URL to leverage Vite proxy
+  return '/panic/api'
+}
+
 const panicClient = axios.create({
-  baseURL: normalizeBaseUrl(
-    import.meta.env.VITE_PANIC_BASE || `${import.meta.env.VITE_API_BASE || ''}${DEFAULT_BASE_URL}`,
-  ),
+  baseURL: normalizeBaseUrl(getPanicBaseUrl()),
   withCredentials: true,
   timeout: 20000,
+})
+
+// Add authentication interceptor to panic client
+panicClient.interceptors.request.use((config) => {
+  const authStore = useAuthStore()
+  const t = authStore.accessToken
+
+  if (t) {
+    config.headers.Authorization = `Bearer ${t}`
+  }
+
+  return config
 })
 
 // Separate client for Wagtail API endpoints
@@ -57,8 +86,8 @@ const getWagtailBaseUrl = () => {
     return 'https://naboomneighbornet.net.za/api/v2'
   }
 
-  // Development fallback
-  return 'http://localhost:8000/api/v2'
+  // Development fallback - use relative URL to leverage Vite proxy
+  return '/api/v2'
 }
 
 const wagtailClient = axios.create({
@@ -204,11 +233,15 @@ export function mapIncident(raw: unknown): Incident {
           ? rawObj.notes
           : null,
     reportedAt: safeString(
-      rawObj?.reportedAt || rawObj?.reported_at || rawObj?.createdAt || rawObj?.created_at,
+      rawObj?.created_at || rawObj?.reportedAt || rawObj?.reported_at || rawObj?.createdAt,
       new Date().toISOString(),
     ) as string,
     updatedAt: safeString(
-      rawObj?.updatedAt || rawObj?.updated_at || rawObj?.modifiedAt || rawObj?.modified_at,
+      rawObj?.updated_at ||
+        rawObj?.updatedAt ||
+        rawObj?.updated_at ||
+        rawObj?.modifiedAt ||
+        rawObj?.modified_at,
       new Date().toISOString(),
     ) as string,
     location: {
@@ -241,6 +274,28 @@ export function mapIncident(raw: unknown): Incident {
     attachments: Array.isArray(rawObj?.attachments)
       ? rawObj.attachments.filter((value: unknown): value is string => typeof value === 'string')
       : undefined,
+    events: Array.isArray(rawObj?.events)
+      ? rawObj.events.map((event: unknown) => {
+          const eventObj = event as Record<string, unknown>
+          return {
+            id: toIncidentId(eventObj?.id ?? eventObj?.uuid ?? crypto.randomUUID()),
+            incidentId: toIncidentId(rawObj?.id ?? rawObj?.uuid ?? rawObj?.incident_id),
+            type: (eventObj?.kind ?? eventObj?.type ?? 'created') as IncidentEventType,
+            description: safeString(eventObj?.description, '') || '',
+            createdAt: safeString(
+              eventObj?.created_at ?? eventObj?.createdAt,
+              new Date().toISOString(),
+            ) as string,
+            createdBy: safeString(eventObj?.created_by ?? eventObj?.createdBy, null),
+            metadata:
+              eventObj?.metadata &&
+              typeof eventObj.metadata === 'object' &&
+              eventObj.metadata !== null
+                ? (eventObj.metadata as Record<string, unknown>)
+                : undefined,
+          }
+        })
+      : undefined,
     metadata:
       rawObj?.metadata && typeof rawObj.metadata === 'object' && rawObj.metadata !== null
         ? (rawObj.metadata as Record<string, unknown>)
@@ -258,6 +313,11 @@ function extractIncidentList(response: IncidentApiResponse | unknown[]): unknown
   }
 
   const responseObj = response as Record<string, unknown>
+
+  // Check for items first (Django view API format)
+  if (Array.isArray(responseObj.items)) {
+    return responseObj.items
+  }
 
   if (Array.isArray(responseObj.incidents)) {
     return responseObj.incidents
@@ -277,7 +337,7 @@ function extractIncidentList(response: IncidentApiResponse | unknown[]): unknown
 export async function fetchIncidents(filters: IncidentFilters): Promise<Incident[]> {
   const context: ErrorContext = {
     operation: 'Fetch Incidents',
-    endpoint: '/incidents/',
+    endpoint: '/panic/api/incidents/',
     params: filters,
   }
 
@@ -285,7 +345,7 @@ export async function fetchIncidents(filters: IncidentFilters): Promise<Incident
     const params = toQueryParams(filters)
     console.log('🔍 [API] Fetching incidents with params:', params)
 
-    const response = await api.get<IncidentApiResponse | unknown[]>('/incidents/', {
+    const response = await panicClient.get<IncidentApiResponse | unknown[]>('/incidents/', {
       params,
     })
 
@@ -501,14 +561,21 @@ export async function pingVehicle(
 
 // Responders API
 export async function fetchResponders(province?: string): Promise<Responder[]> {
+  const context: ErrorContext = {
+    operation: 'Fetch Responders',
+    endpoint: '/panic/api/responders/',
+    params: { province },
+  }
+
   try {
     const params = province ? { province } : {}
     console.log('🔍 [API] Fetching responders with params:', params)
 
-    const response = await api.get<{ responders?: unknown[]; results?: unknown[] }>(
-      '/responders/',
-      { params },
-    )
+    const response = await panicClient.get<{
+      responders?: unknown[]
+      results?: unknown[]
+      items?: unknown[]
+    }>('/responders/', { params })
 
     console.log('📊 [API] Responders response:', {
       status: response.status,
@@ -542,19 +609,14 @@ export async function fetchResponders(province?: string): Promise<Responder[]> {
     console.log('✅ [API] Mapped responders:', responders)
     return responders
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.warn('❌ [API] Failed to fetch responders:', error.response?.status, error.message)
-      console.warn('❌ [API] Error details:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        url: error.config?.url,
-        params: error.config?.params,
-      })
-    } else {
-      console.error('❌ [API] Unexpected error fetching responders:', error)
-    }
-    return []
+    const apiError = handleApiError(error, context)
+    const userMessage = createUserErrorMessage(apiError, context)
+    console.warn('❌ [API] Failed to fetch responders:', apiError.status, apiError.message)
+    console.warn('❌ [API] Error details:', {
+      status: apiError.status,
+      message: apiError.message,
+    })
+    throw new Error(userMessage)
   }
 }
 
@@ -567,9 +629,12 @@ export async function fetchPatrolAlerts(shift?: string, limit = 50): Promise<Pat
     }
     console.log('🔍 [API] Fetching patrol alerts with params:', params)
 
-    const response = await api.get<{ alerts?: unknown[]; results?: unknown[] }>('/alerts/', {
-      params,
-    })
+    const response = await panicClient.get<{ alerts?: unknown[]; results?: unknown[] }>(
+      '/alerts/',
+      {
+        params,
+      },
+    )
 
     console.log('📊 [API] Patrol alerts response:', {
       status: response.status,

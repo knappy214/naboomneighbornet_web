@@ -171,6 +171,36 @@
     }
   },
   "hub": {
+    "communityHub": {
+      "title": "Community Hub",
+      "subtitle": "Connect, communicate, and collaborate with your neighbors",
+      "stats": {
+        "channels": "Channels",
+        "activeChannels": "Active channels",
+        "events": "Events",
+        "upcomingEvents": "Upcoming events",
+        "alerts": "Alerts",
+        "activeAlerts": "Active alerts"
+      },
+      "navigation": {
+        "channels": "Channels",
+        "channelsDesc": "Browse and join community discussion channels",
+        "events": "Events",
+        "eventsDesc": "View and manage community events and meetings",
+        "alerts": "Alerts",
+        "alertsDesc": "Stay informed about urgent community notifications",
+        "search": "Search",
+        "searchDesc": "Find discussions, events, and community content",
+        "reports": "Reports",
+        "reportsDesc": "Manage content moderation and community reports",
+        "settings": "Settings",
+        "settingsDesc": "Configure your notification and privacy preferences"
+      },
+      "recentActivity": {
+        "title": "Recent Activity",
+        "noActivity": "No recent activity to display"
+      }
+    },
     "nav": {
       "channels": "Community Hub",
       "notifications": "Notifications",

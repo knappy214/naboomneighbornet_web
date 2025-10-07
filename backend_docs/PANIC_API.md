@@ -45,25 +45,79 @@ These endpoints back the operations dashboard. They assume an authenticated staf
 
 `POST /panic/api/relay_submit` accepts a batch of offline incident frames (for example from LoRa or SMS relays) inside a `frames` array. Each frame is persisted as an `InboundMessage` and, when an `incident_reference` is supplied, produces an `IncidentEvent` flagged as an update for downstream monitoring.【F:naboomcommunity/panic/urls.py†L20-L21】【F:naboomcommunity/panic/views_relay.py†L12-L51】
 
-### Wagtail JSON API (read-only)
+### Wagtail JSON API (authenticated read-only)
 
-Vue clients can also query the shared Wagtail API at `/api/v2/panic/…` for richer listings:
+Vue clients can query the Wagtail API at `/api/v2/…` for richer listings (JWT authentication required):
 
-- `GET /api/v2/panic/incidents/?status=&province=&limit=` mirrors the custom list endpoint, returning incidents with serializer data and pagination metadata.【F:naboomcommunity/panic/api.py†L11-L38】
-- `GET /api/v2/panic/incidents/<id>/` fetches a single incident record.【F:naboomcommunity/panic/api.py†L39-L43】
-- `GET /api/v2/panic/responders/?province=` yields all active responders sorted by name, optionally filtered by province.【F:naboomcommunity/panic/api.py†L46-L63】
-- `GET /api/v2/panic/alerts/?shift=&limit=` lists patrol alerts with embedded waypoint details, and `GET /api/v2/panic/alerts/<id>/` fetches a single alert.【F:naboomcommunity/panic/api.py†L71-L98】
+- `GET /api/v2/incidents/?status=&province=&limit=` mirrors the custom list endpoint, returning incidents with serializer data and pagination metadata.【F:naboomcommunity/panic/api.py†L11-L38】
+- `GET /api/v2/incidents/<id>/` fetches a single incident record.【F:naboomcommunity/panic/api.py†L39-L43】
+- `GET /api/v2/responders/?province=` yields all active responders sorted by name, optionally filtered by province.【F:naboomcommunity/panic/api.py†L46-L63】
+- `GET /api/v2/alerts/?shift=&limit=` lists patrol alerts with embedded waypoint details, and `GET /api/v2/alerts/<id>/` fetches a single alert.【F:naboomcommunity/panic/api.py†L71-L98】
+
+**Location Data Format:**
+
+- `location`: PostGIS Point object (for advanced GIS operations)
+- `latitude`: Extracted Y coordinate (decimal degrees)
+- `longitude`: Extracted X coordinate (decimal degrees)
+- `accuracy`: Location accuracy in meters (if available)
 
 **⚠️ Important URL Construction Note for Vue Frontend:**
 
 - Django view endpoints: Use `/panic/api/...` (e.g., `/panic/api/incidents/`, `/panic/api/alerts/`)
-- Wagtail API endpoints: Use `/api/v2/panic/...` (e.g., `/api/v2/panic/incidents/`, `/api/v2/panic/alerts/`)
+- Wagtail API endpoints: Use `/api/v2/...` (e.g., `/api/v2/incidents/`, `/api/v2/responders/`, `/api/v2/alerts/`)
 - **Do NOT** combine these paths - `/panic/api/api/v2/panic/alerts/` is incorrect and will result in 404 errors
+- **URL Flexibility**: Both `/panic/api/submit/` and `/panic/api/submit` work (with or without trailing slash)
 
 **Endpoint Selection Guide:**
 
 - Use Django view endpoints (`/panic/api/...`) for operational dashboard features requiring real-time updates, SSE streams, and write operations (acknowledge, resolve incidents)
-- Use Wagtail API endpoints (`/api/v2/panic/...`) for read-only data consumption, standard REST pagination, and when integrating with other Wagtail content
+- Use Wagtail API endpoints (`/api/v2/...`) for read-only data consumption, standard REST pagination, and when integrating with other Wagtail content
+
+## Authentication for API Endpoints
+
+### JWT Authentication Required
+
+All Wagtail API endpoints (`/api/v2/...`) require JWT authentication. Vue developers must include the JWT token in the Authorization header.
+
+### Getting JWT Token
+
+1. **Login via Django Admin**: POST to `/django-admin/login/` with username/password
+2. **Get JWT Token**: POST to `/api/auth/jwt/create/` with credentials
+3. **Include Token**: Add `Authorization: Bearer <token>` header to all API requests
+
+### Vue.js Implementation Example
+
+```javascript
+// 1. Login and get JWT token
+const loginResponse = await fetch('/api/auth/jwt/create/', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    username: 'your_username',
+    password: 'your_password',
+  }),
+})
+
+const { access } = await loginResponse.json()
+
+// 2. Use token for API calls
+const respondersResponse = await fetch('/api/v2/responders/', {
+  headers: {
+    Authorization: `Bearer ${access}`,
+    'Content-Type': 'application/json',
+  },
+})
+
+const responders = await respondersResponse.json()
+```
+
+### Error Handling
+
+- **401 Unauthorized**: Token missing, expired, or invalid
+- **403 Forbidden**: Valid token but insufficient permissions
+- **Solution**: Refresh token or re-authenticate
 
 ## Expo mobile client APIs
 
@@ -71,7 +125,22 @@ Expo-based mobile apps call the same `/panic/api/` namespace to log incidents, m
 
 ### Submit a panic incident
 
-`POST /panic/api/submit/` accepts JSON or form payloads with optional `client_id`, `lat`, `lng`, `description`, `source`, `address`, `priority`, `province`, and arbitrary `context`. When location coordinates are valid, they are stored as a GIS point; otherwise they are ignored. Successful submissions create both the incident and an accompanying `IncidentEvent` of kind `created`, defaulting the event description to “Panic button activation” unless `event_description` is supplied. The response returns the new incident ID, generated reference, status, and ISO-8601 creation timestamp, enabling the mobile client to track follow-up updates.【F:naboomcommunity/panic/urls.py†L16-L20】【F:naboomcommunity/panic/views.py†L32-L87】【F:naboomcommunity/panic/models.py†L140-L199】【F:naboomcommunity/panic/models.py†L202-L233】
+`POST /panic/api/submit/` accepts JSON or form payloads with optional `client_id`, `lat`, `lng`, `description`, `source`, `address`, `priority`, `province`, and arbitrary `context`. When location coordinates are valid, they are stored as a GIS point; otherwise they are ignored. Successful submissions create both the incident and an accompanying `IncidentEvent` of kind `created`, defaulting the event description to "Panic button activation" unless `event_description` is supplied. The response returns the new incident ID, generated reference, status, and ISO-8601 creation timestamp, enabling the mobile client to track follow-up updates.
+
+**Priority Values:**
+
+- `"low"` → Priority 1 (Low)
+- `"medium"` → Priority 2 (Medium) - Default
+- `"high"` → Priority 3 (High)
+- `"critical"` → Priority 4 (Critical)
+- Integer values (1-4) are also accepted
+
+**API Response Format:**
+
+- `priority`: String value ("low", "medium", "high", "critical") - mapped from database integers
+- `status`: String value ("open", "acknowledged", "resolved", "cancelled")
+
+【F:naboomcommunity/panic/urls.py†L16-L20】【F:naboomcommunity/panic/views.py†L32-L87】【F:naboomcommunity/panic/models.py†L140-L199】【F:naboomcommunity/panic/models.py†L202-L233】
 
 ### Bulk upsert emergency contacts
 
@@ -111,11 +180,11 @@ To verify correct API usage:
 - Verify `/panic/api/alerts/?limit=10` returns patrol alert data
 - Verify `/api/v2/panic/incidents/?limit=10` returns Wagtail API formatted data
 - **Avoid URLs like** `/panic/api/api/v2/panic/alerts/` - these will return 404 errors
-- Test SSE connection to `/panic/api/stream` for real-time updates
+- Test SSE connection to `/panic/api/stream/` for real-time updates
 
 ### Expo client testing
 
 - Test incident submission to `/panic/api/submit/` with required fields
-- Verify push token registration at `/panic/api/push/register`
-- Test emergency contacts sync via `/panic/api/contacts/bulk_upsert`
+- Verify push token registration at `/panic/api/push/register/`
+- Test emergency contacts sync via `/panic/api/contacts/bulk_upsert/`
 - Poll `/api/v2/panic/incidents/` for incident updates
