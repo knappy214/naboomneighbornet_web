@@ -1,408 +1,239 @@
-# Naboom NeighborNet Web Application - AGENTS.md
+# Naboom NeighborNet Web Application
 
-## Project Overview
+Naboom NeighborNet is the frontend for a community security and neighborhood watch platform. It serves South African communities in English and Afrikaans and integrates with a Django backend to power panic response, community engagement, and profile management.
 
-Naboom NeighborNet is a comprehensive community security and neighborhood watch platform built with Vue 3, TypeScript, Tailwind CSS 4, and DaisyUI 5. This is the **frontend web application** that connects to a Django backend API to provide:
+## 1. Platform Snapshot
+- Emergency panic trigger with live status tracking
+- Community hub for forums, events, and messaging
+- Extended user profiles with group and role administration
+- Mobile-first UI with PWA enhancements
 
-- **Emergency Response System (PANIC)**: One-tap emergency alerts with real-time monitoring
-- **Community Hub**: Discussion forums, event management, and communication channels  
-- **User Management & Profiles**: Extended member profiles with community groups and role management
-- **Mobile-First Design**: Cross-platform responsive interface with PWA capabilities
+## 2. Technology Stack
+- Framework: Vue 3 (Composition API, TypeScript)
+- Styling: Tailwind CSS 4, DaisyUI 5 with community security themes
+- Tooling: Vite 7+ (HMR), npm, Node 20.19.0 LTS or 22.12.0+
+- State: Pinia with persisted state plugin
+- i18n: Vue I18n with locale-aware routing
+- Mapping: MapLibre GL for incident and vehicle tracking
+- Testing: Vitest and Vue Test Utils
 
-The application serves South African communities with multilingual support (English/Afrikaans) and focuses on community safety, communication, and engagement.
-
-## Technology Stack
-
-- **Framework**: Vue 3 with Composition API + TypeScript
-- **Styling**: Tailwind CSS 4 + DaisyUI 5 (custom Community Security themes)
-- **Build Tool**: Vite 7+ with HMR
-- **State Management**: Pinia with persisted state
-- **Internationalization**: Vue I18n with locale routing
-- **Maps**: MapLibre GL for incident tracking and vehicle monitoring
-- **Testing**: Vitest + Vue Test Utils
-- **Package Manager**: npm (Node.js 20.19.0+ or 22.12.0+)
-
-## Project Structure and Module Organization
-
+## 3. Repository Layout
 ```
 naboomneighbornet_web/
-├── src/
-│   ├── components/          # Reusable Vue components
-│   │   ├── hub/            # Community hub specific components
-│   │   ├── profile/        # User profile components
-│   │   ├── AuthLayout.vue  # Authentication layout wrapper
-│   │   ├── ThemeSwitcher.vue # Theme toggle component
-│   │   └── LocaleNavigation.vue # Language switching
-│   ├── pages/              # Route-level page components
-│   │   ├── auth/           # Authentication pages (login, register)
-│   │   ├── hub/            # Community hub pages
-│   │   ├── Dashboard.vue   # Main dashboard
-│   │   ├── SafeNaboom.vue  # Emergency response interface
-│   │   └── Profile.vue     # User profile management
-│   ├── stores/             # Pinia state management
-│   │   ├── hub/            # Community hub stores
-│   │   ├── auth.ts         # Authentication state
-│   │   ├── theme.ts        # Theme management
-│   │   ├── i18n.ts         # Internationalization state
-│   │   ├── panic.ts        # Emergency response state
-│   │   └── profile.ts      # User profile state
-│   ├── router/             # Vue Router configuration
-│   ├── services/           # API service classes
-│   ├── types/              # TypeScript type definitions
-│   ├── locales/            # i18n translation files
-│   ├── utils/              # Utility functions and helpers
-│   ├── composables/        # Vue composables for reusable logic
-│   ├── plugins/            # Vue plugins (i18n, pinia)
-│   ├── App.vue             # Root application component
-│   ├── main.ts             # Application entry point
-│   └── app.css             # Global styles with DaisyUI themes
-├── public/                 # Static assets
-├── backend_docs/           # API documentation
-├── .codex/                 # Codex configuration
-├── .cursor/rules           # Cursor IDE rules
-└── package.json            # Dependencies and scripts
+|-- src/
+|   |-- components/
+|   |   |-- hub/
+|   |   |-- profile/
+|   |   |-- AuthLayout.vue
+|   |   |-- ThemeSwitcher.vue
+|   |   `-- LocaleNavigation.vue
+|   |-- pages/
+|   |   |-- auth/
+|   |   |-- hub/
+|   |   |-- Dashboard.vue
+|   |   |-- SafeNaboom.vue
+|   |   `-- Profile.vue
+|   |-- stores/
+|   |   |-- hub/
+|   |   |-- auth.ts
+|   |   |-- theme.ts
+|   |   |-- i18n.ts
+|   |   |-- panic.ts
+|   |   `-- profile.ts
+|   |-- router/
+|   |-- services/
+|   |-- types/
+|   |-- locales/
+|   |-- utils/
+|   |-- composables/
+|   |-- plugins/
+|   |-- App.vue
+|   |-- main.ts
+|   `-- app.css
+|-- public/
+|-- backend_docs/
+|-- .codex/
+|-- .cursor/rules
+`-- package.json
 ```
 
-## Development Environment Setup
-
+## 4. Environment Setup
 ### Prerequisites
-- Node.js 20.19.0 or >=22.12.0
-- npm (comes with Node.js)
-- Git for version control
+- Node.js 20.19.0 or 22.12.0+
+- npm (bundled with Node)
+- Git
 
-### Initial Setup
+### First-Time Setup
 ```bash
-# Clone the repository
 git clone https://github.com/knappy214/naboomneighbornet_web.git
 cd naboomneighbornet_web
-
-# Install dependencies
 npm install
-
-# Start development server
+cp .env.example .env
 npm run dev
 ```
 
-### Environment Configuration
-- Copy `.env.example` to `.env` and configure API endpoints
-- The app connects to a Django backend API (separate repository)
-- Configure VITE_API_BASE_URL for backend communication
+### Environment Notes
+- Configure `VITE_API_BASE_URL` to point to the Django backend.
+- Keep environment overrides in `.env.local` when needed.
+- Ensure the backend repository is running and reachable for API calls.
 
-## Build and Development Commands
+## 5. Key npm Scripts
+| Script | Description |
+| --- | --- |
+| `npm run dev` | Start Vite dev server with hot module replacement. |
+| `npm run dev -- --host` | Expose the dev server to the network. |
+| `npm run build` | Type-check and build the production bundle. |
+| `npm run build-only` | Build production bundle without type-checking. |
+| `npm run preview` | Preview the production build locally. |
+| `npm run type-check` | Execute the TypeScript compiler in project mode. |
+| `npm run lint` | Run ESLint with autofix. |
+| `npm run format` | Format code with Prettier. |
+| `npm run test:unit` | Run Vitest unit tests. |
+| `npm run deps:check` | Dry-run dependency updates. |
+| `npm run deps:update` | Apply dependency updates through the update script. |
 
-### Development
-```bash
-npm run dev              # Start Vite dev server with HMR
-npm run dev -- --host    # Expose dev server to network
-```
+## 6. Coding Standards
+### Vue Components
+- Use `<script setup lang="ts">` and composition functions.
+- Define props with TypeScript interfaces and defaults via `withDefaults`.
+- Declare emits with typed signatures.
+- Extract complex logic into composables stored in `src/composables`.
 
-### Building and Testing
-```bash
-npm run build            # Production build (type-check + build)
-npm run build-only       # Build without type checking
-npm run preview          # Preview production build
-npm run type-check       # Run TypeScript compiler check
-```
+### Styling
+- Favor Tailwind utility classes and DaisyUI semantics (`btn`, `card`, `alert`).
+- Maintain responsive layouts with Tailwind breakpoints (`sm`, `md`, `lg`, `xl`).
+- Extend themes through DaisyUI config and global CSS variables when necessary.
 
-### Code Quality
-```bash
-npm run lint             # ESLint with auto-fix
-npm run format           # Prettier code formatting
-npm run test:unit        # Run Vitest unit tests
-```
+### TypeScript
+- Strict mode is enabled; centralize shared types within `src/types`.
+- Use the `@/` alias for imports instead of deep relative paths.
+- Co-locate API DTO types with their services for maintainability.
 
-### Dependency Management
-```bash
-npm run deps:check       # Check for outdated packages (dry-run)
-npm run deps:update      # Update packages using update script
-```
+### Pinia State
+- Organize stores by domain (auth, panic, profile, hub, theme, i18n).
+- Prefer setup-style `defineStore` definitions for better typing.
+- Persist only non-sensitive data; avoid leaking tokens to storage.
+- Wrap async actions in `try/catch` with UI-level error surfacing.
 
-## Coding Style and Standards
+## 7. Internationalization
+- Default locale: English (`en`); secondary locale: Afrikaans (`af`).
+- Store translations in `src/locales/{en,af}.json`.
+- Access translations via `const { t } = useI18n()` and template helper `$t`.
+- Use descriptive keys and parameterized strings for dynamic content.
 
-### Vue 3 Composition API
-- Use `<script setup>` syntax for all components
-- Prefer Composition API over Options API
-- Use TypeScript interfaces for prop definitions
-- Implement proper reactivity with `ref()`, `reactive()`, `computed()`
+## 8. Testing Strategy
+- Place tests in `src/__tests__/` or alongside components (`*.test.ts`).
+- Use `@vue/test-utils` for component rendering and interaction.
+- Initialize stores per test with `createPinia()` to avoid state bleed.
+- Mock API services at the network boundary; do not call live endpoints.
+- Run `npm run test:unit -- --coverage` when coverage data is required.
 
-### Component Architecture
-- **Single File Components**: Use `.vue` files with `<template>`, `<script setup>`, `<style scoped>`
-- **Component Naming**: PascalCase for components (e.g., `UserProfile.vue`)
-- **Props**: Define with TypeScript interfaces and default values
-- **Emits**: Explicitly define component events with type safety
+## 9. API Layer
+- Shared Axios configuration lives in `src/services/api.ts`.
+- Domain services cover authentication, profile, panic, hub, and planned vehicle tracking.
+- Specify request and response contracts in TypeScript and export reusable types.
+- Normalize errors and trigger user notifications with consistent copy.
+- Handle tokens through HTTP-only cookies; never persist secrets in the frontend.
 
-### Styling Guidelines  
-- **Tailwind CSS**: Utility-first approach for all styling
-- **DaisyUI Components**: Use semantic component classes (e.g., `btn`, `card`, `hero`)
-- **Custom Themes**: Leverage the Community Security light/dark theme system
-- **Responsive Design**: Mobile-first with Tailwind responsive prefixes
-- **CSS Custom Properties**: Use DaisyUI theme colors (`bg-base-100`, `text-base-content`)
+## 10. Theme Management
+- Light theme is default; business/dark theme available through DaisyUI.
+- `useThemeStore()` persists the active theme and toggles `data-theme`.
+- Lean on DaisyUI tokens (`bg-base-200`, `text-primary`) for semantic colors.
+- Test contrast across key views (dashboard, panic, hub) when adjusting themes.
 
-### TypeScript Standards
-- **Strict Mode**: Full TypeScript strict mode enabled
-- **Type Definitions**: Create interfaces in `src/types/`
-- **Imports**: Use path aliases (`@/` for `src/`)
-- **API Types**: Define request/response interfaces for all API calls
+## 11. Security Expectations
+- Authentication relies on JWT with backend-managed refresh cycles.
+- Route guards protect private areas; logout clears persisted Pinia state.
+- Validate inputs client-side and rely on backend validation for enforcement.
+- Only communicate with HTTPS endpoints in production.
+- Sanitize any user-supplied HTML before rendering (prefer text binding).
 
-### State Management with Pinia
-- **Store Structure**: One store per domain (auth, theme, profile, etc.)
-- **Composition Stores**: Use `setup` syntax with composables
-- **Persistence**: Use `piniaPluginPersistedstate` for state persistence
-- **Actions**: Async actions for API calls with proper error handling
+## 12. Performance Guidelines
+- Apply route-based code splitting through Vue Router dynamic imports.
+- Lazy-load heavy components (maps, analytics) with `defineAsyncComponent`.
+- Keep reactivity lean; avoid deep reactive objects when a `ref` suffices.
+- Cache map and tracking data responsibly and throttle live polling.
+- Inspect bundle composition with `npm run build -- --report` if size drifts.
 
-## Internationalization (i18n)
+## 13. Deployment Workflow
+- Production assets are emitted to `dist/`.
+- Before deployment run: `npm run lint`, `npm run test:unit`, `npm run type-check`, `npm run build`.
+- Validate environment variables and API connectivity via `npm run preview`.
+- Confirm service worker caching does not stale panic response data.
 
-### Locale Support
-- **Primary**: English (en) - Default language
-- **Secondary**: Afrikaans (af) - South African community support
-- **Locale Files**: JSON format in `src/locales/`
+## 14. Git and Branching
+- `main`: production-ready.
+- `develop`: integration branch.
+- `feature/*`: new feature development.
+- `hotfix/*`: urgent fixes for production incidents.
+- Follow Conventional Commit prefixes (`feat`, `fix`, `docs`, `refactor`, `style`, `test`).
+- Open pull requests from feature branches into `develop`; require passing checks before merge.
 
-### Translation Guidelines
-- Use Vue I18n composable: `const { t } = useI18n()`
-- Template usage: `{{ $t('key.path') }}`
-- Parameterized translations: `$t('welcome.user', { name: userName })`
-- Number/date formatting with locale awareness
+## 15. Tooling and IDE Support
+- Recommended VS Code extensions: Volar, Tailwind CSS IntelliSense, ESLint, Prettier, TypeScript Importer.
+- Cursor AI automations live in `.cursor/rules` and align with Vue/TypeScript patterns.
+- Enable Vite and Vue DevTools during development for debugging insight.
+- `utils/authDebug.ts` contains helpers for authentication troubleshooting.
 
-## Testing Instructions
-
-### Unit Testing with Vitest
-```bash
-npm run test:unit                    # Run all tests
-npm run test:unit -- --watch        # Watch mode
-npm run test:unit -- --coverage     # Coverage report
-npx vitest run -t "ComponentName"   # Run specific test
-```
-
-### Test Structure
-- **Location**: Tests in `src/__tests__/` or co-located `*.test.ts` files
-- **Component Testing**: Use `@vue/test-utils` for component testing
-- **Store Testing**: Test Pinia stores with `createPinia()`
-- **API Testing**: Mock API calls with Vitest mocks
-
-### Test Requirements
-- All new components require unit tests
-- API service functions must be tested
-- Store actions and getters require test coverage
-- Critical user flows need integration tests
-
-## API Integration
-
-### Service Architecture
-- **Base Service**: `src/services/api.ts` with Axios configuration
-- **Domain Services**: Separate services for auth, profile, panic, etc.
-- **Type Safety**: All API calls use TypeScript interfaces
-- **Error Handling**: Consistent error handling with toast notifications
-
-### Available APIs
-- **Authentication**: Login, register, JWT token management
-- **Profile Management**: User profiles, groups, medical info
-- **Panic System**: Emergency alerts, incident reporting
-- **Community Hub**: Forums, events, messaging (planned)
-- **Vehicle Tracking**: GPS monitoring (planned)
-
-### API Configuration
-```typescript
-// Example service structure
-class AuthService {
-  async login(credentials: LoginRequest): Promise<AuthResponse>
-  async register(userData: RegisterRequest): Promise<User>
-  async refreshToken(): Promise<TokenResponse>
-}
-```
-
-## Theme Management
-
-### DaisyUI Theme System
-- **Light Theme**: Default clean, accessible interface
-- **Business Theme**: Professional dark mode
-- **Custom Themes**: Community Security branded colors
-- **Theme Switching**: Persistent theme selection with `useThemeStore()`
-
-### Theme Usage
-```vue
-<template>
-  <!-- Use DaisyUI semantic classes -->
-  <div class="bg-base-100 text-base-content">
-    <button class="btn btn-primary">Primary Action</button>
-    <div class="card bg-base-200">Card Content</div>
-  </div>
-</template>
-```
-
-## Security Considerations
-
-### Authentication
-- JWT tokens stored in secure HTTP-only cookies (backend implementation)
-- Automatic token refresh handling
-- Route guards for protected pages
-- Session timeout management
-
-### Data Protection
-- No sensitive data in localStorage
-- API endpoints use HTTPS in production
-- Input validation on all forms
-- XSS protection with proper data binding
-
-### Environment Variables
-- API endpoints in environment variables
-- No secrets committed to version control
-- Different configs for dev/staging/production
-
-## Performance Guidelines
-
-### Bundle Optimization
-- **Tree Shaking**: Import only used components/utilities
-- **Code Splitting**: Route-based lazy loading
-- **Asset Optimization**: Vite automatic asset optimization
-- **PWA Caching**: Service worker for offline capability
-
-### Vue Performance
-- **Component Optimization**: Use `defineAsyncComponent` for large components
-- **Reactivity**: Avoid unnecessary reactive objects
-- **v-memo**: Use for expensive list rendering
-- **Teleport**: For modals and overlays
-
-## Deployment and Build Process
-
-### Production Build
-```bash
-npm run build        # Creates dist/ folder
-npm run preview      # Test production build locally
-```
-
-### Build Outputs
-- **Static Files**: Generated in `dist/` directory
-- **Asset Optimization**: Vite handles CSS/JS minification
-- **Progressive Web App**: Service worker for offline functionality
-- **Environment**: Production environment variables
-
-### Deployment Checklist
-- [ ] Run `npm run lint` and fix all issues
-- [ ] Run `npm run test:unit` and ensure all tests pass
-- [ ] Run `npm run type-check` for TypeScript validation
-- [ ] Test production build with `npm run preview`
-- [ ] Verify environment variables are properly set
-- [ ] Check that API endpoints are accessible
-
-## Git Workflow and Commit Guidelines
-
-### Branch Structure
-- **main**: Production-ready code
-- **develop**: Integration branch for features
-- **feature/***: Feature development branches
-- **hotfix/***: Critical production fixes
-
-### Commit Message Format
-```
-feat: add emergency response component
-fix: resolve theme switching issue  
-docs: update API integration guide
-style: improve responsive layout for mobile
-refactor: optimize state management architecture
-test: add unit tests for profile components
-```
-
-### Pull Request Process
-- Create feature branch from `develop`
-- Ensure all tests pass: `npm run test:unit`
-- Run code quality checks: `npm run lint`
-- Update documentation if needed
-- Request code review before merging
-
-## IDE and Tooling Configuration
-
-### VS Code Extensions (Recommended)
-- **Volar**: Vue 3 support and TypeScript integration
-- **Tailwind CSS IntelliSense**: CSS class autocompletion
-- **ESLint**: Code linting and formatting
-- **Prettier**: Code formatting
-- **TypeScript Importer**: Auto-import management
-
-### Cursor AI Integration
-- Configuration in `.cursor/rules` for AI-assisted development
-- Custom rules for Vue/TypeScript patterns
-- Component generation templates
-
-### Debug Configuration
-- Vite DevTools enabled in development
-- Vue DevTools browser extension support
-- Authentication debugging utilities in `utils/authDebug.ts`
-
-## Common Development Patterns
-
-### Component Composition
+## 16. Reusable Patterns
+### Component Blueprint
 ```vue
 <script setup lang="ts">
-// Props with TypeScript interface
 interface Props {
-  title: string
-  items: Array<Item>
-  loading?: boolean
+  title: string;
+  items: Item[];
+  loading?: boolean;
 }
+
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
-})
+  loading: false,
+});
 
-// Emits with type safety
 const emit = defineEmits<{
-  select: [item: Item]
-  delete: [id: string]
-}>()
+  (event: "select", item: Item): void;
+  (event: "delete", id: string): void;
+}>();
 
-// Composables for reusable logic
-const { user } = useAuth()
-const { t } = useI18n()
+const { user } = useAuth();
+const { t } = useI18n();
 </script>
 ```
 
-### Store Pattern
+### Store Blueprint
 ```typescript
-// Pinia store with composition API
-export const useFeatureStore = defineStore('feature', () => {
-  const state = ref<FeatureState>({})
-  
-  const getters = computed(() => {
-    return state.value.processed
-  })
-  
-  const actions = {
-    async fetchData() {
-      // API call with error handling
+export const useFeatureStore = defineStore("feature", () => {
+  const state = ref<FeatureState>({});
+
+  const processed = computed(() => state.value.processed);
+
+  async function fetchData() {
+    try {
+      // perform API call
+    } catch (error) {
+      // handle error gracefully
     }
   }
-  
-  return { state, getters, ...actions }
+
+  return { state, processed, fetchData };
 }, {
-  persist: true // Enable persistence
-})
+  persist: true,
+});
 ```
 
 ### Error Handling
-- Use try/catch blocks for async operations
-- Display user-friendly error messages with toast notifications
-- Log errors for debugging in development
-- Graceful fallbacks for network failures
+- Wrap async operations with `try/catch` and display user-friendly toasts.
+- Log diagnostic details to the console during development only.
+- Offer retry guidance or offline fallbacks when network requests fail.
 
-## Troubleshooting Common Issues
+## 17. Troubleshooting
+- Dev server port conflict: `npm run dev -- --port 3001`.
+- TypeScript issues: `npm run type-check` for detailed diagnostics.
+- Build failures: confirm Node version and reinstall dependencies if required.
+- API errors: verify backend availability and `VITE_API_BASE_URL` value.
+- Vite cache problems: delete `node_modules/.vite` and restart the dev server.
 
-### Development Server Issues
-- **Port conflicts**: Use `npm run dev -- --port 3001`
-- **Module resolution**: Clear `node_modules` and reinstall
-- **TypeScript errors**: Run `npm run type-check` for detailed diagnostics
-
-### Build Failures  
-- Check Node.js version compatibility (20.19.0+ or 22.12.0+)
-- Verify all dependencies are properly installed
-- Clear Vite cache: `rm -rf node_modules/.vite`
-
-### API Connection Issues
-- Verify backend API is running and accessible
-- Check environment variables in `.env`
-- Use browser DevTools Network tab for debugging
-
-This AGENTS.md file should be updated as the project evolves, especially when:
-- New features or modules are added
-- API endpoints change or expand  
-- Development workflow is modified
-- New coding patterns are established
-- Build or deployment processes change
+## 18. Maintenance Tips
+- Update this guide when features, workflows, or dependencies change.
+- Sync documentation with backend updates referenced in `backend_docs/`.
+- Record new testing requirements alongside feature delivery.
+- Treat AGENTS.md as the onboarding entry point for contributors.
