@@ -1,0 +1,968 @@
+openapi: 3.0.3
+info:
+  title: Emergency Response System API
+  description: API for emergency alert management and real-time communication
+  version: 1.0.0
+  contact:
+    name: Naboom Community Platform
+    url: https://naboomneighbornet.net.za
+    email: support@naboomneighbornet.net.za
+
+servers:
+  - url: https://naboomneighbornet.net.za/api/emergency
+    description: Production server
+  - url: http://localhost:8000/api/emergency
+    description: Development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /alerts:
+    post:
+      summary: Trigger Emergency Alert
+      description: Create a new emergency alert with GPS location
+      operationId: triggerEmergencyAlert
+      tags:
+        - Emergency Alerts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TriggerAlertRequest'
+      responses:
+        '201':
+          description: Emergency alert created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyAlert'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+
+    get:
+      summary: List Emergency Alerts
+      description: Retrieve emergency alerts with filtering options
+      operationId: listEmergencyAlerts
+      tags:
+        - Emergency Alerts
+      parameters:
+        - name: status
+          in: query
+          description: Filter by alert status
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/AlertStatus'
+        - name: priority
+          in: query
+          description: Filter by alert priority
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/AlertPriority'
+        - name: province
+          in: query
+          description: Filter by province
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Maximum number of alerts to return
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          description: Number of alerts to skip
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of emergency alerts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alerts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EmergencyAlert'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+
+  /alerts/{alertId}:
+    get:
+      summary: Get Emergency Alert
+      description: Retrieve a specific emergency alert by ID
+      operationId: getEmergencyAlert
+      tags:
+        - Emergency Alerts
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          description: Emergency alert ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Emergency alert details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyAlert'
+        '404':
+          description: Alert not found
+        '401':
+          description: Unauthorized
+
+    patch:
+      summary: Update Emergency Alert
+      description: Update emergency alert status or details
+      operationId: updateEmergencyAlert
+      tags:
+        - Emergency Alerts
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          description: Emergency alert ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAlertRequest'
+      responses:
+        '200':
+          description: Emergency alert updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyAlert'
+        '400':
+          description: Invalid request data
+        '404':
+          description: Alert not found
+        '401':
+          description: Unauthorized
+
+  /alerts/{alertId}/acknowledge:
+    post:
+      summary: Acknowledge Emergency Alert
+      description: Acknowledge an emergency alert as a responder
+      operationId: acknowledgeEmergencyAlert
+      tags:
+        - Emergency Alerts
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          description: Emergency alert ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcknowledgeAlertRequest'
+      responses:
+        '200':
+          description: Alert acknowledged successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyAlert'
+        '400':
+          description: Invalid request data
+        '404':
+          description: Alert not found
+        '401':
+          description: Unauthorized
+
+  /alerts/{alertId}/resolve:
+    post:
+      summary: Resolve Emergency Alert
+      description: Mark an emergency alert as resolved
+      operationId: resolveEmergencyAlert
+      tags:
+        - Emergency Alerts
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          description: Emergency alert ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolveAlertRequest'
+      responses:
+        '200':
+          description: Alert resolved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyAlert'
+        '400':
+          description: Invalid request data
+        '404':
+          description: Alert not found
+        '401':
+          description: Unauthorized
+
+  /contacts:
+    get:
+      summary: List Emergency Contacts
+      description: Retrieve user's emergency contacts
+      operationId: listEmergencyContacts
+      tags:
+        - Emergency Contacts
+      responses:
+        '200':
+          description: List of emergency contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmergencyContact'
+
+    post:
+      summary: Create Emergency Contact
+      description: Add a new emergency contact
+      operationId: createEmergencyContact
+      tags:
+        - Emergency Contacts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContactRequest'
+      responses:
+        '201':
+          description: Emergency contact created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyContact'
+        '400':
+          description: Invalid request data
+        '401':
+          description: Unauthorized
+
+  /contacts/{contactId}:
+    get:
+      summary: Get Emergency Contact
+      description: Retrieve a specific emergency contact
+      operationId: getEmergencyContact
+      tags:
+        - Emergency Contacts
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          description: Emergency contact ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Emergency contact details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyContact'
+        '404':
+          description: Contact not found
+        '401':
+          description: Unauthorized
+
+    patch:
+      summary: Update Emergency Contact
+      description: Update emergency contact details
+      operationId: updateEmergencyContact
+      tags:
+        - Emergency Contacts
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          description: Emergency contact ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateContactRequest'
+      responses:
+        '200':
+          description: Emergency contact updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyContact'
+        '400':
+          description: Invalid request data
+        '404':
+          description: Contact not found
+        '401':
+          description: Unauthorized
+
+    delete:
+      summary: Delete Emergency Contact
+      description: Remove an emergency contact
+      operationId: deleteEmergencyContact
+      tags:
+        - Emergency Contacts
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          description: Emergency contact ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Emergency contact deleted successfully
+        '404':
+          description: Contact not found
+        '401':
+          description: Unauthorized
+
+  /responders:
+    get:
+      summary: List Emergency Responders
+      description: Retrieve available emergency responders
+      operationId: listEmergencyResponders
+      tags:
+        - Emergency Responders
+      parameters:
+        - name: province
+          in: query
+          description: Filter by province
+          schema:
+            type: string
+        - name: active
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+        - name: online
+          in: query
+          description: Filter by online status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of emergency responders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmergencyResponder'
+
+  /location/current:
+    post:
+      summary: Update Current Location
+      description: Update user's current location for emergency purposes
+      operationId: updateCurrentLocation
+      tags:
+        - Location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationUpdateRequest'
+      responses:
+        '200':
+          description: Location updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationData'
+        '400':
+          description: Invalid location data
+        '401':
+          description: Unauthorized
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    EmergencyAlert:
+      type: object
+      required:
+        - id
+        - reference
+        - status
+        - priority
+        - type
+        - location
+        - reporter
+        - triggeredAt
+        - province
+        - isActive
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the alert
+        reference:
+          type: string
+          pattern: '^EMG-\d{4}-\d{4}$'
+          description: Human-readable reference number
+        status:
+          $ref: '#/components/schemas/AlertStatus'
+        priority:
+          $ref: '#/components/schemas/AlertPriority'
+        type:
+          $ref: '#/components/schemas/AlertType'
+        location:
+          $ref: '#/components/schemas/LocationData'
+        accuracy:
+          type: number
+          minimum: 0
+          description: GPS accuracy in meters
+        address:
+          type: string
+          description: Human-readable address
+        reporter:
+          $ref: '#/components/schemas/ReporterInfo'
+        reporterId:
+          type: string
+          format: uuid
+        triggeredAt:
+          type: string
+          format: date-time
+        acknowledgedAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+        description:
+          type: string
+          maxLength: 1000
+        context:
+          type: object
+          additionalProperties: true
+        responders:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResponderInfo'
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactInfo'
+        source:
+          type: string
+          enum: [mobile, web, api]
+        province:
+          type: string
+          enum: [WC, EC, NC, FS, KZN, NW, GP, MP, LP]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    LocationData:
+      type: object
+      required:
+        - latitude
+        - longitude
+        - province
+        - timestamp
+      properties:
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+        accuracy:
+          type: number
+          minimum: 0
+        altitude:
+          type: number
+        heading:
+          type: number
+          minimum: 0
+          maximum: 360
+        speed:
+          type: number
+          minimum: 0
+        address:
+          type: string
+        province:
+          type: string
+          enum: [WC, EC, NC, FS, KZN, NW, GP, MP, LP]
+        timestamp:
+          type: string
+          format: date-time
+
+    EmergencyContact:
+      type: object
+      required:
+        - id
+        - userId
+        - name
+        - phoneNumber
+        - relationship
+        - priority
+        - isActive
+        - notificationMethods
+        - language
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        phoneNumber:
+          type: string
+          pattern: '^(\+27|0)[0-9]{9}$'
+        email:
+          type: string
+          format: email
+        relationship:
+          type: string
+          maxLength: 50
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 10
+        isActive:
+          type: boolean
+        notificationMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationMethod'
+        language:
+          type: string
+          enum: [en, af]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EmergencyResponder:
+      type: object
+      required:
+        - id
+        - userId
+        - name
+        - phoneNumber
+        - email
+        - province
+        - isActive
+        - isOnline
+        - specializations
+        - responseRadius
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        phoneNumber:
+          type: string
+          pattern: '^(\+27|0)[0-9]{9}$'
+        email:
+          type: string
+          format: email
+        province:
+          type: string
+          enum: [WC, EC, NC, FS, KZN, NW, GP, MP, LP]
+        isActive:
+          type: boolean
+        isOnline:
+          type: boolean
+        lastSeenAt:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/LocationData'
+        specializations:
+          type: array
+          items:
+            type: string
+        responseRadius:
+          type: number
+          minimum: 1
+          maximum: 100
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ReporterInfo:
+      type: object
+      required:
+        - id
+        - name
+        - phoneNumber
+        - email
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        phoneNumber:
+          type: string
+        email:
+          type: string
+          format: email
+        profilePicture:
+          type: string
+          format: uri
+
+    ResponderInfo:
+      type: object
+      required:
+        - id
+        - name
+        - phoneNumber
+        - status
+        - assignedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        phoneNumber:
+          type: string
+        status:
+          $ref: '#/components/schemas/ResponderStatus'
+        assignedAt:
+          type: string
+          format: date-time
+        acknowledgedAt:
+          type: string
+          format: date-time
+        estimatedArrival:
+          type: string
+          format: date-time
+        actualArrival:
+          type: string
+          format: date-time
+        notes:
+          type: string
+          maxLength: 1000
+
+    ContactInfo:
+      type: object
+      required:
+        - id
+        - name
+        - phoneNumber
+        - method
+        - notifiedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        phoneNumber:
+          type: string
+        method:
+          $ref: '#/components/schemas/NotificationMethod'
+        notifiedAt:
+          type: string
+          format: date-time
+        acknowledgedAt:
+          type: string
+          format: date-time
+        response:
+          type: string
+          maxLength: 500
+
+    TriggerAlertRequest:
+      type: object
+      required:
+        - type
+        - location
+        - priority
+      properties:
+        type:
+          $ref: '#/components/schemas/AlertType'
+        location:
+          $ref: '#/components/schemas/LocationData'
+        priority:
+          $ref: '#/components/schemas/AlertPriority'
+        description:
+          type: string
+          maxLength: 1000
+        context:
+          type: object
+          additionalProperties: true
+
+    UpdateAlertRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/AlertStatus'
+        description:
+          type: string
+          maxLength: 1000
+        context:
+          type: object
+          additionalProperties: true
+
+    AcknowledgeAlertRequest:
+      type: object
+      required:
+        - responderId
+      properties:
+        responderId:
+          type: string
+          format: uuid
+        notes:
+          type: string
+          maxLength: 1000
+        estimatedArrival:
+          type: string
+          format: date-time
+
+    ResolveAlertRequest:
+      type: object
+      required:
+        - responderId
+      properties:
+        responderId:
+          type: string
+          format: uuid
+        notes:
+          type: string
+          maxLength: 1000
+        resolution:
+          type: string
+          maxLength: 1000
+
+    CreateContactRequest:
+      type: object
+      required:
+        - name
+        - phoneNumber
+        - relationship
+        - priority
+        - notificationMethods
+        - language
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        phoneNumber:
+          type: string
+          pattern: '^(\+27|0)[0-9]{9}$'
+        email:
+          type: string
+          format: email
+        relationship:
+          type: string
+          maxLength: 50
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 10
+        notificationMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationMethod'
+        language:
+          type: string
+          enum: [en, af]
+
+    UpdateContactRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        phoneNumber:
+          type: string
+          pattern: '^(\+27|0)[0-9]{9}$'
+        email:
+          type: string
+          format: email
+        relationship:
+          type: string
+          maxLength: 50
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 10
+        isActive:
+          type: boolean
+        notificationMethods:
+          type: array
+          items:
+            $ref: '#/components/schemas/NotificationMethod'
+        language:
+          type: string
+          enum: [en, af]
+
+    LocationUpdateRequest:
+      type: object
+      required:
+        - latitude
+        - longitude
+        - province
+      properties:
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+        accuracy:
+          type: number
+          minimum: 0
+        altitude:
+          type: number
+        heading:
+          type: number
+          minimum: 0
+          maximum: 360
+        speed:
+          type: number
+          minimum: 0
+        address:
+          type: string
+        province:
+          type: string
+          enum: [WC, EC, NC, FS, KZN, NW, GP, MP, LP]
+
+    AlertStatus:
+      type: string
+      enum:
+        - triggered
+        - acknowledged
+        - in_progress
+        - resolved
+        - cancelled
+        - expired
+
+    AlertPriority:
+      type: string
+      enum:
+        - low
+        - medium
+        - high
+        - critical
+
+    AlertType:
+      type: string
+      enum:
+        - panic
+        - medical
+        - security
+        - fire
+        - accident
+        - other
+
+    ResponderStatus:
+      type: string
+      enum:
+        - assigned
+        - acknowledged
+        - en_route
+        - on_scene
+        - completed
+        - unavailable
+
+    NotificationMethod:
+      type: string
+      enum:
+        - sms
+        - push
+        - email
+        - call
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time

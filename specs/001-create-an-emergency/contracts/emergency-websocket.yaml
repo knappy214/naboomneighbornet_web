@@ -1,0 +1,575 @@
+openapi: 3.0.3
+info:
+  title: Emergency Response System WebSocket API
+  description: Real-time WebSocket communication for emergency alerts and notifications
+  version: 1.0.0
+
+servers:
+  - url: wss://naboomneighbornet.net.za/ws/emergency
+    description: Production WebSocket server
+  - url: ws://localhost:8000/ws/emergency
+    description: Development WebSocket server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /ws/emergency:
+    get:
+      summary: Emergency WebSocket Connection
+      description: Establish WebSocket connection for real-time emergency communications
+      operationId: connectEmergencyWebSocket
+      tags:
+        - WebSocket
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: JWT authentication token
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          required: true
+          description: User ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '101':
+          description: WebSocket connection established
+        '401':
+          description: Unauthorized - invalid token
+        '403':
+          description: Forbidden - insufficient permissions
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    WebSocketMessage:
+      type: object
+      required:
+        - type
+        - timestamp
+        - data
+      properties:
+        type:
+          type: string
+          description: Message type identifier
+        timestamp:
+          type: string
+          format: date-time
+          description: Message timestamp
+        data:
+          type: object
+          description: Message payload
+        id:
+          type: string
+          format: uuid
+          description: Unique message identifier
+
+    # Incoming Messages (Server → Client)
+    EmergencyAlertCreated:
+      type: object
+      required:
+        - type
+        - timestamp
+        - data
+      properties:
+        type:
+          type: string
+          enum: [emergency_alert_created]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          properties:
+            alert:
+              $ref: '#/components/schemas/EmergencyAlert'
+            notificationSent:
+              type: boolean
+            contactsNotified:
+              type: integer
+            respondersNotified:
+              type: integer
+
+    EmergencyAlertUpdated:
+      type: object
+      required:
+        - type
+        - timestamp
+        - data
+      properties:
+        type:
+          type: string
+          enum: [emergency_alert_updated]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          properties:
+            alert:
+              $ref: '#/components/schemas/EmergencyAlert'
+            changes:
+              type: array
+              items:
+                type: string
+            updatedBy:
+              type: string
+              format: uuid
+
+    EmergencyAlertAcknowledged:
+      type: object
+      required:
+        - type
+        - timestamp
+        - data
+      properties:
+        type:
+          type: string
+          enum: [emergency_alert_acknowledged]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          properties:
+            alertId:
+              type: string
+              format: uuid
+            responder:
+              $ref: '#/components/schemas/ResponderInfo'
+            acknowledgedAt:
+              type: string
+              format: date-time
+
+    EmergencyAlertResolved:
+      type: object
+      required:
+        - type
+        - timestamp
+        - data
+      properties:
+        type:
+          type: string
+          enum: [emergency_alert_resolved]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          properties:
+            alertId:
+              type: string
+              format: uuid
+            responder:
+              $ref: '#/components/schemas/ResponderInfo'
+            resolvedAt:
+              type: string
+              format: date-time
+            resolution:
+              type: string
+
+    ResponderStatusUpdate:
+      type: object
+      required:
+        - type
+        - timestamp
+        - data
+      properties:
+        type:
+          type: string
+          enum: [responder_status_update]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          properties:
+            responderId:
+              type: string
+              format: uuid
+            alertId:
+              type: string
+              format: uuid
+            status:
+              $ref: '#/components/schemas/ResponderStatus'
+            location:
+              $ref: '#/components/schemas/LocationData'
+            estimatedArrival:
+              type: string
+              format: date-time
+
+    ContactNotificationSent:
+      type: object
+      required:
+        - type
+        - timestamp
+        - data
+      properties:
+        type:
+          type: string
+          enum: [contact_notification_sent]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          properties:
+            alertId:
+              type: string
+              format: uuid
+            contact:
+              $ref: '#/components/schemas/ContactInfo'
+            method:
+              $ref: '#/components/schemas/NotificationMethod'
+            sentAt:
+              type: string
+              format: date-time
+            deliveryStatus:
+              type: string
+              enum: [sent, delivered, failed, pending]
+
+    SystemStatusUpdate:
+      type: object
+      required:
+        - type
+        - timestamp
+        - data
+      properties:
+        type:
+          type: string
+          enum: [system_status_update]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [online, maintenance, degraded, offline]
+            message:
+              type: string
+            estimatedRecovery:
+              type: string
+              format: date-time
+
+    # Outgoing Messages (Client → Server)
+    JoinEmergencyChannel:
+      type: object
+      required:
+        - type
+        - timestamp
+        - data
+      properties:
+        type:
+          type: string
+          enum: [join_emergency_channel]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          properties:
+            channel:
+              type: string
+              enum: [alerts, responders, contacts, system]
+            userId:
+              type: string
+              format: uuid
+
+    LeaveEmergencyChannel:
+      type: object
+      required:
+        - type
+        - timestamp
+        - data
+      properties:
+        type:
+          type: string
+          enum: [leave_emergency_channel]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          properties:
+            channel:
+              type: string
+              enum: [alerts, responders, contacts, system]
+            userId:
+              type: string
+              format: uuid
+
+    UpdateLocation:
+      type: object
+      required:
+        - type
+        - timestamp
+        - data
+      properties:
+        type:
+          type: string
+          enum: [update_location]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          properties:
+            location:
+              $ref: '#/components/schemas/LocationData'
+            userId:
+              type: string
+              format: uuid
+
+    Heartbeat:
+      type: object
+      required:
+        - type
+        - timestamp
+      properties:
+        type:
+          type: string
+          enum: [heartbeat]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          properties:
+            userId:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [online, away, busy]
+
+    # Shared Schemas (reused from REST API)
+    EmergencyAlert:
+      type: object
+      required:
+        - id
+        - reference
+        - status
+        - priority
+        - type
+        - location
+        - reporter
+        - triggeredAt
+        - province
+        - isActive
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        reference:
+          type: string
+          pattern: '^EMG-\d{4}-\d{4}$'
+        status:
+          $ref: '#/components/schemas/AlertStatus'
+        priority:
+          $ref: '#/components/schemas/AlertPriority'
+        type:
+          $ref: '#/components/schemas/AlertType'
+        location:
+          $ref: '#/components/schemas/LocationData'
+        reporter:
+          $ref: '#/components/schemas/ReporterInfo'
+        triggeredAt:
+          type: string
+          format: date-time
+        acknowledgedAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+        description:
+          type: string
+        province:
+          type: string
+          enum: [WC, EC, NC, FS, KZN, NW, GP, MP, LP]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    LocationData:
+      type: object
+      required:
+        - latitude
+        - longitude
+        - province
+        - timestamp
+      properties:
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+        accuracy:
+          type: number
+          minimum: 0
+        altitude:
+          type: number
+        heading:
+          type: number
+          minimum: 0
+          maximum: 360
+        speed:
+          type: number
+          minimum: 0
+        address:
+          type: string
+        province:
+          type: string
+          enum: [WC, EC, NC, FS, KZN, NW, GP, MP, LP]
+        timestamp:
+          type: string
+          format: date-time
+
+    ReporterInfo:
+      type: object
+      required:
+        - id
+        - name
+        - phoneNumber
+        - email
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        phoneNumber:
+          type: string
+        email:
+          type: string
+          format: email
+        profilePicture:
+          type: string
+          format: uri
+
+    ResponderInfo:
+      type: object
+      required:
+        - id
+        - name
+        - phoneNumber
+        - status
+        - assignedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        phoneNumber:
+          type: string
+        status:
+          $ref: '#/components/schemas/ResponderStatus'
+        assignedAt:
+          type: string
+          format: date-time
+        acknowledgedAt:
+          type: string
+          format: date-time
+        estimatedArrival:
+          type: string
+          format: date-time
+        actualArrival:
+          type: string
+          format: date-time
+        notes:
+          type: string
+
+    ContactInfo:
+      type: object
+      required:
+        - id
+        - name
+        - phoneNumber
+        - method
+        - notifiedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        phoneNumber:
+          type: string
+        method:
+          $ref: '#/components/schemas/NotificationMethod'
+        notifiedAt:
+          type: string
+          format: date-time
+        acknowledgedAt:
+          type: string
+          format: date-time
+        response:
+          type: string
+
+    AlertStatus:
+      type: string
+      enum:
+        - triggered
+        - acknowledged
+        - in_progress
+        - resolved
+        - cancelled
+        - expired
+
+    AlertPriority:
+      type: string
+      enum:
+        - low
+        - medium
+        - high
+        - critical
+
+    AlertType:
+      type: string
+      enum:
+        - panic
+        - medical
+        - security
+        - fire
+        - accident
+        - other
+
+    ResponderStatus:
+      type: string
+      enum:
+        - assigned
+        - acknowledged
+        - en_route
+        - on_scene
+        - completed
+        - unavailable
+
+    NotificationMethod:
+      type: string
+      enum:
+        - sms
+        - push
+        - email
+        - call

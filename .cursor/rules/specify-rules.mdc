@@ -1,0 +1,25 @@
+﻿# naboomneighbornet_web Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2025-10-13
+
+## Active Technologies
+- Vue 3 Composition API with TypeScript, Node.js 20.19.0+ + Vue 3, Tailwind CSS 4, DaisyUI 5, Pinia, Vue I18n, MapLibre GL, WebSocket API (001-create-an-emergency)
+
+## Project Structure
+```
+backend/
+frontend/
+tests/
+```
+
+## Commands
+npm test; npm run lint
+
+## Code Style
+Vue 3 Composition API with TypeScript, Node.js 20.19.0+: Follow standard conventions
+
+## Recent Changes
+- 001-create-an-emergency: Added Vue 3 Composition API with TypeScript, Node.js 20.19.0+ + Vue 3, Tailwind CSS 4, DaisyUI 5, Pinia, Vue I18n, MapLibre GL, WebSocket API
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
