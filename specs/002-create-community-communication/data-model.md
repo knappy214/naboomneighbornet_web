@@ -2,463 +2,516 @@
 
 **Feature**: Community Communication Hub  
 **Date**: 2025-01-27  
-**Phase**: 1 - Design & Contracts
-
-## Entity Overview
-
-The Community Communication Hub data model defines the core entities for real-time messaging, event management, user profiles, and multilingual support within the Naboom Platform.
+**Purpose**: Define TypeScript interfaces and validation schemas for all entities
 
 ## Core Entities
 
-### Channel
-
-Represents a discussion channel with organized communication threads.
-
-```typescript
-interface Channel {
-  id: string;
-  name: string;
-  description: string;
-  type: 'general' | 'safety' | 'events';
-  members: string[]; // User IDs
-  moderators: string[]; // User IDs
-  createdAt: Date;
-  updatedAt: Date;
-  isActive: boolean;
-  settings: ChannelSettings;
-}
-
-interface ChannelSettings {
-  allowReactions: boolean;
-  allowThreads: boolean;
-  allowFileUploads: boolean;
-  maxMessageLength: number;
-  rateLimitPerMinute: number;
-}
-```
-
-**Validation Rules**:
-- `name`: Required, 3-50 characters, alphanumeric with spaces
-- `description`: Optional, max 200 characters
-- `type`: Must be one of the predefined channel types
-- `members`: Array of valid user IDs
-- `moderators`: Subset of members array
-
-### Message
-
-Represents a communication message within a channel.
-
-```typescript
-interface Message {
-  id: string;
-  channelId: string;
-  senderId: string;
-  content: string;
-  type: 'text' | 'image' | 'file' | 'event' | 'system';
-  timestamp: Date;
-  editedAt?: Date;
-  replyToId?: string; // For threaded replies
-  reactions: MessageReaction[];
-  attachments: MessageAttachment[];
-  metadata: MessageMetadata;
-  status: 'sent' | 'delivered' | 'read' | 'failed' | 'pending';
-}
-
-interface MessageReaction {
-  emoji: string;
-  userId: string;
-  timestamp: Date;
-}
-
-interface MessageAttachment {
-  id: string;
-  filename: string;
-  mimeType: string;
-  size: number;
-  url: string;
-  thumbnailUrl?: string;
-}
-
-interface MessageMetadata {
-  isEdited: boolean;
-  editCount: number;
-  isPinned: boolean;
-  isDeleted: boolean;
-  deleteReason?: string;
-}
-```
-
-**Validation Rules**:
-- `content`: Required, max 5000 characters, sanitized HTML
-- `type`: Must be one of the predefined message types
-- `attachments`: Max 10MB total, supported file types only
-- `reactions`: Max 50 reactions per message
-
-### UserProfile
-
-Extended user profile for communication context and role management.
+### User Profile
 
 ```typescript
 interface UserProfile {
-  id: string;
-  userId: string; // Reference to auth user
-  displayName: string;
-  avatar?: string;
-  role: 'member' | 'moderator' | 'admin' | 'supervisor';
-  status: 'online' | 'away' | 'busy' | 'offline';
-  lastSeen: Date;
-  preferences: UserPreferences;
-  activity: UserActivity;
-  permissions: UserPermissions;
-  language: 'en' | 'af';
-  timezone: string;
+  id: string
+  username: string
+  displayName: string
+  email: string
+  avatar?: string
+  language: 'en' | 'af'
+  timezone: string
+  status: UserStatus
+  lastSeen: Date
+  preferences: UserPreferences
+  permissions: UserPermissions
+  createdAt: Date
+  updatedAt: Date
 }
 
 interface UserPreferences {
-  notifications: NotificationSettings;
-  theme: 'light' | 'business';
-  messageDisplay: 'compact' | 'comfortable';
-  showTypingIndicators: boolean;
-  showPresenceStatus: boolean;
-  autoMarkAsRead: boolean;
-}
-
-interface NotificationSettings {
-  newMessages: boolean;
-  mentions: boolean;
-  reactions: boolean;
-  events: boolean;
-  systemUpdates: boolean;
-  emailDigest: boolean;
-  pushNotifications: boolean;
-}
-
-interface UserActivity {
-  totalMessages: number;
-  channelsJoined: number;
-  eventsCreated: number;
-  lastActivity: Date;
-  joinDate: Date;
+  notifications: NotificationSettings
+  theme: 'light' | 'dark' | 'auto'
+  messageDisplay: 'compact' | 'comfortable'
+  showOnlineStatus: boolean
+  showTypingIndicators: boolean
+  autoTranslate: boolean
 }
 
 interface UserPermissions {
-  canCreateChannels: boolean;
-  canModerateChannels: boolean;
-  canCreateEvents: boolean;
-  canManageUsers: boolean;
-  canAccessAdminPanel: boolean;
+  canCreateChannels: boolean
+  canManageEvents: boolean
+  canModerateMessages: boolean
+  canInviteUsers: boolean
+  canDeleteMessages: boolean
 }
+
+type UserStatus = 'online' | 'away' | 'busy' | 'offline'
 ```
 
-**Validation Rules**:
-- `displayName`: Required, 2-50 characters, no special characters
-- `role`: Must be one of the predefined roles
-- `language`: Must be 'en' or 'af'
-- `timezone`: Valid IANA timezone identifier
+### Channel
+
+```typescript
+interface Channel {
+  id: string
+  name: string
+  description?: string
+  type: ChannelType
+  isPrivate: boolean
+  members: ChannelMember[]
+  settings: ChannelSettings
+  createdAt: Date
+  updatedAt: Date
+  createdBy: string
+}
+
+interface ChannelMember {
+  userId: string
+  role: ChannelRole
+  joinedAt: Date
+  lastReadAt?: Date
+  notifications: boolean
+}
+
+interface ChannelSettings {
+  allowFileUploads: boolean
+  allowReactions: boolean
+  allowThreads: boolean
+  maxMessageLength: number
+  slowMode: number // seconds between messages
+  autoDelete: number // days before auto-delete
+}
+
+type ChannelType = 'general' | 'safety' | 'events' | 'announcements' | 'custom'
+type ChannelRole = 'owner' | 'admin' | 'moderator' | 'member'
+```
+
+### Message
+
+```typescript
+interface Message {
+  id: string
+  channelId: string
+  userId: string
+  content: string
+  type: MessageType
+  timestamp: Date
+  editedAt?: Date
+  deletedAt?: Date
+  replyTo?: string
+  threadId?: string
+  reactions: MessageReaction[]
+  attachments: MessageAttachment[]
+  metadata: MessageMetadata
+  isOffline?: boolean
+}
+
+interface MessageReaction {
+  emoji: string
+  userId: string
+  timestamp: Date
+}
+
+interface MessageAttachment {
+  id: string
+  filename: string
+  mimeType: string
+  size: number
+  url: string
+  thumbnailUrl?: string
+}
+
+interface MessageMetadata {
+  isEdited: boolean
+  isDeleted: boolean
+  isPinned: boolean
+  isSystemMessage: boolean
+  language?: string
+  translation?: string
+}
+
+type MessageType = 'text' | 'image' | 'file' | 'system' | 'event' | 'announcement'
+```
 
 ### Event
 
-Represents a community event with coordination and discussion capabilities.
-
 ```typescript
 interface Event {
-  id: string;
-  title: string;
-  description: string;
-  organizerId: string;
-  startDate: Date;
-  endDate: Date;
-  location: EventLocation;
-  attendees: EventAttendee[];
-  maxAttendees?: number;
-  status: 'draft' | 'published' | 'cancelled' | 'completed';
-  visibility: 'public' | 'members' | 'private';
-  category: 'meeting' | 'social' | 'safety' | 'emergency' | 'other';
-  tags: string[];
-  discussionThreadId?: string;
-  reminders: EventReminder[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface EventLocation {
-  name: string;
-  address?: string;
-  coordinates?: {
-    lat: number;
-    lng: number;
-  };
-  isVirtual: boolean;
-  meetingLink?: string;
+  id: string
+  title: string
+  description: string
+  type: EventType
+  status: EventStatus
+  startDate: Date
+  endDate?: Date
+  location?: EventLocation
+  organizer: string
+  attendees: EventAttendee[]
+  maxAttendees?: number
+  isPublic: boolean
+  channelId?: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 interface EventAttendee {
-  userId: string;
-  status: 'invited' | 'attending' | 'declined' | 'maybe';
-  rsvpDate: Date;
-  comment?: string;
+  userId: string
+  status: AttendanceStatus
+  joinedAt: Date
+  notes?: string
 }
 
-interface EventReminder {
-  id: string;
-  type: 'email' | 'push' | 'sms';
-  triggerTime: Date;
-  message: string;
-  sent: boolean;
+interface EventLocation {
+  name: string
+  address?: string
+  coordinates?: {
+    lat: number
+    lng: number
+  }
+  isVirtual: boolean
+  meetingLink?: string
 }
+
+type EventType = 'meeting' | 'social' | 'safety' | 'emergency' | 'maintenance' | 'other'
+type EventStatus = 'draft' | 'published' | 'cancelled' | 'completed'
+type AttendanceStatus = 'attending' | 'maybe' | 'not_attending' | 'waitlist'
 ```
 
-**Validation Rules**:
-- `title`: Required, 3-100 characters
-- `startDate`: Must be in the future
-- `endDate`: Must be after startDate
-- `maxAttendees`: Must be positive integer if specified
-- `tags`: Max 10 tags, each max 20 characters
-
-### Notification
-
-Real-time alerts for communication events and system updates.
-
-```typescript
-interface Notification {
-  id: string;
-  userId: string;
-  type: 'message' | 'mention' | 'reaction' | 'event' | 'system';
-  title: string;
-  content: string;
-  data: NotificationData;
-  isRead: boolean;
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  createdAt: Date;
-  expiresAt?: Date;
-  actions: NotificationAction[];
-}
-
-interface NotificationData {
-  channelId?: string;
-  messageId?: string;
-  eventId?: string;
-  senderId?: string;
-  metadata?: Record<string, any>;
-}
-
-interface NotificationAction {
-  id: string;
-  label: string;
-  action: 'view' | 'reply' | 'rsvp' | 'dismiss';
-  url?: string;
-  data?: Record<string, any>;
-}
-```
-
-**Validation Rules**:
-- `title`: Required, max 100 characters
-- `content`: Required, max 500 characters
-- `priority`: Must be one of the predefined priorities
-- `actions`: Max 5 actions per notification
-
-### TypingIndicator
-
-Real-time status showing users currently composing messages.
+### Typing Indicator
 
 ```typescript
 interface TypingIndicator {
-  channelId: string;
-  userId: string;
-  displayName: string;
-  startedAt: Date;
-  lastActivity: Date;
-  isActive: boolean;
+  userId: string
+  channelId: string
+  timestamp: Date
+  isTyping: boolean
 }
-```
 
-**Validation Rules**:
-- `startedAt`: Must be current timestamp
-- `lastActivity`: Must be within last 30 seconds for active status
-
-### PresenceStatus
-
-User availability status with real-time updates.
-
-```typescript
 interface PresenceStatus {
-  userId: string;
-  status: 'online' | 'away' | 'busy' | 'offline';
-  lastSeen: Date;
-  customMessage?: string;
-  isTyping: boolean;
-  currentChannel?: string;
+  userId: string
+  status: UserStatus
+  lastSeen: Date
+  currentChannel?: string
 }
 ```
 
-**Validation Rules**:
-- `status`: Must be one of the predefined statuses
-- `lastSeen`: Must be current timestamp
-- `customMessage`: Max 100 characters if provided
-
-## Relationships
-
-### Channel ↔ Message (One-to-Many)
-- A channel can have many messages
-- Each message belongs to exactly one channel
-- Cascade delete: When channel is deleted, all messages are archived
-
-### User ↔ Message (One-to-Many)
-- A user can send many messages
-- Each message has exactly one sender
-- Soft delete: User deletion preserves message history
-
-### Channel ↔ User (Many-to-Many)
-- A channel can have many members
-- A user can be a member of many channels
-- Junction table: `channel_members` with role information
-
-### Event ↔ User (Many-to-Many)
-- An event can have many attendees
-- A user can attend many events
-- Junction table: `event_attendees` with RSVP status
-
-### Message ↔ Message (One-to-Many, Self-Reference)
-- A message can have many replies
-- Each reply belongs to exactly one parent message
-- Thread depth limit: Maximum 5 levels deep
-
-## State Transitions
-
-### Message Status Flow
-```
-pending → sent → delivered → read
-   ↓        ↓
- failed ← retry
-```
-
-### Event Status Flow
-```
-draft → published → completed
-  ↓         ↓
-cancelled ←
-```
-
-### User Presence Flow
-```
-offline → online → away → busy → offline
-   ↑        ↓        ↓      ↓
-   ←--------←--------←------←
-```
-
-## Data Validation Schemas
-
-### Zod Validation Schemas
+### Search
 
 ```typescript
-import { z } from 'zod';
+interface SearchQuery {
+  query: string
+  filters: SearchFilters
+  sortBy: SearchSortBy
+  limit: number
+  offset: number
+}
 
-export const ChannelSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string().min(3).max(50).regex(/^[a-zA-Z0-9\s]+$/),
-  description: z.string().max(200).optional(),
-  type: z.enum(['general', 'safety', 'events']),
-  members: z.array(z.string().uuid()),
-  moderators: z.array(z.string().uuid()),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  isActive: z.boolean(),
-  settings: ChannelSettingsSchema
-});
+interface SearchFilters {
+  channels?: string[]
+  users?: string[]
+  dateRange?: {
+    start: Date
+    end: Date
+  }
+  messageTypes?: MessageType[]
+  hasAttachments?: boolean
+  language?: string
+}
 
-export const MessageSchema = z.object({
-  id: z.string().uuid(),
-  channelId: z.string().uuid(),
-  senderId: z.string().uuid(),
-  content: z.string().min(1).max(5000),
-  type: z.enum(['text', 'image', 'file', 'event', 'system']),
-  timestamp: z.date(),
-  editedAt: z.date().optional(),
-  replyToId: z.string().uuid().optional(),
-  reactions: z.array(MessageReactionSchema),
-  attachments: z.array(MessageAttachmentSchema),
-  metadata: MessageMetadataSchema,
-  status: z.enum(['sent', 'delivered', 'read', 'failed', 'pending'])
-});
+interface SearchResult {
+  id: string
+  type: 'message' | 'event' | 'user'
+  content: string
+  channelId?: string
+  userId?: string
+  timestamp: Date
+  relevanceScore: number
+  highlights: string[]
+}
 
-export const UserProfileSchema = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
-  displayName: z.string().min(2).max(50).regex(/^[a-zA-Z0-9\s\-_]+$/),
-  avatar: z.string().url().optional(),
-  role: z.enum(['member', 'moderator', 'admin', 'supervisor']),
-  status: z.enum(['online', 'away', 'busy', 'offline']),
-  lastSeen: z.date(),
-  preferences: UserPreferencesSchema,
-  activity: UserActivitySchema,
-  permissions: UserPermissionsSchema,
-  language: z.enum(['en', 'af']),
-  timezone: z.string().regex(/^[A-Za-z_]+\/[A-Za-z_]+$/)
-});
+type SearchSortBy = 'relevance' | 'date' | 'user' | 'channel'
 ```
 
-## Data Integrity Constraints
+## API Response Types
 
-### Business Rules
+### Paginated Response
 
-1. **Channel Membership**: Users can only send messages to channels they are members of
-2. **Message Ownership**: Users can only edit/delete their own messages (except moderators)
-3. **Event Participation**: Users can only RSVP to events they are invited to
-4. **Role Hierarchy**: Admin > Supervisor > Moderator > Member
-5. **Message Threading**: Maximum thread depth of 5 levels
-6. **File Attachments**: Maximum 10MB per message, 5 attachments per message
-7. **Rate Limiting**: Maximum 10 messages per minute per user
-8. **Presence Timeout**: Users marked offline after 5 minutes of inactivity
+```typescript
+interface PaginatedResponse<T> {
+  data: T[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+    hasNext: boolean
+    hasPrev: boolean
+  }
+}
+```
 
-### Referential Integrity
+### WebSocket Message Types
 
-- All foreign key references must exist in their respective tables
-- Cascade deletes are handled at the application level, not database level
-- Soft deletes are used for user data to preserve message history
-- Hard deletes are used for temporary data (typing indicators, presence status)
+```typescript
+interface WebSocketMessage {
+  type: WebSocketMessageType
+  payload: any
+  timestamp: Date
+  id: string
+}
 
-## Performance Considerations
+interface MessageReceivedPayload {
+  message: Message
+  channelId: string
+}
 
-### Indexing Strategy
+interface TypingIndicatorPayload {
+  userId: string
+  channelId: string
+  isTyping: boolean
+}
 
-- Primary keys on all entity IDs
-- Composite indexes on frequently queried fields
-- Partial indexes on active/visible records only
-- Full-text search indexes on message content
+interface PresenceUpdatePayload {
+  userId: string
+  status: UserStatus
+  lastSeen: Date
+}
 
-### Caching Strategy
+interface ChannelUpdatePayload {
+  channel: Channel
+  action: 'created' | 'updated' | 'deleted' | 'member_added' | 'member_removed'
+}
 
-- Redis for real-time data (presence, typing indicators)
-- Browser cache for static assets and translations
-- Service Worker cache for offline message queuing
-- CDN for file attachments and avatars
+interface EventUpdatePayload {
+  event: Event
+  action: 'created' | 'updated' | 'deleted' | 'attendee_added' | 'attendee_removed'
+}
 
-### Data Archiving
+type WebSocketMessageType = 
+  | 'message_received'
+  | 'message_updated'
+  | 'message_deleted'
+  | 'typing_indicator'
+  | 'presence_update'
+  | 'channel_update'
+  | 'event_update'
+  | 'error'
+  | 'connection_status'
+```
 
-- Messages older than 90 days are archived to cold storage
-- User activity data is aggregated monthly
-- Event data is archived after completion + 1 year
-- Notification data is purged after 30 days
+## Validation Schemas
 
-## Security Considerations
+### Message Validation
 
-### Data Encryption
+```typescript
+const messageSchema = {
+  content: {
+    type: 'string',
+    required: true,
+    minLength: 1,
+    maxLength: 2000,
+    pattern: /^[\s\S]*$/
+  },
+  channelId: {
+    type: 'string',
+    required: true,
+    pattern: /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
+  },
+  type: {
+    type: 'string',
+    required: true,
+    enum: ['text', 'image', 'file', 'system', 'event', 'announcement']
+  },
+  replyTo: {
+    type: 'string',
+    required: false,
+    pattern: /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
+  }
+}
+```
 
-- Sensitive profile data encrypted at rest
-- Message content encrypted in transit (WSS)
-- Local storage data encrypted with user-specific keys
-- File attachments encrypted with unique keys
+### Event Validation
 
-### Access Control
+```typescript
+const eventSchema = {
+  title: {
+    type: 'string',
+    required: true,
+    minLength: 1,
+    maxLength: 100
+  },
+  description: {
+    type: 'string',
+    required: true,
+    minLength: 1,
+    maxLength: 1000
+  },
+  startDate: {
+    type: 'date',
+    required: true
+  },
+  endDate: {
+    type: 'date',
+    required: false
+  },
+  maxAttendees: {
+    type: 'number',
+    required: false,
+    min: 1,
+    max: 1000
+  }
+}
+```
 
-- Role-based permissions for all operations
-- Channel-level access control
-- Event visibility controls
-- Message-level permissions for sensitive content
+### Channel Validation
 
-### Audit Logging
+```typescript
+const channelSchema = {
+  name: {
+    type: 'string',
+    required: true,
+    minLength: 1,
+    maxLength: 50,
+    pattern: /^[a-zA-Z0-9\s\-_]+$/
+  },
+  description: {
+    type: 'string',
+    required: false,
+    maxLength: 200
+  },
+  type: {
+    type: 'string',
+    required: true,
+    enum: ['general', 'safety', 'events', 'announcements', 'custom']
+  },
+  isPrivate: {
+    type: 'boolean',
+    required: true
+  }
+}
+```
 
-- All message operations logged with timestamps
-- User role changes tracked
-- Channel modifications audited
-- Event creation and updates logged
+## State Management Types
+
+### Pinia Store State
+
+```typescript
+interface CommunicationState {
+  channels: Channel[]
+  currentChannel: Channel | null
+  messages: Record<string, Message[]> // channelId -> messages
+  users: Record<string, UserProfile> // userId -> user
+  events: Event[]
+  typingIndicators: TypingIndicator[]
+  presenceStatus: Record<string, PresenceStatus> // userId -> status
+  searchResults: SearchResult[]
+  isConnected: boolean
+  isOffline: boolean
+  offlineMessages: Message[]
+}
+
+interface CommunicationGetters {
+  getChannelMessages: (channelId: string) => Message[]
+  getChannelMembers: (channelId: string) => ChannelMember[]
+  getTypingUsers: (channelId: string) => UserProfile[]
+  getOnlineUsers: () => UserProfile[]
+  getUnreadCount: (channelId: string) => number
+  getSearchResults: () => SearchResult[]
+}
+
+interface CommunicationActions {
+  // Channel actions
+  createChannel: (channel: Omit<Channel, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Channel>
+  joinChannel: (channelId: string) => Promise<void>
+  leaveChannel: (channelId: string) => Promise<void>
+  updateChannel: (channelId: string, updates: Partial<Channel>) => Promise<void>
+  
+  // Message actions
+  sendMessage: (message: Omit<Message, 'id' | 'timestamp'>) => Promise<Message>
+  editMessage: (messageId: string, content: string) => Promise<void>
+  deleteMessage: (messageId: string) => Promise<void>
+  reactToMessage: (messageId: string, emoji: string) => Promise<void>
+  
+  // Event actions
+  createEvent: (event: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Event>
+  updateEvent: (eventId: string, updates: Partial<Event>) => Promise<void>
+  deleteEvent: (eventId: string) => Promise<void>
+  rsvpToEvent: (eventId: string, status: AttendanceStatus) => Promise<void>
+  
+  // Search actions
+  searchMessages: (query: SearchQuery) => Promise<SearchResult[]>
+  searchEvents: (query: SearchQuery) => Promise<SearchResult[]>
+  searchUsers: (query: SearchQuery) => Promise<SearchResult[]>
+  
+  // WebSocket actions
+  connect: () => Promise<void>
+  disconnect: () => void
+  sendTypingIndicator: (channelId: string, isTyping: boolean) => void
+  
+  // Offline actions
+  syncOfflineMessages: () => Promise<void>
+  markAsRead: (channelId: string) => Promise<void>
+}
+```
+
+## Error Types
+
+```typescript
+interface ApiError {
+  code: string
+  message: string
+  details?: Record<string, any>
+  timestamp: Date
+}
+
+interface ValidationError extends ApiError {
+  code: 'VALIDATION_ERROR'
+  details: {
+    field: string
+    message: string
+  }[]
+}
+
+interface NetworkError extends ApiError {
+  code: 'NETWORK_ERROR'
+  details: {
+    status?: number
+    statusText?: string
+  }
+}
+
+interface WebSocketError extends ApiError {
+  code: 'WEBSOCKET_ERROR'
+  details: {
+    event: string
+    reason?: string
+  }
+}
+
+type CommunicationError = ValidationError | NetworkError | WebSocketError
+```
+
+## Utility Types
+
+```typescript
+// Make all properties optional except specified ones
+type PartialExcept<T, K extends keyof T> = Partial<T> & Pick<T, K>
+
+// Make all properties required except specified ones
+type RequiredExcept<T, K extends keyof T> = Required<T> & Partial<Pick<T, K>>
+
+// Extract message types for specific channels
+type ChannelMessages<T extends ChannelType> = Message & {
+  channel: Channel & { type: T }
+}
+
+// Event with attendee count
+type EventWithAttendeeCount = Event & {
+  attendeeCount: number
+  maxAttendeesReached: boolean
+}
+
+// User with online status
+type UserWithStatus = UserProfile & {
+  isOnline: boolean
+  currentChannel?: string
+}
+```
+
+This data model provides comprehensive TypeScript interfaces for all entities in the Community Communication Hub, ensuring type safety and consistency throughout the application.

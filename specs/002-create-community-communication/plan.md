@@ -9,15 +9,30 @@ Community Communication Hub enables real-time discussion channels, event managem
 
 ## Technical Context
 
-**Language/Version**: Vue 3 Composition API with TypeScript, Node.js 20.19.0+  
-**Primary Dependencies**: Vite 7+, Pinia, Vue I18n, DaisyUI 5, Tailwind CSS 4, WebSocket API  
+**Language/Version**: Vue 3 Composition API with TypeScript (latest), Node.js 20.19.0+  
+**Primary Dependencies**: 
+- Vite 7+ with @tailwindcss/vite plugin for optimal performance
+- Pinia for state management with TypeScript support
+- Vue I18n with Composition API integration
+- DaisyUI 5 with Tailwind CSS 4 integration
+- WebSocket API for real-time communication
+- Vitest for testing with Vue Test Utils
+
 **Storage**: Local Storage for offline queuing, Backend API for persistence  
-**Testing**: Vitest, Vue Test Utils, @vue/test-utils  
+**Testing**: Vitest with browser mode, Vue Test Utils, @vue/test-utils  
 **Target Platform**: Web (PWA), Mobile-first responsive design  
 **Project Type**: Web application (frontend)  
 **Performance Goals**: 1-second message delivery, 200ms typing indicators, 500ms presence updates  
 **Constraints**: <3s initial load on 3G, offline-capable, HTTP3 optimized  
-**Scale/Scope**: 500+ concurrent users, 90-day message history, multilingual support  
+**Scale/Scope**: 500+ concurrent users, 90-day message history, multilingual support
+
+**Technical Decisions**:
+- Vue 3 Composition API with `<script setup lang="ts">` for optimal TypeScript integration
+- Pinia stores with TypeScript interfaces for type-safe state management
+- Vue I18n with global injection for seamless multilingual support
+- DaisyUI 5 components with Tailwind CSS 4 utility classes
+- WebSocket connections with automatic reconnection and error handling
+- Vitest browser mode for comprehensive component testing  
 
 ## Constitution Check
 

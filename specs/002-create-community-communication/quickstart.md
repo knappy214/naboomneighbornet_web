@@ -1,725 +1,985 @@
-# Quickstart Guide: Community Communication Hub
+# Quickstart: Community Communication Hub
 
 **Feature**: Community Communication Hub  
 **Date**: 2025-01-27  
-**Phase**: 1 - Design & Contracts
+**Purpose**: Implementation guide and patterns for developers
 
 ## Overview
 
-This quickstart guide provides developers with the essential information needed to implement the Community Communication Hub feature for the Naboom Platform. The guide covers setup, key concepts, and implementation patterns.
+This quickstart guide provides practical implementation patterns for the Community Communication Hub feature. It covers Vue 3 Composition API with TypeScript, Pinia state management, Vue I18n internationalization, DaisyUI components, and real-time WebSocket communication.
 
 ## Prerequisites
 
 - Node.js 20.19.0+ or 22.12.0+
-- Vue 3 with Composition API
-- TypeScript 5.0+
-- Tailwind CSS 4 + DaisyUI 5
+- Vue 3 with TypeScript
+- Vite 7+ with @tailwindcss/vite plugin
 - Pinia for state management
 - Vue I18n for internationalization
+- DaisyUI 5 with Tailwind CSS 4
 
-## Quick Setup
+## Project Setup
 
 ### 1. Install Dependencies
 
 ```bash
-npm install @vue/composition-api vue-i18n pinia
-npm install -D @types/node typescript
+npm install vue@^3.4.0 pinia@^2.1.0 vue-i18n@^9.0.0
+npm install -D @tailwindcss/vite tailwindcss@^4.0.0 daisyui@^5.0.0
+npm install -D vitest @vue/test-utils jsdom
 ```
 
-### 2. Environment Configuration
-
-Create `.env.local`:
-
-```env
-VITE_API_BASE_URL=https://api.naboom.co.za/v1
-VITE_WS_URL=wss://api.naboom.co.za/v1/ws
-VITE_APP_NAME=Naboom Community
-VITE_DEFAULT_LANGUAGE=en
-VITE_SUPPORTED_LANGUAGES=en,af
-```
-
-### 3. Basic Project Structure
-
-```
-src/
-├── components/hub/
-│   ├── ChannelList.vue
-│   ├── MessageList.vue
-│   ├── MessageInput.vue
-│   └── CommunicationHub.vue
-├── composables/
-│   ├── useWebSocket.ts
-│   ├── useOfflineQueue.ts
-│   └── useTypingIndicator.ts
-├── services/
-│   └── communication.ts
-├── stores/hub/
-│   └── communication.ts
-├── types/
-│   └── communication.ts
-└── locales/
-    ├── en.json
-    └── af.json
-```
-
-## Core Concepts
-
-### Real-Time Communication
-
-The communication hub uses WebSocket connections for real-time features:
+### 2. Vite Configuration
 
 ```typescript
-// WebSocket connection management
-const { connect, disconnect, sendMessage } = useWebSocket();
+// vite.config.ts
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import tailwindcss from '@tailwindcss/vite'
 
-// Connect to communication hub
-await connect('wss://api.naboom.co.za/v1/ws/communication');
-
-// Send a message
-await sendMessage({
-  channelId: 'channel-uuid',
-  content: 'Hello community!',
-  type: 'text'
-});
-```
-
-### Channel Management
-
-Channels are organized discussion spaces:
-
-```typescript
-// Channel types
-type ChannelType = 'general' | 'safety' | 'events';
-
-// Channel interface
-interface Channel {
-  id: string;
-  name: string;
-  type: ChannelType;
-  members: string[];
-  moderators: string[];
-  settings: ChannelSettings;
-}
-```
-
-### Message Handling
-
-Messages support various types and features:
-
-```typescript
-// Message types
-type MessageType = 'text' | 'image' | 'file' | 'event' | 'system';
-
-// Message interface
-interface Message {
-  id: string;
-  channelId: string;
-  senderId: string;
-  content: string;
-  type: MessageType;
-  timestamp: Date;
-  reactions: MessageReaction[];
-  attachments: MessageAttachment[];
-}
-```
-
-### Offline Support
-
-Messages are queued locally when offline:
-
-```typescript
-// Offline message queuing
-const { queueMessage, syncPendingMessages } = useOfflineQueue();
-
-// Queue message when offline
-await queueMessage({
-  channelId: 'channel-uuid',
-  content: 'This will be sent when online',
-  type: 'text'
-});
-
-// Sync when connection restored
-await syncPendingMessages();
-```
-
-## Implementation Patterns
-
-### Vue 3 Composition API
-
-Use `<script setup>` with TypeScript:
-
-```vue
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useCommunicationStore } from '@/stores/hub/communication';
-
-interface Props {
-  channelId: string;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  channelId: ''
-});
-
-const emit = defineEmits<{
-  (event: 'message-sent', message: Message): void;
-  (event: 'typing-started'): void;
-  (event: 'typing-stopped'): void;
-}>();
-
-const { t } = useI18n();
-const communicationStore = useCommunicationStore();
-
-const messages = computed(() => 
-  communicationStore.getMessagesByChannel(props.channelId)
-);
-
-const sendMessage = async (content: string) => {
-  try {
-    const message = await communicationStore.sendMessage({
-      channelId: props.channelId,
-      content,
-      type: 'text'
-    });
-    emit('message-sent', message);
-  } catch (error) {
-    console.error('Failed to send message:', error);
+export default defineConfig({
+  plugins: [vue(), tailwindcss()],
+  test: {
+    environment: 'jsdom',
+    globals: true
   }
-};
-</script>
+})
 ```
 
-### DaisyUI Component Integration
+### 3. Tailwind CSS Configuration
 
-Use DaisyUI components for consistent styling:
-
-```vue
-<template>
-  <div class="chat chat-start">
-    <div class="chat-image avatar">
-      <div class="w-10 rounded-full">
-        <img :src="message.sender.avatar" :alt="message.sender.displayName" />
-      </div>
-    </div>
-    <div class="chat-header">
-      {{ message.sender.displayName }}
-      <time class="text-xs opacity-50">{{ formatTime(message.timestamp) }}</time>
-    </div>
-    <div class="chat-bubble">{{ message.content }}</div>
-    <div class="chat-footer opacity-50">
-      {{ message.status }}
-    </div>
-  </div>
-</template>
+```css
+/* src/app.css */
+@import "tailwindcss";
+@plugin "daisyui";
 ```
 
-### State Management with Pinia
+### 4. TypeScript Configuration
 
-Organize state by feature domain:
+```json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "types": ["vite/client"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+```
+
+## Core Implementation Patterns
+
+### 1. Pinia Store Setup
 
 ```typescript
-// stores/hub/communication.ts
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import type { Channel, Message, UserProfile } from '@/types/communication';
+// src/stores/hub/communication.ts
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import type { Message, Channel, UserProfile, Event } from '@/types/communication'
 
 export const useCommunicationStore = defineStore('communication', () => {
   // State
-  const channels = ref<Channel[]>([]);
-  const messages = ref<Message[]>([]);
-  const currentChannel = ref<Channel | null>(null);
-  const users = ref<UserProfile[]>([]);
-  const isConnected = ref(false);
+  const channels = ref<Channel[]>([])
+  const currentChannel = ref<Channel | null>(null)
+  const messages = ref<Record<string, Message[]>>({})
+  const users = ref<Record<string, UserProfile>>({})
+  const events = ref<Event[]>([])
+  const isConnected = ref(false)
+  const isOffline = ref(false)
 
   // Getters
-  const getMessagesByChannel = computed(() => 
-    (channelId: string) => messages.value.filter(m => m.channelId === channelId)
-  );
+  const getChannelMessages = computed(() => (channelId: string) => {
+    return messages.value[channelId] || []
+  })
 
-  const getChannelById = computed(() => 
-    (id: string) => channels.value.find(c => c.id === id)
-  );
+  const getOnlineUsers = computed(() => {
+    return Object.values(users.value).filter(user => user.status === 'online')
+  })
+
+  const getUnreadCount = computed(() => (channelId: string) => {
+    const channelMessages = messages.value[channelId] || []
+    return channelMessages.filter(msg => !msg.metadata.isRead).length
+  })
 
   // Actions
-  const fetchChannels = async () => {
-    try {
-      const response = await communicationService.getChannels();
-      channels.value = response.data.channels;
-    } catch (error) {
-      console.error('Failed to fetch channels:', error);
+  const addMessage = (message: Message) => {
+    if (!messages.value[message.channelId]) {
+      messages.value[message.channelId] = []
     }
-  };
+    messages.value[message.channelId].push(message)
+  }
 
-  const sendMessage = async (messageData: SendMessageRequest) => {
-    try {
-      const message = await communicationService.sendMessage(messageData);
-      messages.value.push(message);
-      return message;
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      throw error;
-    }
-  };
+  const setCurrentChannel = (channel: Channel) => {
+    currentChannel.value = channel
+  }
+
+  const markAsRead = (channelId: string) => {
+    const channelMessages = messages.value[channelId] || []
+    channelMessages.forEach(msg => {
+      msg.metadata.isRead = true
+    })
+  }
 
   return {
+    // State
     channels,
-    messages,
     currentChannel,
+    messages,
     users,
+    events,
     isConnected,
-    getMessagesByChannel,
-    getChannelById,
-    fetchChannels,
-    sendMessage
-  };
-});
+    isOffline,
+    // Getters
+    getChannelMessages,
+    getOnlineUsers,
+    getUnreadCount,
+    // Actions
+    addMessage,
+    setCurrentChannel,
+    markAsRead
+  }
+}, {
+  persist: true
+})
 ```
 
-### Multilingual Support
-
-Implement Vue I18n for English and Afrikaans:
+### 2. Vue I18n Setup
 
 ```typescript
-// locales/en.json
+// src/plugins/i18n.ts
+import { createI18n } from 'vue-i18n'
+import en from '@/locales/en.json'
+import af from '@/locales/af.json'
+
+const i18n = createI18n({
+  legacy: false,
+  globalInjection: true,
+  locale: 'en',
+  fallbackLocale: 'en',
+  messages: { en, af }
+})
+
+export default i18n
+```
+
+```json
+// src/locales/en.json
 {
   "communication": {
     "channels": {
-      "general": "General Discussion",
-      "safety": "Safety Alerts",
-      "events": "Community Events"
+      "title": "Channels",
+      "general": "General",
+      "safety": "Safety",
+      "events": "Events",
+      "announcements": "Announcements"
     },
     "messages": {
-      "send": "Send Message",
-      "typing": "is typing...",
+      "placeholder": "Type a message...",
+      "send": "Send",
+      "typing": "{user} is typing...",
       "online": "Online",
       "offline": "Offline"
     },
     "events": {
+      "title": "Events",
       "create": "Create Event",
-      "rsvp": "RSVP",
-      "attending": "Attending",
-      "declined": "Declined"
+      "attend": "Attend",
+      "maybe": "Maybe",
+      "notAttending": "Not Attending"
     }
   }
 }
+```
 
-// locales/af.json
+```json
+// src/locales/af.json
 {
   "communication": {
     "channels": {
-      "general": "Algemene Bespreking",
-      "safety": "Veiligheidswaarskuwings",
-      "events": "Gemeenskapsgebeurtenisse"
+      "title": "Kanale",
+      "general": "Algemeen",
+      "safety": "Veiligheid",
+      "events": "Gebeurtenisse",
+      "announcements": "Aankondigings"
     },
     "messages": {
-      "send": "Stuur Boodskap",
-      "typing": "tik...",
+      "placeholder": "Tik 'n boodskap...",
+      "send": "Stuur",
+      "typing": "{user} tik...",
       "online": "Aanlyn",
       "offline": "Aflyn"
     },
     "events": {
+      "title": "Gebeurtenisse",
       "create": "Skep Gebeurtenis",
-      "rsvp": "RSVP",
-      "attending": "Woon By",
-      "declined": "Afgewys"
+      "attend": "Woon By",
+      "maybe": "Miskien",
+      "notAttending": "Woon Nie By Nie"
     }
   }
 }
 ```
 
-### WebSocket Integration
-
-Handle real-time communication:
+### 3. WebSocket Composable
 
 ```typescript
-// composables/useWebSocket.ts
-import { ref, onUnmounted } from 'vue';
-import type { Message, TypingIndicator, PresenceStatus } from '@/types/communication';
+// src/composables/useWebSocket.ts
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useCommunicationStore } from '@/stores/hub/communication'
 
-export function useWebSocket() {
-  const ws = ref<WebSocket | null>(null);
-  const isConnected = ref(false);
-  const reconnectAttempts = ref(0);
-  const maxReconnectAttempts = 5;
+export function useWebSocket(url: string) {
+  const ws = ref<WebSocket | null>(null)
+  const isConnected = ref(false)
+  const reconnectAttempts = ref(0)
+  const maxReconnectAttempts = 5
+  const reconnectDelay = 1000
 
-  const connect = async (url: string) => {
+  const store = useCommunicationStore()
+
+  const connect = () => {
     try {
-      ws.value = new WebSocket(url);
+      ws.value = new WebSocket(url)
       
       ws.value.onopen = () => {
-        isConnected.value = true;
-        reconnectAttempts.value = 0;
-        console.log('WebSocket connected');
-      };
+        isConnected.value = true
+        store.isConnected = true
+        reconnectAttempts.value = 0
+        console.log('WebSocket connected')
+      }
 
       ws.value.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        handleMessage(data);
-      };
+        const data = JSON.parse(event.data)
+        handleMessage(data)
+      }
 
       ws.value.onclose = () => {
-        isConnected.value = false;
-        attemptReconnect(url);
-      };
+        isConnected.value = false
+        store.isConnected = false
+        handleReconnect()
+      }
 
       ws.value.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
+        console.error('WebSocket error:', error)
+        handleReconnect()
+      }
     } catch (error) {
-      console.error('Failed to connect WebSocket:', error);
+      console.error('Failed to connect to WebSocket:', error)
+      handleReconnect()
     }
-  };
+  }
 
-  const sendMessage = (message: Message) => {
-    if (ws.value && isConnected.value) {
-      ws.value.send(JSON.stringify({
-        type: 'message',
-        data: message
-      }));
-    }
-  };
-
-  const sendTypingIndicator = (channelId: string, isTyping: boolean) => {
-    if (ws.value && isConnected.value) {
-      ws.value.send(JSON.stringify({
-        type: 'typing',
-        data: { channelId, isTyping }
-      }));
-    }
-  };
-
-  const attemptReconnect = (url: string) => {
+  const handleReconnect = () => {
     if (reconnectAttempts.value < maxReconnectAttempts) {
-      reconnectAttempts.value++;
-      setTimeout(() => connect(url), 1000 * reconnectAttempts.value);
+      setTimeout(() => {
+        reconnectAttempts.value++
+        connect()
+      }, reconnectDelay * reconnectAttempts.value)
     }
-  };
+  }
+
+  const handleMessage = (data: any) => {
+    switch (data.type) {
+      case 'message_received':
+        store.addMessage(data.payload.message)
+        break
+      case 'typing_indicator':
+        // Handle typing indicator
+        break
+      case 'presence_update':
+        // Handle presence update
+        break
+      case 'channel_update':
+        // Handle channel update
+        break
+      case 'event_update':
+        // Handle event update
+        break
+    }
+  }
+
+  const sendMessage = (message: any) => {
+    if (ws.value && isConnected.value) {
+      ws.value.send(JSON.stringify(message))
+    }
+  }
 
   const disconnect = () => {
     if (ws.value) {
-      ws.value.close();
-      ws.value = null;
+      ws.value.close()
+      ws.value = null
     }
-  };
+  }
+
+  onMounted(() => {
+    connect()
+  })
 
   onUnmounted(() => {
-    disconnect();
-  });
+    disconnect()
+  })
 
   return {
     isConnected,
-    connect,
-    disconnect,
     sendMessage,
-    sendTypingIndicator
-  };
-}
-```
-
-## API Integration
-
-### Service Layer
-
-Create service classes for API communication:
-
-```typescript
-// services/communication.ts
-import { apiClient } from '@/lib/api';
-import type { 
-  Channel, 
-  Message, 
-  CreateChannelRequest, 
-  SendMessageRequest 
-} from '@/types/communication';
-
-export class CommunicationService {
-  async getChannels(): Promise<{ channels: Channel[] }> {
-    const response = await apiClient.get('/channels');
-    return response.data;
-  }
-
-  async createChannel(data: CreateChannelRequest): Promise<Channel> {
-    const response = await apiClient.post('/channels', data);
-    return response.data;
-  }
-
-  async getMessages(channelId: string, limit = 50): Promise<{ messages: Message[] }> {
-    const response = await apiClient.get(`/channels/${channelId}/messages`, {
-      params: { limit }
-    });
-    return response.data;
-  }
-
-  async sendMessage(data: SendMessageRequest): Promise<Message> {
-    const response = await apiClient.post(`/channels/${data.channelId}/messages`, data);
-    return response.data;
+    connect,
+    disconnect
   }
 }
-
-export const communicationService = new CommunicationService();
 ```
 
-### Error Handling
+### 4. Channel List Component
 
-Implement comprehensive error handling:
+```vue
+<!-- src/components/hub/ChannelList.vue -->
+<template>
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-header">
+      <h2 class="card-title">{{ $t('communication.channels.title') }}</h2>
+    </div>
+    <div class="card-body p-0">
+      <ul class="menu">
+        <li v-for="channel in channels" :key="channel.id">
+          <a 
+            :class="{ 'active': currentChannel?.id === channel.id }"
+            @click="selectChannel(channel)"
+            class="flex items-center justify-between"
+          >
+            <div class="flex items-center gap-2">
+              <div class="badge badge-primary badge-sm">{{ channel.type }}</div>
+              <span>{{ channel.name }}</span>
+            </div>
+            <div v-if="getUnreadCount(channel.id) > 0" class="badge badge-error badge-sm">
+              {{ getUnreadCount(channel.id) }}
+            </div>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</template>
 
-```typescript
-// utils/errorHandler.ts
-export class CommunicationError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public statusCode: number
-  ) {
-    super(message);
-    this.name = 'CommunicationError';
-  }
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useCommunicationStore } from '@/stores/hub/communication'
+import type { Channel } from '@/types/communication'
+
+const store = useCommunicationStore()
+
+const channels = computed(() => store.channels)
+const currentChannel = computed(() => store.currentChannel)
+const getUnreadCount = computed(() => store.getUnreadCount)
+
+const selectChannel = (channel: Channel) => {
+  store.setCurrentChannel(channel)
+  store.markAsRead(channel.id)
+}
+</script>
+```
+
+### 5. Message List Component
+
+```vue
+<!-- src/components/hub/MessageList.vue -->
+<template>
+  <div class="card bg-base-100 shadow-xl flex-1">
+    <div class="card-header">
+      <h2 class="card-title">{{ currentChannel?.name }}</h2>
+      <div class="badge badge-success">{{ $t('communication.messages.online') }}</div>
+    </div>
+    <div class="card-body p-0">
+      <div class="chat chat-start max-h-96 overflow-y-auto">
+        <div 
+          v-for="message in messages" 
+          :key="message.id"
+          class="chat-bubble"
+          :class="{ 'chat-bubble-primary': message.userId === currentUserId }"
+        >
+          <div class="chat-header">
+            <span class="chat-title">{{ getUserName(message.userId) }}</span>
+            <time class="text-xs opacity-50">{{ formatTime(message.timestamp) }}</time>
+          </div>
+          <div class="chat-content">{{ message.content }}</div>
+          <div v-if="message.reactions.length > 0" class="chat-footer">
+            <div class="flex gap-1">
+              <span 
+                v-for="reaction in message.reactions" 
+                :key="reaction.emoji"
+                class="badge badge-sm"
+              >
+                {{ reaction.emoji }} {{ reaction.count }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useCommunicationStore } from '@/stores/hub/communication'
+import { useAuthStore } from '@/stores/auth'
+
+const store = useCommunicationStore()
+const authStore = useAuthStore()
+
+const currentChannel = computed(() => store.currentChannel)
+const currentUserId = computed(() => authStore.user?.id)
+
+const messages = computed(() => {
+  if (!currentChannel.value) return []
+  return store.getChannelMessages(currentChannel.value.id)
+})
+
+const getUserName = (userId: string) => {
+  const user = store.users[userId]
+  return user ? user.displayName : 'Unknown User'
 }
 
-export const handleCommunicationError = (error: any) => {
-  if (error.response) {
-    const { status, data } = error.response;
-    throw new CommunicationError(
-      data.message || 'An error occurred',
-      data.code || 'UNKNOWN_ERROR',
-      status
-    );
-  } else if (error.request) {
-    throw new CommunicationError(
-      'Network error - please check your connection',
-      'NETWORK_ERROR',
-      0
-    );
-  } else {
-    throw new CommunicationError(
-      'An unexpected error occurred',
-      'UNKNOWN_ERROR',
-      0
-    );
-  }
-};
-```
-
-## Testing Patterns
-
-### Component Testing
-
-Test Vue components with Vue Test Utils:
-
-```typescript
-// __tests__/MessageList.spec.ts
-import { mount } from '@vue/test-utils';
-import { createPinia } from 'pinia';
-import MessageList from '@/components/hub/MessageList.vue';
-import { useCommunicationStore } from '@/stores/hub/communication';
-
-describe('MessageList', () => {
-  let wrapper: any;
-  let store: any;
-
-  beforeEach(() => {
-    const pinia = createPinia();
-    store = useCommunicationStore(pinia);
-    
-    wrapper = mount(MessageList, {
-      props: { channelId: 'test-channel' },
-      global: {
-        plugins: [pinia]
-      }
-    });
-  });
-
-  it('displays messages for the channel', async () => {
-    const mockMessages = [
-      { id: '1', content: 'Hello', channelId: 'test-channel' },
-      { id: '2', content: 'World', channelId: 'test-channel' }
-    ];
-    
-    store.messages = mockMessages;
-    await wrapper.vm.$nextTick();
-    
-    expect(wrapper.findAll('.message')).toHaveLength(2);
-  });
-});
-```
-
-### Store Testing
-
-Test Pinia stores:
-
-```typescript
-// __tests__/communication-store.spec.ts
-import { setActivePinia, createPinia } from 'pinia';
-import { useCommunicationStore } from '@/stores/hub/communication';
-
-describe('Communication Store', () => {
-  beforeEach(() => {
-    setActivePinia(createPinia());
-  });
-
-  it('fetches channels successfully', async () => {
-    const store = useCommunicationStore();
-    
-    // Mock API response
-    vi.spyOn(communicationService, 'getChannels').mockResolvedValue({
-      channels: [{ id: '1', name: 'General' }]
-    });
-    
-    await store.fetchChannels();
-    
-    expect(store.channels).toHaveLength(1);
-    expect(store.channels[0].name).toBe('General');
-  });
-});
-```
-
-## Performance Optimization
-
-### Message Virtualization
-
-Implement virtual scrolling for large message lists:
-
-```typescript
-// composables/useVirtualScrolling.ts
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-
-export function useVirtualScrolling(items: Ref<any[]>, itemHeight = 50) {
-  const containerRef = ref<HTMLElement>();
-  const scrollTop = ref(0);
-  const containerHeight = ref(0);
-
-  const visibleItems = computed(() => {
-    const start = Math.floor(scrollTop.value / itemHeight);
-    const end = Math.min(
-      start + Math.ceil(containerHeight.value / itemHeight) + 1,
-      items.value.length
-    );
-    
-    return items.value.slice(start, end).map((item, index) => ({
-      ...item,
-      index: start + index
-    }));
-  });
-
-  const handleScroll = (event: Event) => {
-    const target = event.target as HTMLElement;
-    scrollTop.value = target.scrollTop;
-  };
-
-  onMounted(() => {
-    if (containerRef.value) {
-      containerHeight.value = containerRef.value.clientHeight;
-      containerRef.value.addEventListener('scroll', handleScroll);
-    }
-  });
-
-  onUnmounted(() => {
-    if (containerRef.value) {
-      containerRef.value.removeEventListener('scroll', handleScroll);
-    }
-  });
-
-  return {
-    containerRef,
-    visibleItems
-  };
+const formatTime = (timestamp: Date) => {
+  return new Date(timestamp).toLocaleTimeString()
 }
+</script>
 ```
 
-### Lazy Loading
+### 6. Message Input Component
 
-Implement lazy loading for components:
+```vue
+<!-- src/components/hub/MessageInput.vue -->
+<template>
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <form @submit.prevent="sendMessage" class="flex gap-2">
+        <input 
+          v-model="messageContent"
+          type="text"
+          :placeholder="$t('communication.messages.placeholder')"
+          class="input input-bordered flex-1"
+          :disabled="!isConnected"
+        />
+        <button 
+          type="submit"
+          class="btn btn-primary"
+          :disabled="!messageContent.trim() || !isConnected"
+        >
+          {{ $t('communication.messages.send') }}
+        </button>
+      </form>
+      <div v-if="!isConnected" class="alert alert-warning mt-2">
+        <span>{{ $t('communication.messages.offline') }}</span>
+      </div>
+    </div>
+  </div>
+</template>
 
-```typescript
-// router/index.ts
-import { defineAsyncComponent } from 'vue';
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useCommunicationStore } from '@/stores/hub/communication'
+import { useWebSocket } from '@/composables/useWebSocket'
 
-const CommunicationHub = defineAsyncComponent(() => 
-  import('@/components/hub/CommunicationHub.vue')
-);
+const store = useCommunicationStore()
+const { isConnected, sendMessage } = useWebSocket('ws://localhost:8000/ws')
 
-const EventHub = defineAsyncComponent(() => 
-  import('@/components/hub/EventHub.vue')
-);
+const messageContent = ref('')
 
-export const routes = [
-  {
-    path: '/hub',
-    component: CommunicationHub
-  },
-  {
-    path: '/events',
-    component: EventHub
-  }
-];
-```
+const sendMessage = () => {
+  if (!messageContent.value.trim() || !store.currentChannel) return
 
-## Deployment Considerations
-
-### Environment Variables
-
-Configure for different environments:
-
-```env
-# Production
-VITE_API_BASE_URL=https://api.naboom.co.za/v1
-VITE_WS_URL=wss://api.naboom.co.za/v1/ws
-
-# Staging
-VITE_API_BASE_URL=https://staging-api.naboom.co.za/v1
-VITE_WS_URL=wss://staging-api.naboom.co.za/v1/ws
-
-# Development
-VITE_API_BASE_URL=http://localhost:8000/v1
-VITE_WS_URL=ws://localhost:8000/v1/ws
-```
-
-### Build Optimization
-
-Optimize for production:
-
-```typescript
-// vite.config.ts
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
-
-export default defineConfig({
-  plugins: [vue()],
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor': ['vue', 'pinia', 'vue-i18n'],
-          'communication': [
-            './src/components/hub',
-            './src/stores/hub',
-            './src/services/communication.ts'
-          ]
+  const message = {
+    type: 'message_received',
+    payload: {
+      message: {
+        id: crypto.randomUUID(),
+        channelId: store.currentChannel.id,
+        userId: 'current-user-id', // Get from auth store
+        content: messageContent.value,
+        type: 'text',
+        timestamp: new Date(),
+        reactions: [],
+        attachments: [],
+        metadata: {
+          isEdited: false,
+          isDeleted: false,
+          isPinned: false,
+          isSystemMessage: false
         }
       }
     }
   }
-});
+
+  sendMessage(message)
+  messageContent.value = ''
+}
+</script>
 ```
 
-## Next Steps
+### 7. Event List Component
 
-1. **Review the API contracts** in `/contracts/communication-api.yaml`
-2. **Study the data model** in `/data-model.md`
-3. **Implement core components** following the patterns above
-4. **Add comprehensive tests** for all functionality
-5. **Integrate with existing Naboom Platform** architecture
+```vue
+<!-- src/components/hub/EventList.vue -->
+<template>
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-header">
+      <h2 class="card-title">{{ $t('communication.events.title') }}</h2>
+      <button class="btn btn-primary btn-sm">
+        {{ $t('communication.events.create') }}
+      </button>
+    </div>
+    <div class="card-body p-0">
+      <div class="overflow-x-auto">
+        <table class="table table-zebra">
+          <thead>
+            <tr>
+              <th>{{ $t('communication.events.title') }}</th>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="event in events" :key="event.id">
+              <td>
+                <div class="font-bold">{{ event.title }}</div>
+                <div class="text-sm opacity-50">{{ event.description }}</div>
+              </td>
+              <td>{{ formatDate(event.startDate) }}</td>
+              <td>
+                <div class="badge badge-outline">{{ event.type }}</div>
+              </td>
+              <td>
+                <div class="badge" :class="getStatusClass(event.status)">
+                  {{ event.status }}
+                </div>
+              </td>
+              <td>
+                <div class="flex gap-1">
+                  <button class="btn btn-xs btn-primary">
+                    {{ $t('communication.events.attend') }}
+                  </button>
+                  <button class="btn btn-xs btn-outline">
+                    {{ $t('communication.events.maybe') }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</template>
 
-## Support
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useCommunicationStore } from '@/stores/hub/communication'
+import type { Event } from '@/types/communication'
 
-For questions or issues:
+const store = useCommunicationStore()
 
-- Review the full specification in `spec.md`
-- Check the implementation tasks in `tasks.md`
-- Consult the Naboom Community Platform Constitution
-- Contact the development team
+const events = computed(() => store.events)
 
----
+const formatDate = (date: Date) => {
+  return new Date(date).toLocaleDateString()
+}
 
-**Note**: This quickstart provides the essential patterns and examples. Refer to the full specification and data model for complete implementation details.
+const getStatusClass = (status: string) => {
+  switch (status) {
+    case 'published': return 'badge-success'
+    case 'draft': return 'badge-warning'
+    case 'cancelled': return 'badge-error'
+    case 'completed': return 'badge-info'
+    default: return 'badge-neutral'
+  }
+}
+</script>
+```
+
+### 8. Main Communication Hub Component
+
+```vue
+<!-- src/components/hub/CommunicationHub.vue -->
+<template>
+  <div class="min-h-screen bg-base-200">
+    <div class="navbar bg-base-100 shadow-lg">
+      <div class="navbar-start">
+        <h1 class="text-xl font-bold">Naboom Community</h1>
+      </div>
+      <div class="navbar-end">
+        <LanguageSwitcher />
+        <ThemeSwitcher />
+      </div>
+    </div>
+    
+    <div class="container mx-auto p-4">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <!-- Channel List -->
+        <div class="lg:col-span-1">
+          <ChannelList />
+        </div>
+        
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+          <MessageList />
+          <MessageInput />
+        </div>
+        
+        <!-- Events Sidebar -->
+        <div class="lg:col-span-1">
+          <EventList />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import ChannelList from './ChannelList.vue'
+import MessageList from './MessageList.vue'
+import MessageInput from './MessageInput.vue'
+import EventList from './EventList.vue'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
+import ThemeSwitcher from '@/components/ThemeSwitcher.vue'
+</script>
+```
+
+## Testing Patterns
+
+### 1. Component Testing
+
+```typescript
+// src/__tests__/components/hub/ChannelList.spec.ts
+import { describe, it, expect, vi } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import ChannelList from '@/components/hub/ChannelList.vue'
+import { useCommunicationStore } from '@/stores/hub/communication'
+
+describe('ChannelList', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
+  it('renders channels correctly', () => {
+    const store = useCommunicationStore()
+    store.channels = [
+      {
+        id: '1',
+        name: 'General',
+        type: 'general',
+        isPrivate: false,
+        members: [],
+        settings: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: 'user1'
+      }
+    ]
+
+    const wrapper = mount(ChannelList)
+    expect(wrapper.text()).toContain('General')
+  })
+
+  it('selects channel when clicked', async () => {
+    const store = useCommunicationStore()
+    const mockChannel = {
+      id: '1',
+      name: 'General',
+      type: 'general',
+      isPrivate: false,
+      members: [],
+      settings: {},
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdBy: 'user1'
+    }
+    
+    store.channels = [mockChannel]
+    const setCurrentChannelSpy = vi.spyOn(store, 'setCurrentChannel')
+
+    const wrapper = mount(ChannelList)
+    await wrapper.find('a').trigger('click')
+
+    expect(setCurrentChannelSpy).toHaveBeenCalledWith(mockChannel)
+  })
+})
+```
+
+### 2. Store Testing
+
+```typescript
+// src/__tests__/stores/communication.spec.ts
+import { describe, it, expect, beforeEach } from 'vitest'
+import { setActivePinia, createPinia } from 'pinia'
+import { useCommunicationStore } from '@/stores/hub/communication'
+
+describe('Communication Store', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
+  it('adds message to correct channel', () => {
+    const store = useCommunicationStore()
+    const message = {
+      id: '1',
+      channelId: 'channel1',
+      userId: 'user1',
+      content: 'Hello world',
+      type: 'text' as const,
+      timestamp: new Date(),
+      reactions: [],
+      attachments: [],
+      metadata: {
+        isEdited: false,
+        isDeleted: false,
+        isPinned: false,
+        isSystemMessage: false
+      }
+    }
+
+    store.addMessage(message)
+    expect(store.messages['channel1']).toContain(message)
+  })
+
+  it('calculates unread count correctly', () => {
+    const store = useCommunicationStore()
+    store.messages = {
+      'channel1': [
+        {
+          id: '1',
+          channelId: 'channel1',
+          userId: 'user1',
+          content: 'Hello',
+          type: 'text' as const,
+          timestamp: new Date(),
+          reactions: [],
+          attachments: [],
+          metadata: {
+            isEdited: false,
+            isDeleted: false,
+            isPinned: false,
+            isSystemMessage: false,
+            isRead: false
+          }
+        }
+      ]
+    }
+
+    expect(store.getUnreadCount('channel1')).toBe(1)
+  })
+})
+```
+
+## Performance Optimization
+
+### 1. Virtual Scrolling for Messages
+
+```typescript
+// src/composables/useVirtualScrolling.ts
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+
+export function useVirtualScrolling(items: Ref<any[]>, itemHeight: number) {
+  const containerRef = ref<HTMLElement>()
+  const scrollTop = ref(0)
+  const containerHeight = ref(0)
+
+  const visibleItems = computed(() => {
+    const start = Math.floor(scrollTop.value / itemHeight)
+    const end = Math.min(
+      start + Math.ceil(containerHeight.value / itemHeight),
+      items.value.length
+    )
+    return items.value.slice(start, end)
+  })
+
+  const totalHeight = computed(() => items.value.length * itemHeight)
+  const offsetY = computed(() => scrollTop.value - (scrollTop.value % itemHeight))
+
+  const handleScroll = (event: Event) => {
+    const target = event.target as HTMLElement
+    scrollTop.value = target.scrollTop
+  }
+
+  const updateContainerHeight = () => {
+    if (containerRef.value) {
+      containerHeight.value = containerRef.value.clientHeight
+    }
+  }
+
+  onMounted(() => {
+    updateContainerHeight()
+    window.addEventListener('resize', updateContainerHeight)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('resize', updateContainerHeight)
+  })
+
+  return {
+    containerRef,
+    visibleItems,
+    totalHeight,
+    offsetY,
+    handleScroll
+  }
+}
+```
+
+### 2. Message Pagination
+
+```typescript
+// src/composables/useMessagePagination.ts
+import { ref, computed } from 'vue'
+
+export function useMessagePagination(messages: Ref<Message[]>, pageSize = 50) {
+  const currentPage = ref(1)
+  const isLoading = ref(false)
+
+  const paginatedMessages = computed(() => {
+    const start = (currentPage.value - 1) * pageSize
+    const end = start + pageSize
+    return messages.value.slice(start, end)
+  })
+
+  const hasMore = computed(() => {
+    return currentPage.value * pageSize < messages.value.length
+  })
+
+  const loadMore = async () => {
+    if (isLoading.value || !hasMore.value) return
+    
+    isLoading.value = true
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500))
+    currentPage.value++
+    isLoading.value = false
+  }
+
+  return {
+    paginatedMessages,
+    hasMore,
+    isLoading,
+    loadMore
+  }
+}
+```
+
+## Error Handling
+
+### 1. Global Error Handler
+
+```typescript
+// src/composables/useErrorHandler.ts
+import { ref } from 'vue'
+
+export function useErrorHandler() {
+  const error = ref<string | null>(null)
+  const isRetrying = ref(false)
+
+  const handleError = (err: any, retryFn?: () => Promise<void>) => {
+    console.error('Error:', err)
+    error.value = err.message || 'An error occurred'
+    
+    if (retryFn) {
+      isRetrying.value = true
+      retryFn()
+        .finally(() => {
+          isRetrying.value = false
+        })
+    }
+  }
+
+  const clearError = () => {
+    error.value = null
+  }
+
+  return {
+    error,
+    isRetrying,
+    handleError,
+    clearError
+  }
+}
+```
+
+### 2. Offline Support
+
+```typescript
+// src/composables/useOfflineQueue.ts
+import { ref, onMounted, onUnmounted } from 'vue'
+
+export function useOfflineQueue() {
+  const isOnline = ref(navigator.onLine)
+  const queuedMessages = ref<Message[]>([])
+
+  const addToQueue = (message: Message) => {
+    queuedMessages.value.push(message)
+    localStorage.setItem('offlineMessages', JSON.stringify(queuedMessages.value))
+  }
+
+  const syncQueue = async () => {
+    if (!isOnline.value || queuedMessages.value.length === 0) return
+
+    for (const message of queuedMessages.value) {
+      try {
+        // Send message to server
+        await sendMessage(message)
+      } catch (error) {
+        console.error('Failed to sync message:', error)
+        break
+      }
+    }
+
+    queuedMessages.value = []
+    localStorage.removeItem('offlineMessages')
+  }
+
+  const handleOnline = () => {
+    isOnline.value = true
+    syncQueue()
+  }
+
+  const handleOffline = () => {
+    isOnline.value = false
+  }
+
+  onMounted(() => {
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    
+    // Load queued messages from localStorage
+    const stored = localStorage.getItem('offlineMessages')
+    if (stored) {
+      queuedMessages.value = JSON.parse(stored)
+    }
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('online', handleOnline)
+    window.removeEventListener('offline', handleOffline)
+  })
+
+  return {
+    isOnline,
+    queuedMessages,
+    addToQueue,
+    syncQueue
+  }
+}
+```
+
+This quickstart guide provides a comprehensive foundation for implementing the Community Communication Hub feature with Vue 3, TypeScript, and modern web technologies.
