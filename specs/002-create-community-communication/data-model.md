@@ -283,7 +283,7 @@ interface EventUpdatePayload {
   action: 'created' | 'updated' | 'deleted' | 'attendee_added' | 'attendee_removed'
 }
 
-type WebSocketMessageType = 
+type WebSocketMessageType =
   | 'message_received'
   | 'message_updated'
   | 'message_deleted'
@@ -306,23 +306,23 @@ const messageSchema = {
     required: true,
     minLength: 1,
     maxLength: 2000,
-    pattern: /^[\s\S]*$/
+    pattern: /^[\s\S]*$/,
   },
   channelId: {
     type: 'string',
     required: true,
-    pattern: /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
+    pattern: /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/,
   },
   type: {
     type: 'string',
     required: true,
-    enum: ['text', 'image', 'file', 'system', 'event', 'announcement']
+    enum: ['text', 'image', 'file', 'system', 'event', 'announcement'],
   },
   replyTo: {
     type: 'string',
     required: false,
-    pattern: /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
-  }
+    pattern: /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/,
+  },
 }
 ```
 
@@ -334,28 +334,28 @@ const eventSchema = {
     type: 'string',
     required: true,
     minLength: 1,
-    maxLength: 100
+    maxLength: 100,
   },
   description: {
     type: 'string',
     required: true,
     minLength: 1,
-    maxLength: 1000
+    maxLength: 1000,
   },
   startDate: {
     type: 'date',
-    required: true
+    required: true,
   },
   endDate: {
     type: 'date',
-    required: false
+    required: false,
   },
   maxAttendees: {
     type: 'number',
     required: false,
     min: 1,
-    max: 1000
-  }
+    max: 1000,
+  },
 }
 ```
 
@@ -368,22 +368,22 @@ const channelSchema = {
     required: true,
     minLength: 1,
     maxLength: 50,
-    pattern: /^[a-zA-Z0-9\s\-_]+$/
+    pattern: /^[a-zA-Z0-9\s\-_]+$/,
   },
   description: {
     type: 'string',
     required: false,
-    maxLength: 200
+    maxLength: 200,
   },
   type: {
     type: 'string',
     required: true,
-    enum: ['general', 'safety', 'events', 'announcements', 'custom']
+    enum: ['general', 'safety', 'events', 'announcements', 'custom'],
   },
   isPrivate: {
     type: 'boolean',
-    required: true
-  }
+    required: true,
+  },
 }
 ```
 
@@ -421,29 +421,29 @@ interface CommunicationActions {
   joinChannel: (channelId: string) => Promise<void>
   leaveChannel: (channelId: string) => Promise<void>
   updateChannel: (channelId: string, updates: Partial<Channel>) => Promise<void>
-  
+
   // Message actions
   sendMessage: (message: Omit<Message, 'id' | 'timestamp'>) => Promise<Message>
   editMessage: (messageId: string, content: string) => Promise<void>
   deleteMessage: (messageId: string) => Promise<void>
   reactToMessage: (messageId: string, emoji: string) => Promise<void>
-  
+
   // Event actions
   createEvent: (event: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Event>
   updateEvent: (eventId: string, updates: Partial<Event>) => Promise<void>
   deleteEvent: (eventId: string) => Promise<void>
   rsvpToEvent: (eventId: string, status: AttendanceStatus) => Promise<void>
-  
+
   // Search actions
   searchMessages: (query: SearchQuery) => Promise<SearchResult[]>
   searchEvents: (query: SearchQuery) => Promise<SearchResult[]>
   searchUsers: (query: SearchQuery) => Promise<SearchResult[]>
-  
+
   // WebSocket actions
   connect: () => Promise<void>
   disconnect: () => void
   sendTypingIndicator: (channelId: string, isTyping: boolean) => void
-  
+
   // Offline actions
   syncOfflineMessages: () => Promise<void>
   markAsRead: (channelId: string) => Promise<void>

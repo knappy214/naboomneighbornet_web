@@ -139,22 +139,22 @@ Community members can search through message history, filter by channels, users,
 
 ### Functional Requirements
 
-- **FR-001**: System MUST provide organized discussion channels for different neighborhood topics (General, Safety, Events)
-- **FR-002**: System MUST deliver messages in real-time to all online community members
-- **FR-003**: System MUST display typing indicators when users are composing messages
-- **FR-004**: System MUST support both English and Afrikaans interfaces for all communication features
-- **FR-005**: System MUST provide event creation, management, and coordination capabilities
-- **FR-006**: System MUST display user profiles with roles, activity history, and contact information
-- **FR-007**: System MUST queue messages locally when network connectivity is unavailable
-- **FR-008**: System MUST automatically synchronize queued messages when connectivity is restored
-- **FR-009**: System MUST provide message search functionality across all channels and time periods
-- **FR-010**: System MUST support message filtering by channel, user, date range, and content type
-- **FR-011**: System MUST deliver messages within 1 second of sending under normal network conditions
-- **FR-012**: System MUST support role-based permissions for different communication features
-- **FR-013**: System MUST provide notification preferences and settings for each user
-- **FR-014**: System MUST maintain message history for at least 90 days
-- **FR-015**: System MUST support message reactions and threaded replies
-- **FR-016**: System MUST provide accessibility features for users with disabilities
+- **FR-001**: System SHALL create and maintain organized discussion channels for different neighborhood topics (General, Safety, Events) with member access controls
+- **FR-002**: System SHALL deliver messages in real-time to all online community members within 1 second of sending
+- **FR-003**: System SHALL display typing indicators within 200ms when users are composing messages in any channel
+- **FR-004**: System SHALL support both English and Afrikaans interfaces for all communication features with complete localization
+- **FR-005**: System SHALL provide event creation, management, and coordination capabilities with RSVP tracking and notifications
+- **FR-006**: System SHALL display user profiles with roles, activity history, and contact information in all communication contexts
+- **FR-007**: System SHALL queue messages locally when network connectivity is unavailable and maintain 100% delivery rate
+- **FR-008**: System SHALL automatically synchronize queued messages within 10 seconds when connectivity is restored
+- **FR-009**: System SHALL provide message search functionality across all channels and time periods with results within 2 seconds
+- **FR-010**: System SHALL support message filtering by channel, user, date range, and content type with real-time filter application
+- **FR-011**: System SHALL deliver messages within 1 second of sending under normal network conditions 95% of the time
+- **FR-012**: System SHALL support role-based permissions for different communication features with real-time permission updates
+- **FR-013**: System SHALL provide notification preferences and settings for each user with immediate preference application
+- **FR-014**: System SHALL maintain message history for at least 90 days with full search and retrieval capabilities
+- **FR-015**: System SHALL support message reactions and threaded replies with real-time updates
+- **FR-016**: System SHALL provide accessibility features for users with disabilities meeting WCAG 2.1 AA standards
 
 ### Key Entities _(include if feature involves data)_
 
@@ -170,18 +170,18 @@ Community members can search through message history, filter by channels, users,
 
 ### Measurable Outcomes
 
-- **SC-001**: Messages are delivered within 1 second of sending 95% of the time
-- **SC-002**: System supports 500+ concurrent users across all channels without performance degradation
-- **SC-003**: Typing indicators appear within 200ms of user starting to type
-- **SC-004**: User presence status updates within 500ms of status changes
-- **SC-005**: 90% of users can send their first message within 30 seconds of joining a channel
-- **SC-006**: Message search returns results within 2 seconds for queries up to 10,000 messages
-- **SC-007**: Offline message queuing maintains 100% message delivery rate when connectivity returns
-- **SC-008**: System maintains 99.5% uptime for communication features
-- **SC-009**: 95% of users successfully complete event creation within 5 minutes
-- **SC-010**: Interface loads completely within 3 seconds on mobile devices with 3G connectivity
-- **SC-011**: 90% of users can switch languages without losing their current conversation context
-- **SC-012**: 95% of users successfully find relevant information using search within 3 attempts
+- **SC-001**: Messages are delivered within 1 second of sending 95% of the time under normal network conditions
+- **SC-002**: System supports 500+ concurrent users across all channels without performance degradation (measured by response time <2s)
+- **SC-003**: Typing indicators appear within 200ms of user starting to type (measured from keystroke to UI update)
+- **SC-004**: User presence status updates within 500ms of status changes (UI update time, measured from status change to display)
+- **SC-005**: 90% of users can send their first message within 30 seconds of joining a channel (measured from channel join to message sent)
+- **SC-006**: Message search returns results within 2 seconds for queries up to 10,000 messages (measured from search submission to results display)
+- **SC-007**: Offline message queuing maintains 100% message delivery rate when connectivity returns (measured over 24-hour test period)
+- **SC-008**: System maintains 99.5% uptime for communication features (measured monthly)
+- **SC-009**: 95% of users successfully complete event creation within 5 minutes (measured from event creation start to completion)
+- **SC-010**: Interface loads completely within 3 seconds on mobile devices with 3G connectivity (measured from page load to interactive state)
+- **SC-011**: 90% of users can switch languages without losing their current conversation context (measured during active conversation)
+- **SC-012**: 95% of users successfully find relevant information using search within 3 attempts (measured over 100 search sessions)
 
 ## Assumptions
 
@@ -195,3 +195,8 @@ Community members can search through message history, filter by channels, users,
 - Message content follows community guidelines and moderation policies
 - South African users have access to mobile devices with basic internet connectivity
 - Community members are willing to participate in neighborhood communication activities
+- WebSocket connections are supported by the backend infrastructure
+- Database systems can handle 500+ concurrent connections
+- HTTP3 QUIC protocol is available on the target deployment environment
+- IndexedDB and Local Storage are available in target browsers
+- Service Worker API is supported for offline functionality

@@ -39,8 +39,8 @@ export default defineConfig({
   plugins: [vue(), tailwindcss()],
   test: {
     environment: 'jsdom',
-    globals: true
-  }
+    globals: true,
+  },
 })
 ```
 
@@ -48,7 +48,7 @@ export default defineConfig({
 
 ```css
 /* src/app.css */
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "daisyui";
 ```
 
@@ -90,70 +90,74 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Message, Channel, UserProfile, Event } from '@/types/communication'
 
-export const useCommunicationStore = defineStore('communication', () => {
-  // State
-  const channels = ref<Channel[]>([])
-  const currentChannel = ref<Channel | null>(null)
-  const messages = ref<Record<string, Message[]>>({})
-  const users = ref<Record<string, UserProfile>>({})
-  const events = ref<Event[]>([])
-  const isConnected = ref(false)
-  const isOffline = ref(false)
-
-  // Getters
-  const getChannelMessages = computed(() => (channelId: string) => {
-    return messages.value[channelId] || []
-  })
-
-  const getOnlineUsers = computed(() => {
-    return Object.values(users.value).filter(user => user.status === 'online')
-  })
-
-  const getUnreadCount = computed(() => (channelId: string) => {
-    const channelMessages = messages.value[channelId] || []
-    return channelMessages.filter(msg => !msg.metadata.isRead).length
-  })
-
-  // Actions
-  const addMessage = (message: Message) => {
-    if (!messages.value[message.channelId]) {
-      messages.value[message.channelId] = []
-    }
-    messages.value[message.channelId].push(message)
-  }
-
-  const setCurrentChannel = (channel: Channel) => {
-    currentChannel.value = channel
-  }
-
-  const markAsRead = (channelId: string) => {
-    const channelMessages = messages.value[channelId] || []
-    channelMessages.forEach(msg => {
-      msg.metadata.isRead = true
-    })
-  }
-
-  return {
+export const useCommunicationStore = defineStore(
+  'communication',
+  () => {
     // State
-    channels,
-    currentChannel,
-    messages,
-    users,
-    events,
-    isConnected,
-    isOffline,
+    const channels = ref<Channel[]>([])
+    const currentChannel = ref<Channel | null>(null)
+    const messages = ref<Record<string, Message[]>>({})
+    const users = ref<Record<string, UserProfile>>({})
+    const events = ref<Event[]>([])
+    const isConnected = ref(false)
+    const isOffline = ref(false)
+
     // Getters
-    getChannelMessages,
-    getOnlineUsers,
-    getUnreadCount,
+    const getChannelMessages = computed(() => (channelId: string) => {
+      return messages.value[channelId] || []
+    })
+
+    const getOnlineUsers = computed(() => {
+      return Object.values(users.value).filter((user) => user.status === 'online')
+    })
+
+    const getUnreadCount = computed(() => (channelId: string) => {
+      const channelMessages = messages.value[channelId] || []
+      return channelMessages.filter((msg) => !msg.metadata.isRead).length
+    })
+
     // Actions
-    addMessage,
-    setCurrentChannel,
-    markAsRead
-  }
-}, {
-  persist: true
-})
+    const addMessage = (message: Message) => {
+      if (!messages.value[message.channelId]) {
+        messages.value[message.channelId] = []
+      }
+      messages.value[message.channelId].push(message)
+    }
+
+    const setCurrentChannel = (channel: Channel) => {
+      currentChannel.value = channel
+    }
+
+    const markAsRead = (channelId: string) => {
+      const channelMessages = messages.value[channelId] || []
+      channelMessages.forEach((msg) => {
+        msg.metadata.isRead = true
+      })
+    }
+
+    return {
+      // State
+      channels,
+      currentChannel,
+      messages,
+      users,
+      events,
+      isConnected,
+      isOffline,
+      // Getters
+      getChannelMessages,
+      getOnlineUsers,
+      getUnreadCount,
+      // Actions
+      addMessage,
+      setCurrentChannel,
+      markAsRead,
+    }
+  },
+  {
+    persist: true,
+  },
+)
 ```
 
 ### 2. Vue I18n Setup
@@ -169,7 +173,7 @@ const i18n = createI18n({
   globalInjection: true,
   locale: 'en',
   fallbackLocale: 'en',
-  messages: { en, af }
+  messages: { en, af },
 })
 
 export default i18n
@@ -252,7 +256,7 @@ export function useWebSocket(url: string) {
   const connect = () => {
     try {
       ws.value = new WebSocket(url)
-      
+
       ws.value.onopen = () => {
         isConnected.value = true
         store.isConnected = true
@@ -335,7 +339,7 @@ export function useWebSocket(url: string) {
     isConnected,
     sendMessage,
     connect,
-    disconnect
+    disconnect,
   }
 }
 ```
@@ -352,8 +356,8 @@ export function useWebSocket(url: string) {
     <div class="card-body p-0">
       <ul class="menu">
         <li v-for="channel in channels" :key="channel.id">
-          <a 
-            :class="{ 'active': currentChannel?.id === channel.id }"
+          <a
+            :class="{ active: currentChannel?.id === channel.id }"
             @click="selectChannel(channel)"
             class="flex items-center justify-between"
           >
@@ -401,8 +405,8 @@ const selectChannel = (channel: Channel) => {
     </div>
     <div class="card-body p-0">
       <div class="chat chat-start max-h-96 overflow-y-auto">
-        <div 
-          v-for="message in messages" 
+        <div
+          v-for="message in messages"
           :key="message.id"
           class="chat-bubble"
           :class="{ 'chat-bubble-primary': message.userId === currentUserId }"
@@ -414,8 +418,8 @@ const selectChannel = (channel: Channel) => {
           <div class="chat-content">{{ message.content }}</div>
           <div v-if="message.reactions.length > 0" class="chat-footer">
             <div class="flex gap-1">
-              <span 
-                v-for="reaction in message.reactions" 
+              <span
+                v-for="reaction in message.reactions"
                 :key="reaction.emoji"
                 class="badge badge-sm"
               >
@@ -464,14 +468,14 @@ const formatTime = (timestamp: Date) => {
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
       <form @submit.prevent="sendMessage" class="flex gap-2">
-        <input 
+        <input
           v-model="messageContent"
           type="text"
           :placeholder="$t('communication.messages.placeholder')"
           class="input input-bordered flex-1"
           :disabled="!isConnected"
         />
-        <button 
+        <button
           type="submit"
           class="btn btn-primary"
           :disabled="!messageContent.trim() || !isConnected"
@@ -515,10 +519,10 @@ const sendMessage = () => {
           isEdited: false,
           isDeleted: false,
           isPinned: false,
-          isSystemMessage: false
-        }
-      }
-    }
+          isSystemMessage: false,
+        },
+      },
+    },
   }
 
   sendMessage(message)
@@ -599,11 +603,16 @@ const formatDate = (date: Date) => {
 
 const getStatusClass = (status: string) => {
   switch (status) {
-    case 'published': return 'badge-success'
-    case 'draft': return 'badge-warning'
-    case 'cancelled': return 'badge-error'
-    case 'completed': return 'badge-info'
-    default: return 'badge-neutral'
+    case 'published':
+      return 'badge-success'
+    case 'draft':
+      return 'badge-warning'
+    case 'cancelled':
+      return 'badge-error'
+    case 'completed':
+      return 'badge-info'
+    default:
+      return 'badge-neutral'
   }
 }
 </script>
@@ -624,20 +633,20 @@ const getStatusClass = (status: string) => {
         <ThemeSwitcher />
       </div>
     </div>
-    
+
     <div class="container mx-auto p-4">
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <!-- Channel List -->
         <div class="lg:col-span-1">
           <ChannelList />
         </div>
-        
+
         <!-- Main Content -->
         <div class="lg:col-span-2">
           <MessageList />
           <MessageInput />
         </div>
-        
+
         <!-- Events Sidebar -->
         <div class="lg:col-span-1">
           <EventList />
@@ -686,8 +695,8 @@ describe('ChannelList', () => {
         settings: {},
         createdAt: new Date(),
         updatedAt: new Date(),
-        createdBy: 'user1'
-      }
+        createdBy: 'user1',
+      },
     ]
 
     const wrapper = mount(ChannelList)
@@ -705,9 +714,9 @@ describe('ChannelList', () => {
       settings: {},
       createdAt: new Date(),
       updatedAt: new Date(),
-      createdBy: 'user1'
+      createdBy: 'user1',
     }
-    
+
     store.channels = [mockChannel]
     const setCurrentChannelSpy = vi.spyOn(store, 'setCurrentChannel')
 
@@ -747,8 +756,8 @@ describe('Communication Store', () => {
         isEdited: false,
         isDeleted: false,
         isPinned: false,
-        isSystemMessage: false
-      }
+        isSystemMessage: false,
+      },
     }
 
     store.addMessage(message)
@@ -758,7 +767,7 @@ describe('Communication Store', () => {
   it('calculates unread count correctly', () => {
     const store = useCommunicationStore()
     store.messages = {
-      'channel1': [
+      channel1: [
         {
           id: '1',
           channelId: 'channel1',
@@ -773,10 +782,10 @@ describe('Communication Store', () => {
             isDeleted: false,
             isPinned: false,
             isSystemMessage: false,
-            isRead: false
-          }
-        }
-      ]
+            isRead: false,
+          },
+        },
+      ],
     }
 
     expect(store.getUnreadCount('channel1')).toBe(1)
@@ -799,10 +808,7 @@ export function useVirtualScrolling(items: Ref<any[]>, itemHeight: number) {
 
   const visibleItems = computed(() => {
     const start = Math.floor(scrollTop.value / itemHeight)
-    const end = Math.min(
-      start + Math.ceil(containerHeight.value / itemHeight),
-      items.value.length
-    )
+    const end = Math.min(start + Math.ceil(containerHeight.value / itemHeight), items.value.length)
     return items.value.slice(start, end)
   })
 
@@ -834,7 +840,7 @@ export function useVirtualScrolling(items: Ref<any[]>, itemHeight: number) {
     visibleItems,
     totalHeight,
     offsetY,
-    handleScroll
+    handleScroll,
   }
 }
 ```
@@ -861,10 +867,10 @@ export function useMessagePagination(messages: Ref<Message[]>, pageSize = 50) {
 
   const loadMore = async () => {
     if (isLoading.value || !hasMore.value) return
-    
+
     isLoading.value = true
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise((resolve) => setTimeout(resolve, 500))
     currentPage.value++
     isLoading.value = false
   }
@@ -873,7 +879,7 @@ export function useMessagePagination(messages: Ref<Message[]>, pageSize = 50) {
     paginatedMessages,
     hasMore,
     isLoading,
-    loadMore
+    loadMore,
   }
 }
 ```
@@ -893,13 +899,12 @@ export function useErrorHandler() {
   const handleError = (err: any, retryFn?: () => Promise<void>) => {
     console.error('Error:', err)
     error.value = err.message || 'An error occurred'
-    
+
     if (retryFn) {
       isRetrying.value = true
-      retryFn()
-        .finally(() => {
-          isRetrying.value = false
-        })
+      retryFn().finally(() => {
+        isRetrying.value = false
+      })
     }
   }
 
@@ -911,7 +916,7 @@ export function useErrorHandler() {
     error,
     isRetrying,
     handleError,
-    clearError
+    clearError,
   }
 }
 ```
@@ -960,7 +965,7 @@ export function useOfflineQueue() {
   onMounted(() => {
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
-    
+
     // Load queued messages from localStorage
     const stored = localStorage.getItem('offlineMessages')
     if (stored) {
@@ -977,7 +982,7 @@ export function useOfflineQueue() {
     isOnline,
     queuedMessages,
     addToQueue,
-    syncQueue
+    syncQueue,
   }
 }
 ```
