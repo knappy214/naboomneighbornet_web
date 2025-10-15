@@ -1,0 +1,1262 @@
+openapi: 3.0.3
+info:
+  title: Community Communication Hub API
+  description: Real-time communication API for Naboom Community Platform
+  version: 1.0.0
+  contact:
+    name: Naboom Development Team
+    email: dev@naboom.co.za
+
+servers:
+  - url: https://api.naboom.co.za/v1
+    description: Production server
+  - url: https://staging-api.naboom.co.za/v1
+    description: Staging server
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+paths:
+  # Channel Management
+  /channels:
+    get:
+      summary: List channels
+      description: Get list of channels user has access to
+      tags: [Channels]
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [general, safety, events]
+          description: Filter by channel type
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+          description: Number of channels to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Number of channels to skip
+      responses:
+        '200':
+          description: List of channels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channels:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Channel'
+                  total:
+                    type: integer
+                    description: Total number of channels
+                  hasMore:
+                    type: boolean
+                    description: Whether there are more channels
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+    post:
+      summary: Create channel
+      description: Create a new discussion channel
+      tags: [Channels]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateChannelRequest'
+      responses:
+        '201':
+          description: Channel created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /channels/{channelId}:
+    get:
+      summary: Get channel details
+      description: Get detailed information about a specific channel
+      tags: [Channels]
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Channel details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      summary: Update channel
+      description: Update channel settings and information
+      tags: [Channels]
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateChannelRequest'
+      responses:
+        '200':
+          description: Channel updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    delete:
+      summary: Delete channel
+      description: Delete a channel (soft delete)
+      tags: [Channels]
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Channel deleted successfully
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  # Message Management
+  /channels/{channelId}/messages:
+    get:
+      summary: Get channel messages
+      description: Retrieve messages from a specific channel
+      tags: [Messages]
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+          description: Number of messages to return
+        - name: before
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Get messages before this timestamp
+        - name: after
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Get messages after this timestamp
+      responses:
+        '200':
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+                  hasMore:
+                    type: boolean
+                    description: Whether there are more messages
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    post:
+      summary: Send message
+      description: Send a new message to a channel
+      tags: [Messages]
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /messages/{messageId}:
+    get:
+      summary: Get message details
+      description: Get detailed information about a specific message
+      tags: [Messages]
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Message details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      summary: Update message
+      description: Edit a message (only sender or moderators)
+      tags: [Messages]
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMessageRequest'
+      responses:
+        '200':
+          description: Message updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    delete:
+      summary: Delete message
+      description: Delete a message (soft delete)
+      tags: [Messages]
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Message deleted successfully
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  # Event Management
+  /events:
+    get:
+      summary: List events
+      description: Get list of community events
+      tags: [Events]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published, cancelled, completed]
+          description: Filter by event status
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [meeting, social, safety, emergency, other]
+          description: Filter by event category
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter events starting from this date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter events ending before this date
+      responses:
+        '200':
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+                  total:
+                    type: integer
+                    description: Total number of events
+
+    post:
+      summary: Create event
+      description: Create a new community event
+      tags: [Events]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /events/{eventId}:
+    get:
+      summary: Get event details
+      description: Get detailed information about a specific event
+      tags: [Events]
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      summary: Update event
+      description: Update event details
+      tags: [Events]
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEventRequest'
+      responses:
+        '200':
+          description: Event updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /events/{eventId}/rsvp:
+    post:
+      summary: RSVP to event
+      description: Respond to an event invitation
+      tags: [Events]
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RSVPRequest'
+      responses:
+        '200':
+          description: RSVP recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventAttendee'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  # User Profile Management
+  /profiles:
+    get:
+      summary: List user profiles
+      description: Get list of user profiles in the community
+      tags: [Profiles]
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [member, moderator, admin, supervisor]
+          description: Filter by user role
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [online, away, busy, offline]
+          description: Filter by user status
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by display name
+      responses:
+        '200':
+          description: List of user profiles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profiles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserProfile'
+                  total:
+                    type: integer
+
+  /profiles/{userId}:
+    get:
+      summary: Get user profile
+      description: Get detailed profile information for a specific user
+      tags: [Profiles]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User profile details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      summary: Update user profile
+      description: Update user profile information
+      tags: [Profiles]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  # Search
+  /search/messages:
+    get:
+      summary: Search messages
+      description: Search through message history
+      tags: [Search]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query
+        - name: channelId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by channel
+        - name: userId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by user
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter by start date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter by end date
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchResult'
+                  total:
+                    type: integer
+                    description: Total number of results
+                  query:
+                    type: string
+                    description: Original search query
+
+  # WebSocket Endpoints
+  /ws/communication:
+    get:
+      summary: WebSocket connection
+      description: Establish WebSocket connection for real-time communication
+      tags: [WebSocket]
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authentication token
+      responses:
+        '101':
+          description: WebSocket connection established
+        '401':
+          description: Authentication failed
+
+components:
+  schemas:
+    Channel:
+      type: object
+      required: [id, name, type, members, moderators, createdAt, updatedAt, isActive]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 3
+          maxLength: 50
+        description:
+          type: string
+          maxLength: 200
+        type:
+          type: string
+          enum: [general, safety, events]
+        members:
+          type: array
+          items:
+            type: string
+            format: uuid
+        moderators:
+          type: array
+          items:
+            type: string
+            format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+        settings:
+          $ref: '#/components/schemas/ChannelSettings'
+
+    ChannelSettings:
+      type: object
+      properties:
+        allowReactions:
+          type: boolean
+          default: true
+        allowThreads:
+          type: boolean
+          default: true
+        allowFileUploads:
+          type: boolean
+          default: true
+        maxMessageLength:
+          type: integer
+          default: 5000
+        rateLimitPerMinute:
+          type: integer
+          default: 10
+
+    Message:
+      type: object
+      required: [id, channelId, senderId, content, type, timestamp, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        channelId:
+          type: string
+          format: uuid
+        senderId:
+          type: string
+          format: uuid
+        content:
+          type: string
+          maxLength: 5000
+        type:
+          type: string
+          enum: [text, image, file, event, system]
+        timestamp:
+          type: string
+          format: date-time
+        editedAt:
+          type: string
+          format: date-time
+        replyToId:
+          type: string
+          format: uuid
+        reactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageReaction'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageAttachment'
+        metadata:
+          $ref: '#/components/schemas/MessageMetadata'
+        status:
+          type: string
+          enum: [sent, delivered, read, failed, pending]
+
+    MessageReaction:
+      type: object
+      required: [emoji, userId, timestamp]
+      properties:
+        emoji:
+          type: string
+        userId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+
+    MessageAttachment:
+      type: object
+      required: [id, filename, mimeType, size, url]
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        mimeType:
+          type: string
+        size:
+          type: integer
+        url:
+          type: string
+          format: uri
+        thumbnailUrl:
+          type: string
+          format: uri
+
+    MessageMetadata:
+      type: object
+      properties:
+        isEdited:
+          type: boolean
+        editCount:
+          type: integer
+        isPinned:
+          type: boolean
+        isDeleted:
+          type: boolean
+        deleteReason:
+          type: string
+
+    Event:
+      type: object
+      required: [id, title, description, organizerId, startDate, endDate, status, visibility, category]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+        organizerId:
+          type: string
+          format: uuid
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/EventLocation'
+        attendees:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventAttendee'
+        maxAttendees:
+          type: integer
+        status:
+          type: string
+          enum: [draft, published, cancelled, completed]
+        visibility:
+          type: string
+          enum: [public, members, private]
+        category:
+          type: string
+          enum: [meeting, social, safety, emergency, other]
+        tags:
+          type: array
+          items:
+            type: string
+        discussionThreadId:
+          type: string
+          format: uuid
+        reminders:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventReminder'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EventLocation:
+      type: object
+      required: [name, isVirtual]
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        coordinates:
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+        isVirtual:
+          type: boolean
+        meetingLink:
+          type: string
+          format: uri
+
+    EventAttendee:
+      type: object
+      required: [userId, status, rsvpDate]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [invited, attending, declined, maybe]
+        rsvpDate:
+          type: string
+          format: date-time
+        comment:
+          type: string
+
+    EventReminder:
+      type: object
+      required: [id, type, triggerTime, message, sent]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [email, push, sms]
+        triggerTime:
+          type: string
+          format: date-time
+        message:
+          type: string
+        sent:
+          type: boolean
+
+    UserProfile:
+      type: object
+      required: [id, userId, displayName, role, status, lastSeen, language, timezone]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+          minLength: 2
+          maxLength: 50
+        avatar:
+          type: string
+          format: uri
+        role:
+          type: string
+          enum: [member, moderator, admin, supervisor]
+        status:
+          type: string
+          enum: [online, away, busy, offline]
+        lastSeen:
+          type: string
+          format: date-time
+        preferences:
+          $ref: '#/components/schemas/UserPreferences'
+        activity:
+          $ref: '#/components/schemas/UserActivity'
+        permissions:
+          $ref: '#/components/schemas/UserPermissions'
+        language:
+          type: string
+          enum: [en, af]
+        timezone:
+          type: string
+
+    UserPreferences:
+      type: object
+      properties:
+        notifications:
+          $ref: '#/components/schemas/NotificationSettings'
+        theme:
+          type: string
+          enum: [light, business]
+        messageDisplay:
+          type: string
+          enum: [compact, comfortable]
+        showTypingIndicators:
+          type: boolean
+        showPresenceStatus:
+          type: boolean
+        autoMarkAsRead:
+          type: boolean
+
+    NotificationSettings:
+      type: object
+      properties:
+        newMessages:
+          type: boolean
+        mentions:
+          type: boolean
+        reactions:
+          type: boolean
+        events:
+          type: boolean
+        systemUpdates:
+          type: boolean
+        emailDigest:
+          type: boolean
+        pushNotifications:
+          type: boolean
+
+    UserActivity:
+      type: object
+      required: [totalMessages, channelsJoined, eventsCreated, lastActivity, joinDate]
+      properties:
+        totalMessages:
+          type: integer
+        channelsJoined:
+          type: integer
+        eventsCreated:
+          type: integer
+        lastActivity:
+          type: string
+          format: date-time
+        joinDate:
+          type: string
+          format: date-time
+
+    UserPermissions:
+      type: object
+      properties:
+        canCreateChannels:
+          type: boolean
+        canModerateChannels:
+          type: boolean
+        canCreateEvents:
+          type: boolean
+        canManageUsers:
+          type: boolean
+        canAccessAdminPanel:
+          type: boolean
+
+    SearchResult:
+      type: object
+      required: [id, type, content, channelId, senderId, timestamp, relevanceScore]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [message, event, user]
+        content:
+          type: string
+        channelId:
+          type: string
+          format: uuid
+        senderId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        relevanceScore:
+          type: number
+        highlights:
+          type: array
+          items:
+            type: string
+
+    # Request/Response DTOs
+    CreateChannelRequest:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 50
+        description:
+          type: string
+          maxLength: 200
+        type:
+          type: string
+          enum: [general, safety, events]
+        settings:
+          $ref: '#/components/schemas/ChannelSettings'
+
+    UpdateChannelRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 50
+        description:
+          type: string
+          maxLength: 200
+        settings:
+          $ref: '#/components/schemas/ChannelSettings'
+
+    SendMessageRequest:
+      type: object
+      required: [content, type]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        type:
+          type: string
+          enum: [text, image, file, event, system]
+        replyToId:
+          type: string
+          format: uuid
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageAttachment'
+
+    UpdateMessageRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 5000
+
+    CreateEventRequest:
+      type: object
+      required: [title, description, startDate, endDate, category]
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/EventLocation'
+        maxAttendees:
+          type: integer
+        visibility:
+          type: string
+          enum: [public, members, private]
+        category:
+          type: string
+          enum: [meeting, social, safety, emergency, other]
+        tags:
+          type: array
+          items:
+            type: string
+
+    UpdateEventRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/EventLocation'
+        maxAttendees:
+          type: integer
+        status:
+          type: string
+          enum: [draft, published, cancelled, completed]
+        visibility:
+          type: string
+          enum: [public, members, private]
+        category:
+          type: string
+          enum: [meeting, social, safety, emergency, other]
+        tags:
+          type: array
+          items:
+            type: string
+
+    RSVPRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [attending, declined, maybe]
+        comment:
+          type: string
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+          minLength: 2
+          maxLength: 50
+        avatar:
+          type: string
+          format: uri
+        preferences:
+          $ref: '#/components/schemas/UserPreferences'
+        language:
+          type: string
+          enum: [en, af]
+        timezone:
+          type: string
+
+  responses:
+    BadRequestError:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    UnauthorizedError:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ForbiddenError:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFoundError:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    RateLimitError:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: string
+        details:
+          type: object
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+tags:
+  - name: Channels
+    description: Channel management operations
+  - name: Messages
+    description: Message operations
+  - name: Events
+    description: Event management operations
+  - name: Profiles
+    description: User profile operations
+  - name: Search
+    description: Search functionality
+  - name: WebSocket
+    description: Real-time communication
