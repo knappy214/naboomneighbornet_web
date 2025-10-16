@@ -1,120 +1,316 @@
-/**
- * Accessibility Utilities Composable
- * Provides comprehensive accessibility features and helpers for the Community Communication Hub
- * Ensures WCAG 2.1 AA compliance and South African accessibility standards
- */
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
-import type { UserProfile } from '@/types/communication'
-
-interface AccessibilityConfig {
+// Accessibility types
+export interface AccessibilityConfig {
   enableScreenReader: boolean
   enableKeyboardNavigation: boolean
   enableHighContrast: boolean
-  enableLargeText: boolean
   enableReducedMotion: boolean
-  enableFocusManagement: boolean
-  enableARIALabels: boolean
-  enableColorBlindSupport: boolean
-  debug?: boolean
-}
-
-interface AccessibilitySettings {
+  enableFocusIndicators: boolean
   fontSize: 'small' | 'medium' | 'large' | 'extra-large'
-  contrast: 'normal' | 'high' | 'extra-high'
-  motion: 'normal' | 'reduced' | 'none'
-  focusIndicator: 'normal' | 'high' | 'extra-high'
-  screenReader: boolean
-  keyboardNavigation: boolean
-  colorBlindMode: 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia'
-  language: 'en' | 'af'
+  colorScheme: 'light' | 'dark' | 'auto'
+  language: string
+  announceChanges: boolean
 }
 
-interface FocusTrap {
-  element: HTMLElement
-  firstFocusable: HTMLElement | null
-  lastFocusable: HTMLElement | null
-  previousActiveElement: HTMLElement | null
-}
-
-interface Announcement {
+export interface AccessibilityViolation {
   id: string
+  type:
+    | 'missing-label'
+    | 'missing-alt'
+    | 'missing-heading'
+    | 'color-contrast'
+    | 'keyboard-navigation'
+    | 'focus-management'
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  element: string
   message: string
-  priority: 'polite' | 'assertive'
+  suggestion: string
   timestamp: Date
 }
 
-export function useAccessibility(config: Partial<AccessibilityConfig> = {}) {
-  // ============================================================================
-  // Configuration
-  // ============================================================================
+export interface AccessibilityAudit {
+  totalViolations: number
+  criticalViolations: number
+  highViolations: number
+  mediumViolations: number
+  lowViolations: number
+  violations: AccessibilityViolation[]
+  score: number
+  recommendations: string[]
+}
 
-  const defaultConfig: Required<AccessibilityConfig> = {
-    enableScreenReader: true,
-    enableKeyboardNavigation: true,
-    enableHighContrast: true,
-    enableLargeText: true,
-    enableReducedMotion: true,
-    enableFocusManagement: true,
-    enableARIALabels: true,
-    enableColorBlindSupport: true,
-    debug: false,
-  }
+// Accessibility state
+const config = ref<AccessibilityConfig>({
+  enableScreenReader: true,
+  enableKeyboardNavigation: true,
+  enableHighContrast: false,
+  enableReducedMotion: false,
+  enableFocusIndicators: true,
+  fontSize: 'medium',
+  colorScheme: 'auto',
+  language: 'en',
+  announceChanges: true,
+})
 
-  const a11yConfig = { ...defaultConfig, ...config }
+const violations = ref<AccessibilityViolation[]>([])
+const isAuditing = ref(false)
+const currentFocus = ref<HTMLElement | null>(null)
+const focusHistory = ref<HTMLElement[]>([])
 
-  // ============================================================================
-  // State
-  // ============================================================================
+export function useAccessibility() {
+  const { t, locale } = useI18n()
 
-  const isInitialized = ref(false)
-  const isScreenReaderActive = ref(false)
-  const isKeyboardNavigationActive = ref(false)
-  const currentFocusTrap = ref<FocusTrap | null>(null)
-  const announcements = reactive<Announcement[]>([])
+  // Computed properties
+  const hasViolations = computed(() => violations.value.length > 0)
+  const criticalViolations = computed(() =>
+    violations.value.filter((v) => v.severity === 'critical'),
+  )
+  const highViolations = computed(() => violations.value.filter((v) => v.severity === 'high'))
+  const mediumViolations = computed(() => violations.value.filter((v) => v.severity === 'medium'))
+  const lowViolations = computed(() => violations.value.filter((v) => v.severity === 'low'))
 
-  const settings = reactive<AccessibilitySettings>({
-    fontSize: 'medium',
-    contrast: 'normal',
-    motion: 'normal',
-    focusIndicator: 'normal',
-    screenReader: true,
-    keyboardNavigation: true,
-    colorBlindMode: 'none',
-    language: 'en',
+  const accessibilityScore = computed(() => {
+    if (violations.value.length === 0) return 100
+
+    const criticalWeight = criticalViolations.value.length * 10
+    const highWeight = highViolations.value.length * 5
+    const mediumWeight = mediumViolations.value.length * 2
+    const lowWeight = lowViolations.value.length * 1
+
+    const totalWeight = criticalWeight + highWeight + mediumWeight + lowWeight
+    return Math.max(0, 100 - totalWeight)
   })
 
-  // ============================================================================
-  // Screen Reader Support
-  // ============================================================================
+  // Initialize accessibility
+  function initializeAccessibility() {
+    loadConfig()
+    setupKeyboardNavigation()
+    setupScreenReaderSupport()
+    setupFocusManagement()
+    setupColorContrast()
+    setupReducedMotion()
+    setupFontSize()
+  }
 
-  /**
-   * Initialize screen reader support
-   */
-  function initializeScreenReader(): void {
-    if (!a11yConfig.enableScreenReader) return
+  // Load configuration from localStorage
+  function loadConfig() {
+    const saved = localStorage.getItem('accessibility_config')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        config.value = { ...config.value, ...parsed }
+      } catch (error) {
+        console.warn('Failed to load accessibility config:', error)
+      }
+    }
+  }
+
+  // Save configuration to localStorage
+  function saveConfig() {
+    localStorage.setItem('accessibility_config', JSON.stringify(config.value))
+  }
+
+  // Update configuration
+  function updateConfig(updates: Partial<AccessibilityConfig>) {
+    config.value = { ...config.value, ...updates }
+    saveConfig()
+    applyConfig()
+  }
+
+  // Apply configuration changes
+  function applyConfig() {
+    applyFontSize()
+    applyColorScheme()
+    applyReducedMotion()
+    applyHighContrast()
+    applyFocusIndicators()
+  }
+
+  // Font size management
+  function applyFontSize() {
+    const root = document.documentElement
+    const sizeMap = {
+      small: '14px',
+      medium: '16px',
+      large: '18px',
+      'extra-large': '20px',
+    }
+
+    root.style.fontSize = sizeMap[config.value.fontSize]
+  }
+
+  // Color scheme management
+  function applyColorScheme() {
+    const root = document.documentElement
+
+    if (config.value.colorScheme === 'auto') {
+      root.removeAttribute('data-color-scheme')
+    } else {
+      root.setAttribute('data-color-scheme', config.value.colorScheme)
+    }
+  }
+
+  // Reduced motion management
+  function applyReducedMotion() {
+    const root = document.documentElement
+
+    if (config.value.enableReducedMotion) {
+      root.style.setProperty('--motion-duration', '0s')
+      root.style.setProperty('--motion-delay', '0s')
+    } else {
+      root.style.removeProperty('--motion-duration')
+      root.style.removeProperty('--motion-delay')
+    }
+  }
+
+  // High contrast management
+  function applyHighContrast() {
+    const root = document.documentElement
+
+    if (config.value.enableHighContrast) {
+      root.classList.add('high-contrast')
+    } else {
+      root.classList.remove('high-contrast')
+    }
+  }
+
+  // Focus indicators management
+  function applyFocusIndicators() {
+    const root = document.documentElement
+
+    if (config.value.enableFocusIndicators) {
+      root.classList.add('focus-indicators')
+    } else {
+      root.classList.remove('focus-indicators')
+    }
+  }
+
+  // Keyboard navigation setup
+  function setupKeyboardNavigation() {
+    if (!config.value.enableKeyboardNavigation) return
+
+    document.addEventListener('keydown', handleKeyboardNavigation)
+  }
+
+  function handleKeyboardNavigation(event: KeyboardEvent) {
+    // Skip if user is typing in an input
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement ||
+      event.target instanceof HTMLSelectElement
+    ) {
+      return
+    }
+
+    switch (event.key) {
+      case 'Tab':
+        handleTabNavigation(event)
+        break
+      case 'Escape':
+        handleEscapeKey(event)
+        break
+      case 'Enter':
+      case ' ':
+        handleActivationKey(event)
+        break
+      case 'ArrowUp':
+      case 'ArrowDown':
+      case 'ArrowLeft':
+      case 'ArrowRight':
+        handleArrowNavigation(event)
+        break
+    }
+  }
+
+  function handleTabNavigation(event: KeyboardEvent) {
+    const focusableElements = getFocusableElements()
+    const currentIndex = focusableElements.indexOf(document.activeElement as HTMLElement)
+
+    if (event.shiftKey) {
+      // Shift + Tab: move backwards
+      if (currentIndex > 0) {
+        focusableElements[currentIndex - 1].focus()
+      } else {
+        focusableElements[focusableElements.length - 1].focus()
+      }
+    } else {
+      // Tab: move forwards
+      if (currentIndex < focusableElements.length - 1) {
+        focusableElements[currentIndex + 1].focus()
+      } else {
+        focusableElements[0].focus()
+      }
+    }
+
+    event.preventDefault()
+  }
+
+  function handleEscapeKey(event: KeyboardEvent) {
+    // Close any open modals, dropdowns, or menus
+    const modals = document.querySelectorAll('.modal[open]')
+    modals.forEach((modal) => {
+      const closeButton = modal.querySelector('[data-modal-close]') as HTMLElement
+      if (closeButton) {
+        closeButton.click()
+      }
+    })
+  }
+
+  function handleActivationKey(event: KeyboardEvent) {
+    const target = event.target as HTMLElement
+    if (target && (target.tagName === 'BUTTON' || target.getAttribute('role') === 'button')) {
+      target.click()
+    }
+  }
+
+  function handleArrowNavigation(event: KeyboardEvent) {
+    // Implement arrow key navigation for custom components
+    const target = event.target as HTMLElement
+    const parent = target.closest('[role="menu"], [role="tablist"], [role="radiogroup"]')
+
+    if (parent) {
+      const items = Array.from(
+        parent.querySelectorAll('[role="menuitem"], [role="tab"], [role="radio"]'),
+      )
+      const currentIndex = items.indexOf(target)
+
+      let nextIndex = currentIndex
+      switch (event.key) {
+        case 'ArrowUp':
+        case 'ArrowLeft':
+          nextIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1
+          break
+        case 'ArrowDown':
+        case 'ArrowRight':
+          nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0
+          break
+      }
+
+      if (nextIndex !== currentIndex) {
+        ;(items[nextIndex] as HTMLElement).focus()
+        event.preventDefault()
+      }
+    }
+  }
+
+  // Screen reader support
+  function setupScreenReaderSupport() {
+    if (!config.value.enableScreenReader) return
 
     // Create live region for announcements
     createLiveRegion()
 
-    // Detect screen reader usage
-    detectScreenReader()
-
-    // Setup ARIA labels
-    setupARIALabels()
-
-    log('Screen reader support initialized')
+    // Monitor DOM changes for announcements
+    setupChangeAnnouncements()
   }
 
-  /**
-   * Create live region for announcements
-   */
-  function createLiveRegion(): void {
-    let liveRegion = document.getElementById('a11y-live-region')
-
+  function createLiveRegion() {
+    let liveRegion = document.getElementById('accessibility-live-region')
     if (!liveRegion) {
       liveRegion = document.createElement('div')
-      liveRegion.id = 'a11y-live-region'
+      liveRegion.id = 'accessibility-live-region'
       liveRegion.setAttribute('aria-live', 'polite')
       liveRegion.setAttribute('aria-atomic', 'true')
       liveRegion.style.position = 'absolute'
@@ -126,43 +322,10 @@ export function useAccessibility(config: Partial<AccessibilityConfig> = {}) {
     }
   }
 
-  /**
-   * Detect screen reader usage
-   */
-  function detectScreenReader(): void {
-    // Check for screen reader indicators
-    const hasScreenReader =
-      window.navigator.userAgent.includes('NVDA') ||
-      window.navigator.userAgent.includes('JAWS') ||
-      window.navigator.userAgent.includes('VoiceOver') ||
-      window.navigator.userAgent.includes('TalkBack') ||
-      window.navigator.userAgent.includes('Orca') ||
-      window.navigator.userAgent.includes('ChromeVox')
+  function announceToScreenReader(message: string, priority: 'polite' | 'assertive' = 'polite') {
+    if (!config.value.announceChanges) return
 
-    isScreenReaderActive.value = hasScreenReader
-
-    if (hasScreenReader) {
-      log('Screen reader detected')
-    }
-  }
-
-  /**
-   * Announce message to screen readers
-   */
-  function announce(message: string, priority: 'polite' | 'assertive' = 'polite'): void {
-    if (!a11yConfig.enableScreenReader) return
-
-    const announcement: Announcement = {
-      id: `announcement-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      message,
-      priority,
-      timestamp: new Date(),
-    }
-
-    announcements.push(announcement)
-
-    // Update live region
-    const liveRegion = document.getElementById('a11y-live-region')
+    const liveRegion = document.getElementById('accessibility-live-region')
     if (liveRegion) {
       liveRegion.setAttribute('aria-live', priority)
       liveRegion.textContent = message
@@ -172,441 +335,110 @@ export function useAccessibility(config: Partial<AccessibilityConfig> = {}) {
         liveRegion.textContent = ''
       }, 1000)
     }
-
-    log('Announced:', message, priority)
   }
 
-  /**
-   * Setup ARIA labels for common elements
-   */
-  function setupARIALabels(): void {
-    if (!a11yConfig.enableARIALabels) return
-
-    // This would be implemented by individual components
-    // For now, we'll provide the structure
-    log('ARIA labels setup initialized')
-  }
-
-  // ============================================================================
-  // Keyboard Navigation
-  // ============================================================================
-
-  /**
-   * Initialize keyboard navigation
-   */
-  function initializeKeyboardNavigation(): void {
-    if (!a11yConfig.enableKeyboardNavigation) return
-
-    // Setup keyboard event listeners
-    document.addEventListener('keydown', handleKeyboardNavigation)
-
-    // Setup focus management
-    setupFocusManagement()
-
-    isKeyboardNavigationActive.value = true
-
-    log('Keyboard navigation initialized')
-  }
-
-  /**
-   * Handle keyboard navigation
-   */
-  function handleKeyboardNavigation(event: KeyboardEvent): void {
-    if (!a11yConfig.enableKeyboardNavigation) return
-
-    const { key, ctrlKey, altKey, shiftKey, metaKey } = event
-
-    // Skip if modifier keys are pressed (except Shift for Tab)
-    if (ctrlKey || altKey || metaKey) return
-
-    switch (key) {
-      case 'Tab':
-        handleTabNavigation(event)
-        break
-      case 'Enter':
-      case ' ':
-        handleActivation(event)
-        break
-      case 'Escape':
-        handleEscape(event)
-        break
-      case 'ArrowUp':
-      case 'ArrowDown':
-      case 'ArrowLeft':
-      case 'ArrowRight':
-        handleArrowNavigation(event)
-        break
-      case 'Home':
-        handleHomeNavigation(event)
-        break
-      case 'End':
-        handleEndNavigation(event)
-        break
-    }
-  }
-
-  /**
-   * Handle Tab navigation
-   */
-  function handleTabNavigation(event: KeyboardEvent): void {
-    if (currentFocusTrap.value) {
-      const { firstFocusable, lastFocusable } = currentFocusTrap.value
-
-      if (event.shiftKey) {
-        // Shift + Tab: move backwards
-        if (document.activeElement === firstFocusable) {
-          event.preventDefault()
-          lastFocusable?.focus()
+  function setupChangeAnnouncements() {
+    // Monitor for important changes that should be announced
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as HTMLElement
+              if (element.hasAttribute('aria-live') || element.classList.contains('announce')) {
+                const message = element.textContent || element.getAttribute('aria-label')
+                if (message) {
+                  announceToScreenReader(message)
+                }
+              }
+            }
+          })
         }
-      } else {
-        // Tab: move forwards
-        if (document.activeElement === lastFocusable) {
-          event.preventDefault()
-          firstFocusable?.focus()
-        }
-      }
-    }
+      })
+    })
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    })
   }
 
-  /**
-   * Handle activation (Enter/Space)
-   */
-  function handleActivation(event: KeyboardEvent): void {
-    const target = event.target as HTMLElement
-
-    if (target && (target.tagName === 'BUTTON' || target.getAttribute('role') === 'button')) {
-      event.preventDefault()
-      target.click()
-    }
-  }
-
-  /**
-   * Handle Escape key
-   */
-  function handleEscape(event: KeyboardEvent): void {
-    // Close modals, dropdowns, etc.
-    const modals = document.querySelectorAll('[role="dialog"]')
-    if (modals.length > 0) {
-      const lastModal = modals[modals.length - 1] as HTMLElement
-      const closeButton = lastModal.querySelector(
-        '[aria-label*="close"], [aria-label*="Close"]',
-      ) as HTMLElement
-      if (closeButton) {
-        closeButton.click()
-      }
-    }
-  }
-
-  /**
-   * Handle arrow key navigation
-   */
-  function handleArrowNavigation(event: KeyboardEvent): void {
-    const target = event.target as HTMLElement
-
-    if (target && target.getAttribute('role') === 'menu') {
-      event.preventDefault()
-      // Implement menu navigation
-    } else if (target && target.getAttribute('role') === 'tablist') {
-      event.preventDefault()
-      // Implement tab navigation
-    }
-  }
-
-  /**
-   * Handle Home key navigation
-   */
-  function handleHomeNavigation(event: KeyboardEvent): void {
-    const target = event.target as HTMLElement
-
-    if (target && target.getAttribute('role') === 'menu') {
-      event.preventDefault()
-      const firstItem = target.querySelector('[role="menuitem"]:first-child') as HTMLElement
-      firstItem?.focus()
-    }
-  }
-
-  /**
-   * Handle End key navigation
-   */
-  function handleEndNavigation(event: KeyboardEvent): void {
-    const target = event.target as HTMLElement
-
-    if (target && target.getAttribute('role') === 'menu') {
-      event.preventDefault()
-      const lastItem = target.querySelector('[role="menuitem"]:last-child') as HTMLElement
-      lastItem?.focus()
-    }
-  }
-
-  // ============================================================================
-  // Focus Management
-  // ============================================================================
-
-  /**
-   * Setup focus management
-   */
-  function setupFocusManagement(): void {
-    if (!a11yConfig.enableFocusManagement) return
-
-    // Track focus changes
+  // Focus management
+  function setupFocusManagement() {
     document.addEventListener('focusin', handleFocusIn)
     document.addEventListener('focusout', handleFocusOut)
-
-    log('Focus management initialized')
   }
 
-  /**
-   * Handle focus in
-   */
-  function handleFocusIn(event: FocusEvent): void {
+  function handleFocusIn(event: FocusEvent) {
     const target = event.target as HTMLElement
+    currentFocus.value = target
+    focusHistory.value.push(target)
 
-    if (target) {
-      // Add focus indicator
-      target.classList.add('a11y-focused')
+    // Keep only last 10 focus elements
+    if (focusHistory.value.length > 10) {
+      focusHistory.value = focusHistory.value.slice(-10)
+    }
+  }
 
-      // Announce focus changes for screen readers
-      if (isScreenReaderActive.value) {
-        const label =
-          target.getAttribute('aria-label') ||
-          target.getAttribute('aria-labelledby') ||
-          target.textContent?.trim()
+  function handleFocusOut(event: FocusEvent) {
+    // Focus management logic
+  }
 
-        if (label) {
-          announce(`Focused: ${label}`)
+  // Focus utilities
+  function focusElement(selector: string) {
+    const element = document.querySelector(selector) as HTMLElement
+    if (element) {
+      element.focus()
+      currentFocus.value = element
+    }
+  }
+
+  function focusFirstFocusable() {
+    const focusableElements = getFocusableElements()
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus()
+    }
+  }
+
+  function focusLastFocusable() {
+    const focusableElements = getFocusableElements()
+    if (focusableElements.length > 0) {
+      focusableElements[focusableElements.length - 1].focus()
+    }
+  }
+
+  function trapFocus(container: HTMLElement) {
+    const focusableElements = getFocusableElements(container)
+    if (focusableElements.length === 0) return
+
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Tab') {
+        if (event.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement.focus()
+            event.preventDefault()
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement.focus()
+            event.preventDefault()
+          }
         }
       }
     }
-  }
 
-  /**
-   * Handle focus out
-   */
-  function handleFocusOut(event: FocusEvent): void {
-    const target = event.target as HTMLElement
+    container.addEventListener('keydown', handleKeyDown)
+    firstElement.focus()
 
-    if (target) {
-      // Remove focus indicator
-      target.classList.remove('a11y-focused')
+    return () => {
+      container.removeEventListener('keydown', handleKeyDown)
     }
   }
 
-  /**
-   * Trap focus within an element
-   */
-  function trapFocus(element: HTMLElement): void {
-    const focusableElements = element.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    ) as NodeListOf<HTMLElement>
-
-    const firstFocusable = focusableElements[0] || null
-    const lastFocusable = focusableElements[focusableElements.length - 1] || null
-
-    currentFocusTrap.value = {
-      element,
-      firstFocusable,
-      lastFocusable,
-      previousActiveElement: document.activeElement as HTMLElement,
-    }
-
-    // Focus first element
-    firstFocusable?.focus()
-
-    log('Focus trapped in element')
-  }
-
-  /**
-   * Release focus trap
-   */
-  function releaseFocusTrap(): void {
-    if (currentFocusTrap.value) {
-      // Restore previous focus
-      currentFocusTrap.value.previousActiveElement?.focus()
-
-      currentFocusTrap.value = null
-
-      log('Focus trap released')
-    }
-  }
-
-  // ============================================================================
-  // Visual Accessibility
-  // ============================================================================
-
-  /**
-   * Apply accessibility settings
-   */
-  function applyAccessibilitySettings(): void {
-    const root = document.documentElement
-
-    // Apply font size
-    root.style.setProperty('--a11y-font-size', getFontSizeValue(settings.fontSize))
-
-    // Apply contrast
-    root.style.setProperty('--a11y-contrast', getContrastValue(settings.contrast))
-
-    // Apply motion
-    root.style.setProperty('--a11y-motion', getMotionValue(settings.motion))
-
-    // Apply focus indicator
-    root.style.setProperty(
-      '--a11y-focus-indicator',
-      getFocusIndicatorValue(settings.focusIndicator),
-    )
-
-    // Apply color blind support
-    if (settings.colorBlindMode !== 'none') {
-      root.classList.add(`a11y-colorblind-${settings.colorBlindMode}`)
-    } else {
-      root.classList.remove(
-        'a11y-colorblind-protanopia',
-        'a11y-colorblind-deuteranopia',
-        'a11y-colorblind-tritanopia',
-      )
-    }
-
-    log('Accessibility settings applied')
-  }
-
-  /**
-   * Get font size value
-   */
-  function getFontSizeValue(size: string): string {
-    const sizes = {
-      small: '0.875rem',
-      medium: '1rem',
-      large: '1.125rem',
-      'extra-large': '1.25rem',
-    }
-    return sizes[size as keyof typeof sizes] || '1rem'
-  }
-
-  /**
-   * Get contrast value
-   */
-  function getContrastValue(contrast: string): string {
-    const contrasts = {
-      normal: '1',
-      high: '1.5',
-      'extra-high': '2',
-    }
-    return contrasts[contrast as keyof typeof contrasts] || '1'
-  }
-
-  /**
-   * Get motion value
-   */
-  function getMotionValue(motion: string): string {
-    const motions = {
-      normal: '1',
-      reduced: '0.5',
-      none: '0',
-    }
-    return motions[motion as keyof typeof motions] || '1'
-  }
-
-  /**
-   * Get focus indicator value
-   */
-  function getFocusIndicatorValue(indicator: string): string {
-    const indicators = {
-      normal: '2px solid #0066cc',
-      high: '3px solid #0066cc',
-      'extra-high': '4px solid #0066cc',
-    }
-    return indicators[indicator as keyof typeof indicators] || '2px solid #0066cc'
-  }
-
-  // ============================================================================
-  // Language Support
-  // ============================================================================
-
-  /**
-   * Setup language support
-   */
-  function setupLanguageSupport(): void {
-    // Set document language
-    document.documentElement.lang = settings.language
-
-    // Setup RTL support for Afrikaans if needed
-    if (settings.language === 'af') {
-      // Afrikaans is LTR, but we can add specific support if needed
-      document.documentElement.dir = 'ltr'
-    }
-
-    log('Language support initialized:', settings.language)
-  }
-
-  /**
-   * Update language
-   */
-  function updateLanguage(language: 'en' | 'af'): void {
-    settings.language = language
-    setupLanguageSupport()
-    announce(`Language changed to ${language === 'en' ? 'English' : 'Afrikaans'}`)
-  }
-
-  // ============================================================================
-  // User Preferences
-  // ============================================================================
-
-  /**
-   * Load user preferences
-   */
-  function loadUserPreferences(user: UserProfile): void {
-    if (user.preferences) {
-      // Map user preferences to accessibility settings
-      if (user.preferences.theme === 'dark') {
-        settings.contrast = 'high'
-      }
-
-      if (user.preferences.messageDisplay === 'comfortable') {
-        settings.fontSize = 'large'
-      }
-
-      if (user.language) {
-        settings.language = user.language
-      }
-    }
-
-    applyAccessibilitySettings()
-    log('User preferences loaded')
-  }
-
-  /**
-   * Save accessibility settings
-   */
-  function saveAccessibilitySettings(): void {
-    // Save to localStorage
-    localStorage.setItem('a11y-settings', JSON.stringify(settings))
-    log('Accessibility settings saved')
-  }
-
-  /**
-   * Load accessibility settings
-   */
-  function loadAccessibilitySettings(): void {
-    try {
-      const saved = localStorage.getItem('a11y-settings')
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        Object.assign(settings, parsed)
-        applyAccessibilitySettings()
-        log('Accessibility settings loaded')
-      }
-    } catch (error) {
-      log('Failed to load accessibility settings:', error)
-    }
-  }
-
-  // ============================================================================
-  // Utility Functions
-  // ============================================================================
-
-  /**
-   * Check if element is focusable
-   */
-  function isFocusable(element: HTMLElement): boolean {
+  function getFocusableElements(container: HTMLElement = document.body): HTMLElement[] {
     const focusableSelectors = [
       'button:not([disabled])',
       'input:not([disabled])',
@@ -614,141 +446,276 @@ export function useAccessibility(config: Partial<AccessibilityConfig> = {}) {
       'textarea:not([disabled])',
       'a[href]',
       '[tabindex]:not([tabindex="-1"])',
+      '[role="button"]:not([disabled])',
+      '[role="menuitem"]',
+      '[role="tab"]',
+      '[role="radio"]',
+      '[role="checkbox"]',
     ]
 
-    return focusableSelectors.some((selector) => element.matches(selector))
+    const elements = container.querySelectorAll(focusableSelectors.join(', '))
+    return Array.from(elements) as HTMLElement[]
   }
 
-  /**
-   * Get accessible name for element
-   */
-  function getAccessibleName(element: HTMLElement): string {
-    return (
-      element.getAttribute('aria-label') ||
-      element.getAttribute('aria-labelledby') ||
-      element.textContent?.trim() ||
-      element.getAttribute('alt') ||
-      element.getAttribute('title') ||
-      ''
-    )
+  // Color contrast checking
+  function setupColorContrast() {
+    if (!config.value.enableHighContrast) return
+
+    // Add high contrast styles
+    const style = document.createElement('style')
+    style.textContent = `
+      .high-contrast {
+        --color-primary: #000000;
+        --color-secondary: #000000;
+        --color-accent: #000000;
+        --color-neutral: #000000;
+        --color-base-100: #ffffff;
+        --color-base-200: #f0f0f0;
+        --color-base-300: #e0e0e0;
+        --color-base-content: #000000;
+        --color-info: #0000ff;
+        --color-success: #008000;
+        --color-warning: #ff8000;
+        --color-error: #ff0000;
+      }
+
+      .high-contrast * {
+        border-color: currentColor !important;
+      }
+
+      .high-contrast button,
+      .high-contrast input,
+      .high-contrast select,
+      .high-contrast textarea {
+        border: 2px solid currentColor !important;
+      }
+    `
+    document.head.appendChild(style)
   }
 
-  /**
-   * Check if element is visible to screen readers
-   */
-  function isVisibleToScreenReader(element: HTMLElement): boolean {
-    const style = window.getComputedStyle(element)
-    return (
-      style.display !== 'none' &&
-      style.visibility !== 'hidden' &&
-      element.getAttribute('aria-hidden') !== 'true'
-    )
+  // Accessibility audit
+  function startAudit() {
+    isAuditing.value = true
+    violations.value = []
+
+    // Run various accessibility checks
+    checkMissingLabels()
+    checkMissingAltText()
+    checkMissingHeadings()
+    checkColorContrast()
+    checkKeyboardNavigation()
+    checkFocusManagement()
+
+    isAuditing.value = false
   }
 
-  // ============================================================================
-  // Computed Properties
-  // ============================================================================
+  function checkMissingLabels() {
+    const inputs = document.querySelectorAll('input:not([type="hidden"]), select, textarea')
 
-  const isAccessible = computed(
-    () => isScreenReaderActive.value || isKeyboardNavigationActive.value,
-  )
+    inputs.forEach((input) => {
+      const element = input as HTMLElement
+      const id = element.getAttribute('id')
+      const ariaLabel = element.getAttribute('aria-label')
+      const ariaLabelledBy = element.getAttribute('aria-labelledby')
 
-  const hasAnnouncements = computed(() => announcements.length > 0)
+      if (!id && !ariaLabel && !ariaLabelledBy) {
+        const label = document.querySelector(`label[for="${id}"]`)
+        if (!label) {
+          addViolation({
+            type: 'missing-label',
+            severity: 'high',
+            element: element.tagName.toLowerCase(),
+            message: 'Form element missing accessible label',
+            suggestion: 'Add aria-label, aria-labelledby, or associate with a label element',
+          })
+        }
+      }
+    })
+  }
 
-  // ============================================================================
-  // Lifecycle Management
-  // ============================================================================
+  function checkMissingAltText() {
+    const images = document.querySelectorAll('img')
 
-  /**
-   * Initialize accessibility
-   */
-  async function initialize(): Promise<void> {
-    if (isInitialized.value) return
+    images.forEach((img) => {
+      const element = img as HTMLImageElement
+      const alt = element.getAttribute('alt')
+      const role = element.getAttribute('role')
 
-    try {
-      // Load saved settings
-      loadAccessibilitySettings()
+      if (!alt && role !== 'presentation') {
+        addViolation({
+          type: 'missing-alt',
+          severity: 'high',
+          element: 'img',
+          message: 'Image missing alt text',
+          suggestion: 'Add descriptive alt text or role="presentation" for decorative images',
+        })
+      }
+    })
+  }
 
-      // Initialize features
-      initializeScreenReader()
-      initializeKeyboardNavigation()
-      setupLanguageSupport()
+  function checkMissingHeadings() {
+    const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
+    const headingLevels = Array.from(headings).map((h) => parseInt(h.tagName.charAt(1)))
 
-      // Apply settings
-      applyAccessibilitySettings()
-
-      isInitialized.value = true
-
-      log('Accessibility initialized')
-    } catch (error) {
-      log('Accessibility initialization failed:', error)
-      throw error
+    if (headingLevels.length === 0) {
+      addViolation({
+        type: 'missing-heading',
+        severity: 'medium',
+        element: 'page',
+        message: 'Page missing heading structure',
+        suggestion: 'Add heading elements to create a logical document structure',
+      })
+    } else if (!headingLevels.includes(1)) {
+      addViolation({
+        type: 'missing-heading',
+        severity: 'high',
+        element: 'page',
+        message: 'Page missing h1 heading',
+        suggestion: 'Add an h1 element to identify the main content',
+      })
     }
   }
 
-  /**
-   * Cleanup accessibility
-   */
-  function cleanup(): void {
-    // Remove event listeners
-    document.removeEventListener('keydown', handleKeyboardNavigation)
-    document.removeEventListener('focusin', handleFocusIn)
-    document.removeEventListener('focusout', handleFocusOut)
+  function checkColorContrast() {
+    // This is a simplified check - in a real implementation, you'd use a proper contrast checking library
+    const elements = document.querySelectorAll('*')
 
-    // Clear focus trap
-    releaseFocusTrap()
+    elements.forEach((element) => {
+      const htmlElement = element as HTMLElement
+      const computedStyle = window.getComputedStyle(htmlElement)
+      const color = computedStyle.color
+      const backgroundColor = computedStyle.backgroundColor
 
-    // Clear announcements
-    announcements.splice(0)
-
-    isInitialized.value = false
-    isScreenReaderActive.value = false
-    isKeyboardNavigationActive.value = false
-
-    log('Accessibility cleaned up')
+      // Basic contrast check (simplified)
+      if (color && backgroundColor && color !== backgroundColor) {
+        // In a real implementation, you'd calculate the actual contrast ratio
+        // For now, we'll just check if colors are different
+      }
+    })
   }
 
-  // ============================================================================
-  // Logging
-  // ============================================================================
+  function checkKeyboardNavigation() {
+    const focusableElements = getFocusableElements()
 
-  function log(...args: any[]): void {
-    if (a11yConfig.debug) {
-      console.log('[Accessibility]', ...args)
+    focusableElements.forEach((element) => {
+      const tabIndex = element.getAttribute('tabindex')
+      if (tabIndex === '-1' && !element.hasAttribute('aria-hidden')) {
+        addViolation({
+          type: 'keyboard-navigation',
+          severity: 'medium',
+          element: element.tagName.toLowerCase(),
+          message: 'Element not keyboard accessible',
+          suggestion: 'Remove tabindex="-1" or add proper keyboard navigation',
+        })
+      }
+    })
+  }
+
+  function checkFocusManagement() {
+    // Check for focus traps and proper focus management
+    const modals = document.querySelectorAll('.modal, [role="dialog"]')
+
+    modals.forEach((modal) => {
+      const focusableElements = getFocusableElements(modal as HTMLElement)
+      if (focusableElements.length === 0) {
+        addViolation({
+          type: 'focus-management',
+          severity: 'high',
+          element: 'modal',
+          message: 'Modal missing focusable elements',
+          suggestion: 'Add focusable elements or ensure proper focus management',
+        })
+      }
+    })
+  }
+
+  function addViolation(violation: Omit<AccessibilityViolation, 'id' | 'timestamp'>) {
+    const newViolation: AccessibilityViolation = {
+      ...violation,
+      id: `violation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date(),
+    }
+
+    violations.value.push(newViolation)
+  }
+
+  // Generate accessibility audit report
+  function generateAuditReport(): AccessibilityAudit {
+    const totalViolations = violations.value.length
+    const criticalViolations = criticalViolations.value.length
+    const highViolations = highViolations.value.length
+    const mediumViolations = mediumViolations.value.length
+    const lowViolations = lowViolations.value.length
+
+    const recommendations: string[] = []
+
+    if (criticalViolations > 0) {
+      recommendations.push('Fix critical accessibility violations immediately')
+    }
+    if (highViolations > 0) {
+      recommendations.push('Address high-priority accessibility issues')
+    }
+    if (mediumViolations > 0) {
+      recommendations.push('Improve medium-priority accessibility issues')
+    }
+    if (lowViolations > 0) {
+      recommendations.push('Consider addressing low-priority accessibility issues')
+    }
+
+    if (totalViolations === 0) {
+      recommendations.push('Great job! No accessibility violations found')
+    }
+
+    return {
+      totalViolations,
+      criticalViolations,
+      highViolations,
+      mediumViolations,
+      lowViolations,
+      violations: violations.value,
+      score: accessibilityScore.value,
+      recommendations,
     }
   }
 
-  // ============================================================================
-  // Composable API
-  // ============================================================================
+  // Clear violations
+  function clearViolations() {
+    violations.value = []
+  }
+
+  // Lifecycle
+  onMounted(() => {
+    initializeAccessibility()
+  })
+
+  onUnmounted(() => {
+    // Cleanup if needed
+  })
 
   return {
     // State
-    isInitialized: computed(() => isInitialized.value),
-    isScreenReaderActive: computed(() => isScreenReaderActive.value),
-    isKeyboardNavigationActive: computed(() => isKeyboardNavigationActive.value),
-    settings: computed(() => settings),
-    announcements: computed(() => announcements),
+    config,
+    violations,
+    isAuditing,
+    currentFocus,
+    focusHistory,
+    hasViolations,
+    criticalViolations,
+    highViolations,
+    mediumViolations,
+    lowViolations,
+    accessibilityScore,
 
-    // Computed
-    isAccessible,
-    hasAnnouncements,
-
-    // Functions
-    announce,
+    // Methods
+    updateConfig,
+    announceToScreenReader,
+    focusElement,
+    focusFirstFocusable,
+    focusLastFocusable,
     trapFocus,
-    releaseFocusTrap,
-    applyAccessibilitySettings,
-    updateLanguage,
-    loadUserPreferences,
-    saveAccessibilitySettings,
-    loadAccessibilitySettings,
-    isFocusable,
-    getAccessibleName,
-    isVisibleToScreenReader,
-
-    // Lifecycle
-    initialize,
-    cleanup,
+    getFocusableElements,
+    startAudit,
+    generateAuditReport,
+    clearViolations,
   }
 }
