@@ -104,14 +104,14 @@ description: 'Task list for Community Communication Hub feature implementation'
 
 ### Implementation for User Story 2
 
-- [ ] T035 [P] [US2] Create LanguageAwareMessage component in src/components/hub/LanguageAwareMessage.vue
-- [ ] T036 [P] [US2] Create LanguageSwitcher component in src/components/hub/LanguageSwitcher.vue
-- [ ] T037 [US2] Implement dynamic locale switching in communication components
-- [ ] T038 [US2] Add RTL support for Afrikaans text rendering
-- [ ] T039 [US2] Localize all communication UI elements and messages
-- [ ] T040 [US2] Implement language-aware notification system
-- [ ] T041 [US2] Add language detection and automatic locale setting
-- [ ] T042 [US2] Implement language-specific message formatting and validation
+- [x] T035 [P] [US2] Create LanguageAwareMessage component in src/components/hub/LanguageAwareMessage.vue
+- [x] T036 [P] [US2] Create LanguageSwitcher component in src/components/hub/LanguageSwitcher.vue
+- [x] T037 [US2] Implement dynamic locale switching in communication components
+- [x] T038 [US2] Add RTL support for Afrikaans text rendering
+- [x] T039 [US2] Localize all communication UI elements and messages
+- [x] T040 [US2] Implement language-aware notification system
+- [x] T041 [US2] Add language detection and automatic locale setting
+- [x] T042 [US2] Implement language-specific message formatting and validation
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 

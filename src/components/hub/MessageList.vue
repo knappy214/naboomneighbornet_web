@@ -96,8 +96,13 @@
 
           <!-- Regular Message -->
           <div v-else class="message-regular">
-            <!-- Message Text -->
-            <div class="message-text" v-html="formatMessageContent(message.content)"></div>
+            <!-- Message Text with Language Awareness -->
+            <LanguageAwareMessage
+              :message="message"
+              :show-language-indicator="true"
+              :show-translation-options="true"
+              :auto-translate="false"
+            />
 
             <!-- Message Attachments -->
             <div v-if="message.metadata.attachments?.length" class="message-attachments">
@@ -256,6 +261,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useCommunicationStore } from '@/stores/hub/communication'
 import { useAccessibility } from '@/composables/useAccessibility'
+import LanguageAwareMessage from './LanguageAwareMessage.vue'
 import type { Message, TypingIndicator } from '@/types/communication'
 
 // ============================================================================
