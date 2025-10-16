@@ -158,8 +158,8 @@ description: 'Task list for Community Communication Hub feature implementation'
 ### Implementation for User Story 4
 
 - [x] T056 [P] [US4] Create UserProfile component in src/components/hub/UserProfile.vue
-- [ ] T057 [P] [US4] Create ProfileEditor component in src/components/hub/ProfileEditor.vue
-- [ ] T058 [P] [US4] Create ProfileHub main component in src/components/hub/ProfileHub.vue
+- [x] T057 [P] [US4] Create ProfileEditor component in src/components/hub/ProfileEditor.vue
+- [x] T058 [P] [US4] Create ProfileHub main component in src/components/hub/ProfileHub.vue
 - [x] T059 [US4] Implement user service in src/services/userService.ts
 - [x] T060 [US4] Create usePermissions composable in src/composables/usePermissions.ts
 - [x] T061 [US4] Implement user profile display and editing
