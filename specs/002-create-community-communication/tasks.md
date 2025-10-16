@@ -209,16 +209,16 @@ description: 'Task list for Community Communication Hub feature implementation'
 
 ### Implementation for User Story 6
 
-- [ ] T076 [P] [US6] Create MessageSearch component in src/components/hub/MessageSearch.vue
-- [ ] T077 [P] [US6] Create SearchResults component in src/components/hub/SearchResults.vue
-- [ ] T078 [P] [US6] Create SearchHub main component in src/components/hub/SearchHub.vue
-- [ ] T079 [US6] Implement search service in src/services/searchService.ts
-- [ ] T080 [US6] Create useSearch composable in src/composables/useSearch.ts
-- [ ] T081 [US6] Implement full-text search across messages
-- [ ] T082 [US6] Add advanced filtering by channel, user, date range, and content type
-- [ ] T083 [US6] Implement search result highlighting and navigation
-- [ ] T084 [US6] Add search history and saved searches functionality
-- [ ] T085 [US6] Implement search performance optimization with pagination
+- [x] T076 [P] [US6] Create MessageSearch component in src/components/hub/MessageSearch.vue
+- [x] T077 [P] [US6] Create SearchResults component in src/components/hub/SearchResults.vue
+- [x] T078 [P] [US6] Create SearchHub main component in src/components/hub/SearchHub.vue
+- [x] T079 [US6] Implement search service in src/services/searchService.ts
+- [x] T080 [US6] Create useSearch composable in src/composables/useSearch.ts
+- [x] T081 [US6] Implement full-text search across messages
+- [x] T082 [US6] Add advanced filtering by channel, user, date range, and content type
+- [x] T083 [US6] Implement search result highlighting and navigation
+- [x] T084 [US6] Add search history and saved searches functionality
+- [x] T085 [US6] Implement search performance optimization with pagination
 
 **Checkpoint**: At this point, ALL User Stories should work independently and together
 
