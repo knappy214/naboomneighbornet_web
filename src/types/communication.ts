@@ -1,112 +1,60 @@
 /**
- * TypeScript interfaces for Community Communication Hub
- * Generated from data-model.md specification
+ * Communication Types
+ * Type definitions for the Community Communication Hub
+ * Part of User Story 1: Real-Time Discussion Channels
  */
 
-// ============================================================================
-// Core User Types
-// ============================================================================
-
-export type UserStatus = 'online' | 'away' | 'busy' | 'offline'
+// Base types
 export type Language = 'en' | 'af'
-export type Theme = 'light' | 'dark' | 'auto'
-export type MessageDisplay = 'compact' | 'comfortable'
+export type ConnectionStatus =
+  | 'connected'
+  | 'connecting'
+  | 'disconnected'
+  | 'reconnecting'
+  | 'error'
+  | 'failed'
+export type NotificationPermission = 'default' | 'granted' | 'denied'
 
-export interface UserProfile {
-  id: string
-  username: string
-  displayName: string
-  email: string
-  avatar?: string
-  language: Language
-  timezone: string
-  status: UserStatus
-  lastSeen: Date
-  preferences: UserPreferences
-  permissions: UserPermissions
-  createdAt: Date
-  updatedAt: Date
-}
-
-export interface UserPreferences {
-  notifications: NotificationSettings
-  theme: Theme
-  messageDisplay: MessageDisplay
-  showOnlineStatus: boolean
-  showTypingIndicators: boolean
-  autoTranslate: boolean
-}
-
-export interface UserPermissions {
-  canCreateChannels: boolean
-  canManageEvents: boolean
-  canModerateMessages: boolean
-  canInviteUsers: boolean
-  canDeleteMessages: boolean
-}
-
-export interface NotificationSettings {
-  email: boolean
-  push: boolean
-  desktop: boolean
-  mentions: boolean
-  directMessages: boolean
-  channelMessages: boolean
-  eventInvites: boolean
-  eventReminders: boolean
-  systemUpdates: boolean
-}
-
-// ============================================================================
-// Channel Types
-// ============================================================================
-
-export type ChannelType = 'general' | 'safety' | 'events' | 'private'
-export type ChannelStatus = 'active' | 'archived' | 'muted'
-
+// Channel types
 export interface Channel {
   id: string
   name: string
-  description: string
-  type: ChannelType
-  status: ChannelStatus
+  description?: string
+  type: 'general' | 'announcements' | 'events' | 'support' | 'private'
+  isPublic: boolean
+  allowInvites: boolean
   members: ChannelMember[]
-  settings: ChannelSettings
   createdAt: Date
   updatedAt: Date
   createdBy: string
 }
 
 export interface ChannelMember {
+  id: string
   userId: string
-  username: string
-  displayName: string
-  avatar?: string
-  role: ChannelRole
+  channelId: string
+  role: 'owner' | 'admin' | 'moderator' | 'member'
   joinedAt: Date
   lastReadAt?: Date
-  isTyping: boolean
+  user: {
+    id: string
+    username: string
+    displayName: string
+    avatar?: string
+    isOnline: boolean
+    lastSeen?: Date
+  }
 }
 
-export type ChannelRole = 'owner' | 'admin' | 'moderator' | 'member'
-
-export interface ChannelSettings {
+export interface CreateChannelForm {
+  name: string
+  description?: string
+  type: 'general' | 'announcements' | 'events' | 'support' | 'private'
   isPublic: boolean
   allowInvites: boolean
-  allowFileUploads: boolean
-  maxFileSize: number
-  messageRetentionDays: number
-  slowMode: number // seconds between messages
-  requireApproval: boolean
 }
 
-// ============================================================================
-// Message Types
-// ============================================================================
-
-export type MessageType = 'text' | 'image' | 'file' | 'system' | 'event'
-export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'failed' | 'queued'
-
+// Message types
 export interface Message {
   id: string
   channelId: string
@@ -115,256 +63,127 @@ export interface Message {
   displayName: string
   avatar?: string
   content: string
-  type: MessageType
-  status: MessageStatus
-  metadata: MessageMetadata
-  reactions: MessageReaction[]
-  replies: MessageReply[]
+  type: 'text' | 'image' | 'file' | 'system'
+  attachments?: MessageAttachment[]
+  reactions?: MessageReaction[]
+  editedAt?: Date
   createdAt: Date
   updatedAt: Date
-  editedAt?: Date
-  deletedAt?: Date
 }
 
-export interface MessageMetadata {
-  attachments?: Attachment[]
-  mentions?: string[]
-  hashtags?: string[]
-  language?: Language
-  translatedContent?: Record<Language, string>
-  isEdited: boolean
-  isDeleted: boolean
-  originalContent?: string
-}
-
-export interface Attachment {
+export interface MessageAttachment {
   id: string
+  messageId: string
   filename: string
+  originalName: string
   mimeType: string
   size: number
   url: string
   thumbnailUrl?: string
-  uploadedAt: Date
+  createdAt: Date
 }
 
 export interface MessageReaction {
   emoji: string
-  users: string[]
   count: number
+  users: string[]
 }
 
-export interface MessageReply {
-  id: string
-  messageId: string
-  userId: string
-  username: string
-  displayName: string
+export interface SendMessageForm {
   content: string
-  createdAt: Date
-  updatedAt: Date
+  type: 'text' | 'image' | 'file'
+  attachments?: File[]
 }
 
-// ============================================================================
-// Event Types
-// ============================================================================
+// Typing types
+export interface TypingUser {
+  userId: string
+  username: string
+  timestamp: Date
+}
 
-export type EventStatus = 'draft' | 'published' | 'cancelled' | 'completed'
-export type EventType = 'meeting' | 'social' | 'emergency' | 'maintenance' | 'other'
-
-export interface Event {
-  id: string
+// Notification types
+export interface Notification {
+  id?: string
   title: string
-  description: string
-  type: EventType
-  status: EventStatus
-  startDate: Date
-  endDate: Date
-  location: EventLocation
-  organizer: EventOrganizer
-  attendees: EventAttendee[]
-  settings: EventSettings
-  discussionThread?: string // Channel ID for event discussion
-  createdAt: Date
-  updatedAt: Date
+  body: string
+  icon?: string
+  badge?: string
+  tag?: string
+  data?: any
+  requireInteraction?: boolean
+  silent?: boolean
+  timestamp?: number
+  vibrate?: number[]
+  actions?: NotificationAction[]
+  onClick?: () => void
+  onClose?: () => void
+  onError?: (error: any) => void
 }
 
-export interface EventLocation {
-  name: string
-  address?: string
-  coordinates?: {
-    lat: number
-    lng: number
-  }
-  isVirtual: boolean
-  meetingLink?: string
+export interface NotificationAction {
+  action: string
+  title: string
+  icon?: string
 }
 
-export interface EventOrganizer {
-  userId: string
-  username: string
-  displayName: string
-  email: string
-}
-
-export interface EventAttendee {
-  userId: string
-  username: string
-  displayName: string
-  status: 'invited' | 'attending' | 'declined' | 'maybe'
-  rsvpAt: Date
-  comment?: string
-}
-
-export interface EventSettings {
-  maxAttendees?: number
-  requiresApproval: boolean
-  allowInvites: boolean
-  sendReminders: boolean
-  reminderTimes: number[] // hours before event
-  isRecurring: boolean
-  recurrencePattern?: RecurrencePattern
-}
-
-export interface RecurrencePattern {
-  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly'
-  interval: number
-  daysOfWeek?: number[]
-  endDate?: Date
-  occurrences?: number
-}
-
-// ============================================================================
-// Search Types
-// ============================================================================
-
-export interface SearchQuery {
-  query: string
-  filters: SearchFilters
-  pagination: PaginationOptions
-  sort: SortOptions
-}
-
-export interface SearchFilters {
-  channels?: string[]
-  users?: string[]
-  dateRange?: {
-    start: Date
-    end: Date
-  }
-  messageTypes?: MessageType[]
-  hasAttachments?: boolean
-  hasMentions?: boolean
-  language?: Language
-}
-
-export interface PaginationOptions {
-  page: number
-  limit: number
-  offset?: number
-}
-
-export interface SortOptions {
-  field: 'createdAt' | 'relevance' | 'updatedAt'
-  direction: 'asc' | 'desc'
-}
-
-export interface SearchResult {
-  messages: Message[]
-  total: number
-  page: number
-  limit: number
-  hasMore: boolean
-  facets?: SearchFacets
-}
-
-export interface SearchFacets {
-  channels: Array<{ id: string; name: string; count: number }>
-  users: Array<{ id: string; username: string; count: number }>
-  dateRanges: Array<{ label: string; count: number }>
-}
-
-// ============================================================================
-// WebSocket Types
-// ============================================================================
-
-export type WebSocketEventType = 
-  | 'message.created'
-  | 'message.updated'
-  | 'message.deleted'
-  | 'typing.start'
-  | 'typing.stop'
-  | 'user.status.changed'
-  | 'channel.member.added'
-  | 'channel.member.removed'
-  | 'event.created'
-  | 'event.updated'
-  | 'event.cancelled'
-  | 'notification.created'
-
-export interface WebSocketMessage {
-  type: WebSocketEventType
+// Real-time event types
+export interface RealTimeEvent {
+  type: 'message' | 'typing' | 'channel' | 'user'
+  action: string
   data: any
   timestamp: Date
-  channelId?: string
-  userId?: string
 }
 
-export interface TypingIndicator {
-  userId: string
-  username: string
-  channelId: string
-  isTyping: boolean
-  timestamp: Date
+export interface MessageEvent extends RealTimeEvent {
+  type: 'message'
+  action: 'sent' | 'updated' | 'deleted' | 'reaction_added' | 'reaction_removed'
+  data: Message
 }
 
-export interface PresenceUpdate {
-  userId: string
-  status: UserStatus
-  lastSeen: Date
-  channelId?: string
+export interface TypingEvent extends RealTimeEvent {
+  type: 'typing'
+  action: 'start' | 'stop'
+  data: {
+    channelId: string
+    userId: string
+    username: string
+    isTyping: boolean
+  }
 }
 
-// ============================================================================
-// Offline Queue Types
-// ============================================================================
-
-export interface OfflineMessage {
-  id: string
-  message: Omit<Message, 'id' | 'createdAt' | 'updatedAt' | 'status'>
-  queuedAt: Date
-  retryCount: number
-  maxRetries: number
-  priority: 'high' | 'normal' | 'low'
+export interface ChannelEvent extends RealTimeEvent {
+  type: 'channel'
+  action:
+    | 'created'
+    | 'updated'
+    | 'deleted'
+    | 'member_added'
+    | 'member_removed'
+    | 'member_role_updated'
+  data: Channel
 }
 
-export interface OfflineQueue {
-  messages: OfflineMessage[]
-  isOnline: boolean
-  lastSyncAt?: Date
-  pendingCount: number
+export interface UserEvent extends RealTimeEvent {
+  type: 'user'
+  action: 'online' | 'offline' | 'status_changed'
+  data: {
+    userId: string
+    username: string
+    status: 'online' | 'offline' | 'away' | 'busy'
+  }
 }
 
-// ============================================================================
-// API Response Types
-// ============================================================================
-
+// API response types
 export interface ApiResponse<T = any> {
   success: boolean
   data?: T
-  error?: ApiError
   message?: string
+  error?: string
   timestamp: Date
 }
 
-export interface ApiError {
-  code: string
-  message: string
-  details?: Record<string, any>
-  field?: string
-}
-
-export interface PaginatedResponse<T> {
-  data: T[]
+export interface PaginatedResponse<T> extends ApiResponse<T[]> {
   pagination: {
     page: number
     limit: number
@@ -375,114 +194,97 @@ export interface PaginatedResponse<T> {
   }
 }
 
-// ============================================================================
-// Form Types
-// ============================================================================
-
-export interface CreateChannelForm {
-  name: string
-  description: string
-  type: ChannelType
-  isPublic: boolean
-  allowInvites: boolean
+// Error types
+export interface ApiError {
+  code: string
+  message: string
+  details?: Record<string, any>
+  timestamp: Date
 }
 
-export interface CreateEventForm {
-  title: string
-  description: string
-  type: EventType
-  startDate: Date
-  endDate: Date
-  location: EventLocation
-  maxAttendees?: number
-  requiresApproval: boolean
+// Validation types
+export interface ValidationResult {
+  isValid: boolean
+  errors: string[]
+  firstError?: string
 }
 
-export interface SendMessageForm {
-  content: string
-  type: MessageType
-  attachments?: File[]
-  replyTo?: string
-}
-
-export interface SearchForm {
+// Search types
+export interface SearchOptions {
   query: string
-  channels: string[]
-  users: string[]
-  dateRange?: {
-    start: Date
-    end: Date
+  channelId?: string
+  userId?: string
+  type?: 'message' | 'channel' | 'user'
+  limit?: number
+  offset?: number
+  sortBy?: 'relevance' | 'date' | 'user'
+  sortOrder?: 'asc' | 'desc'
+}
+
+export interface SearchResult<T> {
+  items: T[]
+  total: number
+  query: string
+  took: number
+  facets?: Record<string, any>
+}
+
+// Settings types
+export interface CommunicationSettings {
+  notifications: {
+    enabled: boolean
+    sound: boolean
+    desktop: boolean
+    mobile: boolean
+    mentions: boolean
+    directMessages: boolean
+    channelMessages: boolean
   }
-  messageTypes: MessageType[]
+  appearance: {
+    theme: 'light' | 'dark' | 'auto'
+    fontSize: 'small' | 'medium' | 'large'
+    compactMode: boolean
+    showTimestamps: boolean
+    showAvatars: boolean
+  }
+  privacy: {
+    showOnlineStatus: boolean
+    showLastSeen: boolean
+    allowDirectMessages: boolean
+    allowChannelInvites: boolean
+  }
+  language: {
+    interface: Language
+    messages: Language
+    autoTranslate: boolean
+  }
 }
 
-// ============================================================================
-// Store State Types
-// ============================================================================
-
-export interface CommunicationState {
-  channels: Channel[]
-  messages: Record<string, Message[]>
-  users: Record<string, UserProfile>
-  events: Event[]
-  currentChannel?: string
-  currentUser?: UserProfile
-  isOnline: boolean
-  typingUsers: Record<string, TypingIndicator[]>
-  offlineQueue: OfflineQueue
-  searchResults?: SearchResult
-  isLoading: boolean
-  error?: ApiError
+// Statistics types
+export interface CommunicationStats {
+  totalMessages: number
+  totalChannels: number
+  activeUsers: number
+  messagesToday: number
+  messagesThisWeek: number
+  messagesThisMonth: number
+  mostActiveChannel: {
+    id: string
+    name: string
+    messageCount: number
+  }
+  mostActiveUser: {
+    id: string
+    username: string
+    messageCount: number
+  }
 }
 
-// ============================================================================
-// Utility Types
-// ============================================================================
-
-export type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P]
-}
-
-export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
-
-export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-export const MESSAGE_TYPES = {
-  TEXT: 'text' as const,
-  IMAGE: 'image' as const,
-  FILE: 'file' as const,
-  SYSTEM: 'system' as const,
-  EVENT: 'event' as const,
-}
-
-export const CHANNEL_TYPES = {
-  GENERAL: 'general' as const,
-  SAFETY: 'safety' as const,
-  EVENTS: 'events' as const,
-  PRIVATE: 'private' as const,
-}
-
-export const USER_STATUSES = {
-  ONLINE: 'online' as const,
-  AWAY: 'away' as const,
-  BUSY: 'busy' as const,
-  OFFLINE: 'offline' as const,
-}
-
-export const EVENT_TYPES = {
-  MEETING: 'meeting' as const,
-  SOCIAL: 'social' as const,
-  EMERGENCY: 'emergency' as const,
-  MAINTENANCE: 'maintenance' as const,
-  OTHER: 'other' as const,
-}
-
-export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
-export const MAX_MESSAGE_LENGTH = 2000
-export const TYPING_INDICATOR_TIMEOUT = 3000 // 3 seconds
-export const MESSAGE_RETENTION_DAYS = 90
-export const OFFLINE_QUEUE_MAX_RETRIES = 3
+// Export utility types
+export type ChannelId = string
+export type MessageId = string
+export type UserId = string
+export type ChannelType = Channel['type']
+export type MessageType = Message['type']
+export type MemberRole = ChannelMember['role']
+export type NotificationType = 'message' | 'channel' | 'system' | 'mention'

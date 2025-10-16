@@ -1,238 +1,252 @@
 /**
- * Validation utilities for Community Communication Hub
- * Provides comprehensive validation for forms, messages, and data
+ * Validation Utilities
+ * Input validation and sanitization for communication hub
+ * Part of User Story 1: Real-Time Discussion Channels
  */
 
-import type {
-  CreateChannelForm,
-  CreateEventForm,
-  SendMessageForm,
-  SearchForm,
-  UserProfile,
-  UserPreferences,
-  NotificationSettings,
-  Channel,
-  Event,
-  Message,
-} from '@/types/communication'
+import type { ValidationResult, CreateChannelForm, SendMessageForm } from '@/types/communication'
 
-// ============================================================================
-// Validation Rules
-// ============================================================================
-
-export interface ValidationRule<T = any> {
-  required?: boolean
-  minLength?: number
-  maxLength?: number
-  pattern?: RegExp
-  custom?: (value: T) => string | null
-  message?: string
+// Validation rules
+const VALIDATION_RULES = {
+  channelName: {
+    minLength: 2,
+    maxLength: 50,
+    pattern: /^[a-zA-Z0-9_-]+$/,
+  },
+  channelDescription: {
+    maxLength: 500,
+  },
+  messageContent: {
+    minLength: 1,
+    maxLength: 2000,
+  },
+  username: {
+    minLength: 3,
+    maxLength: 30,
+    pattern: /^[a-zA-Z0-9_-]+$/,
+  },
+  displayName: {
+    minLength: 1,
+    maxLength: 50,
+  },
 }
 
-export interface ValidationResult {
-  isValid: boolean
-  errors: Record<string, string[]>
-  firstError?: string
-}
-
-// ============================================================================
-// Common Validation Functions
-// ============================================================================
-
-/**
- * Validate required field
- */
-export function validateRequired(value: any, fieldName: string): string | null {
-  if (value === null || value === undefined || value === '') {
-    return `${fieldName} is required`
-  }
-  return null
-}
-
-/**
- * Validate string length
- */
-export function validateLength(
-  value: string, 
-  min: number, 
-  max: number, 
-  fieldName: string
-): string | null {
-  if (value.length < min) {
-    return `${fieldName} must be at least ${min} characters long`
-  }
-  if (value.length > max) {
-    return `${fieldName} must be no more than ${max} characters long`
-  }
-  return null
+// Error messages
+const ERROR_MESSAGES = {
+  channelName: {
+    required: 'Channel name is required',
+    minLength: `Channel name must be at least ${VALIDATION_RULES.channelName.minLength} characters`,
+    maxLength: `Channel name must be no more than ${VALIDATION_RULES.channelName.maxLength} characters`,
+    pattern: 'Channel name can only contain letters, numbers, hyphens, and underscores',
+  },
+  channelDescription: {
+    maxLength: `Channel description must be no more than ${VALIDATION_RULES.channelDescription.maxLength} characters`,
+  },
+  messageContent: {
+    required: 'Message content is required',
+    minLength: `Message must be at least ${VALIDATION_RULES.messageContent.minLength} character`,
+    maxLength: `Message must be no more than ${VALIDATION_RULES.messageContent.maxLength} characters`,
+  },
+  username: {
+    required: 'Username is required',
+    minLength: `Username must be at least ${VALIDATION_RULES.username.minLength} characters`,
+    maxLength: `Username must be no more than ${VALIDATION_RULES.username.maxLength} characters`,
+    pattern: 'Username can only contain letters, numbers, hyphens, and underscores',
+  },
+  displayName: {
+    required: 'Display name is required',
+    minLength: `Display name must be at least ${VALIDATION_RULES.displayName.minLength} character`,
+    maxLength: `Display name must be no more than ${VALIDATION_RULES.displayName.maxLength} characters`,
+  },
 }
 
 /**
- * Validate email format
+ * Validate channel name
  */
-export function validateEmail(email: string): string | null {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(email)) {
-    return 'Please enter a valid email address'
+export function validateChannelName(name: string): ValidationResult {
+  const errors: string[] = []
+
+  if (!name || name.trim().length === 0) {
+    errors.push(ERROR_MESSAGES.channelName.required)
+    return { isValid: false, errors, firstError: errors[0] }
   }
-  return null
-}
 
-/**
- * Validate URL format
- */
-export function validateUrl(url: string): string | null {
-  try {
-    new URL(url)
-    return null
-  } catch {
-    return 'Please enter a valid URL'
+  const trimmedName = name.trim()
+
+  if (trimmedName.length < VALIDATION_RULES.channelName.minLength) {
+    errors.push(ERROR_MESSAGES.channelName.minLength)
   }
-}
 
-/**
- * Validate date range
- */
-export function validateDateRange(startDate: Date, endDate: Date): string | null {
-  if (startDate >= endDate) {
-    return 'End date must be after start date'
+  if (trimmedName.length > VALIDATION_RULES.channelName.maxLength) {
+    errors.push(ERROR_MESSAGES.channelName.maxLength)
   }
-  return null
-}
 
-/**
- * Validate file size
- */
-export function validateFileSize(file: File, maxSizeBytes: number): string | null {
-  if (file.size > maxSizeBytes) {
-    const maxSizeMB = Math.round(maxSizeBytes / (1024 * 1024))
-    return `File size must be less than ${maxSizeMB}MB`
-  }
-  return null
-}
-
-/**
- * Validate file type
- */
-export function validateFileType(file: File, allowedTypes: string[]): string | null {
-  if (!allowedTypes.includes(file.type)) {
-    return `File type must be one of: ${allowedTypes.join(', ')}`
-  }
-  return null
-}
-
-// ============================================================================
-// Form Validation
-// ============================================================================
-
-/**
- * Validate channel creation form
- */
-export function validateCreateChannelForm(data: CreateChannelForm): ValidationResult {
-  const errors: Record<string, string[]> = {}
-
-  // Validate name
-  const nameErrors: string[] = []
-  const nameRequired = validateRequired(data.name, 'Channel name')
-  if (nameRequired) nameErrors.push(nameRequired)
-  const nameLength = validateLength(data.name, 1, 50, 'Channel name')
-  if (nameLength) nameErrors.push(nameLength)
-  if (nameErrors.length > 0) errors.name = nameErrors
-
-  // Validate description
-  const descriptionErrors: string[] = []
-  const descriptionLength = validateLength(data.description, 0, 200, 'Description')
-  if (descriptionLength) descriptionErrors.push(descriptionLength)
-  if (descriptionErrors.length > 0) errors.description = descriptionErrors
-
-  // Validate type
-  const validTypes = ['general', 'safety', 'events', 'private']
-  if (!validTypes.includes(data.type)) {
-    errors.type = ['Channel type must be one of: general, safety, events, private']
+  if (!VALIDATION_RULES.channelName.pattern.test(trimmedName)) {
+    errors.push(ERROR_MESSAGES.channelName.pattern)
   }
 
   return {
-    isValid: Object.keys(errors).length === 0,
+    isValid: errors.length === 0,
     errors,
-    firstError: Object.values(errors).flat()[0],
+    firstError: errors[0],
   }
 }
 
 /**
- * Validate event creation form
+ * Validate channel description
  */
-export function validateCreateEventForm(data: CreateEventForm): ValidationResult {
-  const errors: Record<string, string[]> = {}
+export function validateChannelDescription(description: string): ValidationResult {
+  const errors: string[] = []
 
-  // Validate title
-  const titleErrors: string[] = []
-  const titleRequired = validateRequired(data.title, 'Event title')
-  if (titleRequired) titleErrors.push(titleRequired)
-  const titleLength = validateLength(data.title, 1, 100, 'Event title')
-  if (titleLength) titleErrors.push(titleLength)
-  if (titleErrors.length > 0) errors.title = titleErrors
-
-  // Validate description
-  const descriptionErrors: string[] = []
-  const descriptionLength = validateLength(data.description, 0, 500, 'Description')
-  if (descriptionLength) descriptionErrors.push(descriptionLength)
-  if (descriptionErrors.length > 0) errors.description = descriptionErrors
-
-  // Validate type
-  const validTypes = ['meeting', 'social', 'emergency', 'maintenance', 'other']
-  if (!validTypes.includes(data.type)) {
-    errors.type = ['Event type must be one of: meeting, social, emergency, maintenance, other']
+  if (description && description.length > VALIDATION_RULES.channelDescription.maxLength) {
+    errors.push(ERROR_MESSAGES.channelDescription.maxLength)
   }
-
-  // Validate dates
-  const dateErrors: string[] = []
-  const dateRange = validateDateRange(data.startDate, data.endDate)
-  if (dateRange) dateErrors.push(dateRange)
-  if (data.startDate < new Date()) {
-    dateErrors.push('Start date must be in the future')
-  }
-  if (dateErrors.length > 0) errors.dates = dateErrors
-
-  // Validate location
-  const locationErrors: string[] = []
-  if (!data.location.name) {
-    locationErrors.push('Location name is required')
-  }
-  if (data.location.isVirtual && !data.location.meetingLink) {
-    locationErrors.push('Meeting link is required for virtual events')
-  }
-  if (locationErrors.length > 0) errors.location = locationErrors
 
   return {
-    isValid: Object.keys(errors).length === 0,
+    isValid: errors.length === 0,
     errors,
-    firstError: Object.values(errors).flat()[0],
+    firstError: errors[0],
   }
 }
 
 /**
- * Validate message form
+ * Validate message content
  */
-export function validateSendMessageForm(data: SendMessageForm): ValidationResult {
-  const errors: Record<string, string[]> = {}
+export function validateMessageContent(content: string): ValidationResult {
+  const errors: string[] = []
 
-  // Validate content
-  const contentErrors: string[] = []
-  const contentRequired = validateRequired(data.content, 'Message content')
-  if (contentRequired) contentErrors.push(contentRequired)
-  const contentLength = validateLength(data.content, 1, 2000, 'Message content')
-  if (contentLength) contentErrors.push(contentLength)
-  if (contentErrors.length > 0) errors.content = contentErrors
+  if (!content || content.trim().length === 0) {
+    errors.push(ERROR_MESSAGES.messageContent.required)
+    return { isValid: false, errors, firstError: errors[0] }
+  }
 
-  // Validate type
-  const validTypes = ['text', 'image', 'file', 'system', 'event']
-  if (!validTypes.includes(data.type)) {
-    errors.type = ['Message type must be one of: text, image, file, system, event']
+  const trimmedContent = content.trim()
+
+  if (trimmedContent.length < VALIDATION_RULES.messageContent.minLength) {
+    errors.push(ERROR_MESSAGES.messageContent.minLength)
+  }
+
+  if (trimmedContent.length > VALIDATION_RULES.messageContent.maxLength) {
+    errors.push(ERROR_MESSAGES.messageContent.maxLength)
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    firstError: errors[0],
+  }
+}
+
+/**
+ * Validate username
+ */
+export function validateUsername(username: string): ValidationResult {
+  const errors: string[] = []
+
+  if (!username || username.trim().length === 0) {
+    errors.push(ERROR_MESSAGES.username.required)
+    return { isValid: false, errors, firstError: errors[0] }
+  }
+
+  const trimmedUsername = username.trim()
+
+  if (trimmedUsername.length < VALIDATION_RULES.username.minLength) {
+    errors.push(ERROR_MESSAGES.username.minLength)
+  }
+
+  if (trimmedUsername.length > VALIDATION_RULES.username.maxLength) {
+    errors.push(ERROR_MESSAGES.username.maxLength)
+  }
+
+  if (!VALIDATION_RULES.username.pattern.test(trimmedUsername)) {
+    errors.push(ERROR_MESSAGES.username.pattern)
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    firstError: errors[0],
+  }
+}
+
+/**
+ * Validate display name
+ */
+export function validateDisplayName(displayName: string): ValidationResult {
+  const errors: string[] = []
+
+  if (!displayName || displayName.trim().length === 0) {
+    errors.push(ERROR_MESSAGES.displayName.required)
+    return { isValid: false, errors, firstError: errors[0] }
+  }
+
+  const trimmedDisplayName = displayName.trim()
+
+  if (trimmedDisplayName.length < VALIDATION_RULES.displayName.minLength) {
+    errors.push(ERROR_MESSAGES.displayName.minLength)
+  }
+
+  if (trimmedDisplayName.length > VALIDATION_RULES.displayName.maxLength) {
+    errors.push(ERROR_MESSAGES.displayName.maxLength)
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    firstError: errors[0],
+  }
+}
+
+/**
+ * Validate create channel form
+ */
+export function validateCreateChannelForm(form: CreateChannelForm): ValidationResult {
+  const errors: string[] = []
+
+  // Validate channel name
+  const nameValidation = validateChannelName(form.name)
+  if (!nameValidation.isValid) {
+    errors.push(...nameValidation.errors)
+  }
+
+  // Validate channel description
+  if (form.description) {
+    const descriptionValidation = validateChannelDescription(form.description)
+    if (!descriptionValidation.isValid) {
+      errors.push(...descriptionValidation.errors)
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    firstError: errors[0],
+  }
+}
+
+/**
+ * Validate send message form
+ */
+export function validateSendMessageForm(form: SendMessageForm): ValidationResult {
+  const errors: string[] = []
+
+  // Validate message content
+  const contentValidation = validateMessageContent(form.content)
+  if (!contentValidation.isValid) {
+    errors.push(...contentValidation.errors)
+  }
+
+  // Validate message type
+  if (!form.type || !['text', 'image', 'file'].includes(form.type)) {
+    errors.push('Invalid message type')
   }
 
   // Validate attachments
-  if (data.attachments) {
-    const attachmentErrors: string[] = []
+  if (form.attachments) {
+    if (form.attachments.length > 10) {
+      errors.push('Maximum 10 attachments allowed')
+    }
+
     const maxFileSize = 10 * 1024 * 1024 // 10MB
     const allowedTypes = [
       'image/jpeg',
@@ -241,309 +255,204 @@ export function validateSendMessageForm(data: SendMessageForm): ValidationResult
       'image/webp',
       'application/pdf',
       'text/plain',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ]
 
-    data.attachments.forEach((file, index) => {
-      const sizeError = validateFileSize(file, maxFileSize)
-      if (sizeError) {
-        attachmentErrors.push(`File ${index + 1}: ${sizeError}`)
+    form.attachments.forEach((file, index) => {
+      if (file.size > maxFileSize) {
+        errors.push(`Attachment ${index + 1} is too large (max 10MB)`)
       }
-      const typeError = validateFileType(file, allowedTypes)
-      if (typeError) {
-        attachmentErrors.push(`File ${index + 1}: ${typeError}`)
+
+      if (!allowedTypes.includes(file.type)) {
+        errors.push(`Attachment ${index + 1} has unsupported file type`)
       }
     })
-
-    if (attachmentErrors.length > 0) errors.attachments = attachmentErrors
   }
 
   return {
-    isValid: Object.keys(errors).length === 0,
+    isValid: errors.length === 0,
     errors,
-    firstError: Object.values(errors).flat()[0],
-  }
-}
-
-/**
- * Validate search form
- */
-export function validateSearchForm(data: SearchForm): ValidationResult {
-  const errors: Record<string, string[]> = {}
-
-  // Validate query
-  const queryErrors: string[] = []
-  const queryLength = validateLength(data.query, 1, 100, 'Search query')
-  if (queryLength) queryErrors.push(queryLength)
-  if (queryErrors.length > 0) errors.query = queryErrors
-
-  // Validate date range if provided
-  if (data.dateRange) {
-    const dateErrors: string[] = []
-    const dateRange = validateDateRange(data.dateRange.start, data.dateRange.end)
-    if (dateRange) dateErrors.push(dateRange)
-    if (dateErrors.length > 0) errors.dateRange = dateErrors
-  }
-
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors,
-    firstError: Object.values(errors).flat()[0],
-  }
-}
-
-// ============================================================================
-// User Profile Validation
-// ============================================================================
-
-/**
- * Validate user profile
- */
-export function validateUserProfile(data: Partial<UserProfile>): ValidationResult {
-  const errors: Record<string, string[]> = {}
-
-  // Validate username
-  if (data.username) {
-    const usernameErrors: string[] = []
-    const usernameLength = validateLength(data.username, 3, 30, 'Username')
-    if (usernameLength) usernameErrors.push(usernameLength)
-    const usernamePattern = /^[a-zA-Z0-9_-]+$/
-    if (!usernamePattern.test(data.username)) {
-      usernameErrors.push('Username can only contain letters, numbers, underscores, and hyphens')
-    }
-    if (usernameErrors.length > 0) errors.username = usernameErrors
-  }
-
-  // Validate display name
-  if (data.displayName) {
-    const displayNameErrors: string[] = []
-    const displayNameLength = validateLength(data.displayName, 1, 50, 'Display name')
-    if (displayNameLength) displayNameErrors.push(displayNameLength)
-    if (displayNameErrors.length > 0) errors.displayName = displayNameErrors
-  }
-
-  // Validate email
-  if (data.email) {
-    const emailErrors: string[] = []
-    const emailValid = validateEmail(data.email)
-    if (emailValid) emailErrors.push(emailValid)
-    if (emailErrors.length > 0) errors.email = emailErrors
-  }
-
-  // Validate language
-  if (data.language) {
-    const validLanguages = ['en', 'af']
-    if (!validLanguages.includes(data.language)) {
-      errors.language = ['Language must be either "en" or "af"']
-    }
-  }
-
-  // Validate timezone
-  if (data.timezone) {
-    try {
-      Intl.DateTimeFormat(undefined, { timeZone: data.timezone })
-    } catch {
-      errors.timezone = ['Please enter a valid timezone']
-    }
-  }
-
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors,
-    firstError: Object.values(errors).flat()[0],
-  }
-}
-
-/**
- * Validate user preferences
- */
-export function validateUserPreferences(data: Partial<UserPreferences>): ValidationResult {
-  const errors: Record<string, string[]> = {}
-
-  // Validate theme
-  if (data.theme) {
-    const validThemes = ['light', 'dark', 'auto']
-    if (!validThemes.includes(data.theme)) {
-      errors.theme = ['Theme must be one of: light, dark, auto']
-    }
-  }
-
-  // Validate message display
-  if (data.messageDisplay) {
-    const validDisplays = ['compact', 'comfortable']
-    if (!validDisplays.includes(data.messageDisplay)) {
-      errors.messageDisplay = ['Message display must be either "compact" or "comfortable"']
-    }
-  }
-
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors,
-    firstError: Object.values(errors).flat()[0],
-  }
-}
-
-// ============================================================================
-// Content Validation
-// ============================================================================
-
-/**
- * Validate message content for moderation
- */
-export function validateMessageContent(content: string): ValidationResult {
-  const errors: Record<string, string[]> = {}
-
-  // Check for profanity (basic implementation)
-  const profanityWords = ['spam', 'scam', 'fake'] // Add more as needed
-  const foundProfanity = profanityWords.filter(word => 
-    content.toLowerCase().includes(word.toLowerCase())
-  )
-
-  if (foundProfanity.length > 0) {
-    errors.content = ['Message contains inappropriate content']
-  }
-
-  // Check for excessive caps
-  const capsRatio = (content.match(/[A-Z]/g) || []).length / content.length
-  if (capsRatio > 0.7 && content.length > 10) {
-    errors.content = ['Please avoid excessive use of capital letters']
-  }
-
-  // Check for excessive repetition
-  const words = content.split(/\s+/)
-  const wordCounts = words.reduce((acc, word) => {
-    acc[word.toLowerCase()] = (acc[word.toLowerCase()] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  const maxRepetition = Math.max(...Object.values(wordCounts))
-  if (maxRepetition > 5) {
-    errors.content = ['Please avoid excessive repetition of words']
-  }
-
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors,
-    firstError: Object.values(errors).flat()[0],
+    firstError: errors[0],
   }
 }
 
 /**
  * Sanitize message content
  */
-export function sanitizeMessageContent(content: string): string {
-  // Remove HTML tags
-  let sanitized = content.replace(/<[^>]*>/g, '')
-  
-  // Decode HTML entities
-  const textarea = document.createElement('textarea')
-  textarea.innerHTML = sanitized
-  sanitized = textarea.value
-  
+export function sanitizeContent(content: string): string {
+  // Remove potentially dangerous HTML tags
+  const sanitized = content
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+    .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
+    .replace(/<link\b[^<]*(?:(?!<\/link>)<[^<]*)*<\/link>/gi, '')
+    .replace(/<meta\b[^<]*(?:(?!<\/meta>)<[^<]*)*<\/meta>/gi, '')
+
   // Trim whitespace
-  sanitized = sanitized.trim()
-  
-  return sanitized
+  return sanitized.trim()
 }
 
-// ============================================================================
-// Generic Validation Helper
-// ============================================================================
+/**
+ * Sanitize channel name
+ */
+export function sanitizeChannelName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+}
 
 /**
- * Validate an object against rules
+ * Sanitize username
  */
-export function validateObject<T extends Record<string, any>>(
-  data: T,
-  rules: Record<keyof T, ValidationRule[]>
-): ValidationResult {
-  const errors: Record<string, string[]> = {}
+export function sanitizeUsername(username: string): string {
+  return username
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+}
 
-  for (const [field, fieldRules] of Object.entries(rules)) {
-    const fieldErrors: string[] = []
-    const value = data[field as keyof T]
+/**
+ * Validate email address
+ */
+export function validateEmail(email: string): ValidationResult {
+  const errors: string[] = []
 
-    for (const rule of fieldRules) {
-      let error: string | null = null
+  if (!email || email.trim().length === 0) {
+    errors.push('Email is required')
+    return { isValid: false, errors, firstError: errors[0] }
+  }
 
-      // Required validation
-      if (rule.required && (value === null || value === undefined || value === '')) {
-        error = rule.message || `${field} is required`
-      }
-
-      // Length validation
-      if (!error && typeof value === 'string' && rule.minLength !== undefined) {
-        if (value.length < rule.minLength) {
-          error = rule.message || `${field} must be at least ${rule.minLength} characters long`
-        }
-      }
-
-      if (!error && typeof value === 'string' && rule.maxLength !== undefined) {
-        if (value.length > rule.maxLength) {
-          error = rule.message || `${field} must be no more than ${rule.maxLength} characters long`
-        }
-      }
-
-      // Pattern validation
-      if (!error && typeof value === 'string' && rule.pattern) {
-        if (!rule.pattern.test(value)) {
-          error = rule.message || `${field} format is invalid`
-        }
-      }
-
-      // Custom validation
-      if (!error && rule.custom) {
-        error = rule.custom(value)
-      }
-
-      if (error) {
-        fieldErrors.push(error)
-      }
-    }
-
-    if (fieldErrors.length > 0) {
-      errors[field] = fieldErrors
-    }
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailPattern.test(email.trim())) {
+    errors.push('Invalid email format')
   }
 
   return {
-    isValid: Object.keys(errors).length === 0,
+    isValid: errors.length === 0,
     errors,
-    firstError: Object.values(errors).flat()[0],
+    firstError: errors[0],
   }
 }
 
-// ============================================================================
-// Export all validation functions
-// ============================================================================
+/**
+ * Validate password
+ */
+export function validatePassword(password: string): ValidationResult {
+  const errors: string[] = []
 
+  if (!password || password.length === 0) {
+    errors.push('Password is required')
+    return { isValid: false, errors, firstError: errors[0] }
+  }
+
+  if (password.length < 8) {
+    errors.push('Password must be at least 8 characters long')
+  }
+
+  if (password.length > 128) {
+    errors.push('Password must be no more than 128 characters long')
+  }
+
+  if (!/(?=.*[a-z])/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter')
+  }
+
+  if (!/(?=.*[A-Z])/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter')
+  }
+
+  if (!/(?=.*\d)/.test(password)) {
+    errors.push('Password must contain at least one number')
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    firstError: errors[0],
+  }
+}
+
+/**
+ * Validate URL
+ */
+export function validateUrl(url: string): ValidationResult {
+  const errors: string[] = []
+
+  if (!url || url.trim().length === 0) {
+    errors.push('URL is required')
+    return { isValid: false, errors, firstError: errors[0] }
+  }
+
+  try {
+    new URL(url.trim())
+  } catch {
+    errors.push('Invalid URL format')
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    firstError: errors[0],
+  }
+}
+
+/**
+ * Validate file upload
+ */
+export function validateFileUpload(
+  file: File,
+  options: {
+    maxSize?: number
+    allowedTypes?: string[]
+    maxCount?: number
+  } = {},
+): ValidationResult {
+  const errors: string[] = []
+  const {
+    maxSize = 10 * 1024 * 1024, // 10MB
+    allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'application/pdf',
+      'text/plain',
+    ],
+    maxCount = 10,
+  } = options
+
+  if (file.size > maxSize) {
+    errors.push(`File size must be no more than ${Math.round(maxSize / (1024 * 1024))}MB`)
+  }
+
+  if (!allowedTypes.includes(file.type)) {
+    errors.push(`File type ${file.type} is not allowed`)
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    firstError: errors[0],
+  }
+}
+
+// Export validation object
 export const validation = {
-  // Common validators
-  required: validateRequired,
-  length: validateLength,
-  email: validateEmail,
-  url: validateUrl,
-  dateRange: validateDateRange,
-  fileSize: validateFileSize,
-  fileType: validateFileType,
-
-  // Form validators
-  createChannel: validateCreateChannelForm,
-  createEvent: validateCreateEventForm,
-  sendMessage: validateSendMessageForm,
-  search: validateSearchForm,
-
-  // Profile validators
-  userProfile: validateUserProfile,
-  userPreferences: validateUserPreferences,
-
-  // Content validators
+  channelName: validateChannelName,
+  channelDescription: validateChannelDescription,
   messageContent: validateMessageContent,
-  sanitizeContent: sanitizeMessageContent,
-
-  // Generic validator
-  object: validateObject,
+  username: validateUsername,
+  displayName: validateDisplayName,
+  createChannelForm: validateCreateChannelForm,
+  sendMessageForm: validateSendMessageForm,
+  email: validateEmail,
+  password: validatePassword,
+  url: validateUrl,
+  fileUpload: validateFileUpload,
+  sanitizeContent,
+  sanitizeChannelName,
+  sanitizeUsername,
 }
 
 export default validation

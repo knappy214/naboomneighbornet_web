@@ -1,455 +1,297 @@
 /**
- * WebSocket service for real-time communication
- * Provides reactive WebSocket connection management with automatic reconnection
+ * WebSocket Service
+ * Handles WebSocket connections and real-time communication
+ * Part of User Story 1: Real-Time Discussion Channels
  */
 
-import { ref, reactive, computed, onUnmounted } from 'vue'
-import type { 
-  WebSocketMessage, 
-  WebSocketEventType, 
-  TypingIndicator, 
-  PresenceUpdate,
-  Message,
-  Channel,
-  Event
-} from '@/types/communication'
+import type { RealTimeEvent } from '@/types/communication'
 
-export interface WebSocketConfig {
-  url: string
-  reconnectInterval?: number
-  maxReconnectAttempts?: number
-  heartbeatInterval?: number
-  debug?: boolean
-}
-
-export interface WebSocketState {
+interface WebSocketState {
   isConnected: boolean
   isConnecting: boolean
-  connectionState: 'disconnected' | 'connecting' | 'connected' | 'reconnecting'
-  lastConnected?: Date
+  connection: WebSocket | null
+  url: string
   reconnectAttempts: number
-  error?: string
+  maxReconnectAttempts: number
+  reconnectDelay: number
+  heartbeatInterval: number
+  heartbeatTimer: NodeJS.Timeout | null
 }
 
 export class WebSocketService {
-  private ws: WebSocket | null = null
-  private config: Required<WebSocketConfig>
-  private reconnectTimer?: NodeJS.Timeout
-  private heartbeatTimer?: NodeJS.Timeout
-  private messageQueue: WebSocketMessage[] = []
-  
-  // Reactive state
-  public state = reactive<WebSocketState>({
+  private state: WebSocketState = {
     isConnected: false,
     isConnecting: false,
-    connectionState: 'disconnected',
+    connection: null,
+    url: '',
     reconnectAttempts: 0,
-  })
+    maxReconnectAttempts: 5,
+    reconnectDelay: 1000,
+    heartbeatInterval: 30000,
+    heartbeatTimer: null
+  }
 
-  // Event listeners
-  private listeners = new Map<WebSocketEventType, Set<(data: any) => void>>()
+  private listeners: Map<string, Set<(data: any) => void>> = new Map()
 
-  constructor(config: WebSocketConfig) {
-    this.config = {
-      url: config.url,
-      reconnectInterval: config.reconnectInterval ?? 3000,
-      maxReconnectAttempts: config.maxReconnectAttempts ?? 5,
-      heartbeatInterval: config.heartbeatInterval ?? 30000,
-      debug: config.debug ?? false,
+  constructor() {
+    this.initialize()
+  }
+
+  /**
+   * Initialize WebSocket service
+   */
+  private initialize(): void {
+    // Set WebSocket URL from environment or default
+    this.state.url = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/communication/'
+  }
+
+  /**
+   * Connect to WebSocket
+   */
+  async connect(): Promise<void> {
+    if (this.state.isConnected || this.state.isConnecting) {
+      return
+    }
+
+    this.state.isConnecting = true
+
+    try {
+      const ws = new WebSocket(this.state.url)
+      
+      ws.onopen = this.handleOpen.bind(this)
+      ws.onclose = this.handleClose.bind(this)
+      ws.onerror = this.handleError.bind(this)
+      ws.onmessage = this.handleMessage.bind(this)
+
+      this.state.connection = ws
+    } catch (error) {
+      this.state.isConnecting = false
+      throw error
     }
   }
 
   /**
-   * Connect to WebSocket server
+   * Disconnect from WebSocket
    */
-  public connect(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.ws?.readyState === WebSocket.OPEN) {
-        resolve()
+  async disconnect(): Promise<void> {
+    if (this.state.connection) {
+      this.state.connection.close()
+      this.state.connection = null
+    }
+
+    this.state.isConnected = false
+    this.state.isConnecting = false
+
+    if (this.state.heartbeatTimer) {
+      clearInterval(this.state.heartbeatTimer)
+      this.state.heartbeatTimer = null
+    }
+  }
+
+  /**
+   * Send message through WebSocket
+   */
+  async send(data: string | RealTimeEvent): Promise<void> {
+    if (!this.state.isConnected || !this.state.connection) {
+      throw new Error('WebSocket not connected')
+    }
+
+    try {
+      const message = typeof data === 'string' ? data : JSON.stringify(data)
+      this.state.connection.send(message)
+    } catch (error) {
+      console.error('Failed to send WebSocket message:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Subscribe to WebSocket events
+   */
+  subscribe(event: string, callback: (data: any) => void): () => void {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set())
+    }
+
+    this.listeners.get(event)!.add(callback)
+
+    // Return unsubscribe function
+    return () => {
+      this.listeners.get(event)?.delete(callback)
+    }
+  }
+
+  /**
+   * Handle WebSocket open
+   */
+  private handleOpen(): void {
+    this.state.isConnected = true
+    this.state.isConnecting = false
+    this.state.reconnectAttempts = 0
+
+    console.log('WebSocket connected')
+
+    // Start heartbeat
+    this.startHeartbeat()
+
+    // Notify listeners
+    this.notifyListeners('connected', {})
+  }
+
+  /**
+   * Handle WebSocket close
+   */
+  private handleClose(event: CloseEvent): void {
+    this.state.isConnected = false
+    this.state.isConnecting = false
+
+    console.log('WebSocket disconnected:', event.code, event.reason)
+
+    // Stop heartbeat
+    if (this.state.heartbeatTimer) {
+      clearInterval(this.state.heartbeatTimer)
+      this.state.heartbeatTimer = null
+    }
+
+    // Notify listeners
+    this.notifyListeners('disconnected', { code: event.code, reason: event.reason })
+
+    // Attempt to reconnect if not a normal closure
+    if (event.code !== 1000 && this.state.reconnectAttempts < this.state.maxReconnectAttempts) {
+      this.attemptReconnect()
+    }
+  }
+
+  /**
+   * Handle WebSocket error
+   */
+  private handleError(error: Event): void {
+    console.error('WebSocket error:', error)
+
+    // Notify listeners
+    this.notifyListeners('error', { error })
+  }
+
+  /**
+   * Handle WebSocket message
+   */
+  private handleMessage(event: MessageEvent): void {
+    try {
+      const data = JSON.parse(event.data)
+      
+      // Handle heartbeat response
+      if (data.type === 'pong') {
         return
       }
 
-      this.state.isConnecting = true
-      this.state.connectionState = 'connecting'
-      this.state.error = undefined
+      // Notify listeners
+      this.notifyListeners('message', data)
+    } catch (error) {
+      console.error('Failed to parse WebSocket message:', error)
+    }
+  }
 
-      try {
-        this.ws = new WebSocket(this.config.url)
+  /**
+   * Start heartbeat
+   */
+  private startHeartbeat(): void {
+    if (this.state.heartbeatTimer) {
+      clearInterval(this.state.heartbeatTimer)
+    }
 
-        this.ws.onopen = () => {
-          this.state.isConnected = true
-          this.state.isConnecting = false
-          this.state.connectionState = 'connected'
-          this.state.lastConnected = new Date()
-          this.state.reconnectAttempts = 0
-          this.state.error = undefined
-
-          this.log('Connected to WebSocket server')
-          
-          // Process queued messages
-          this.processMessageQueue()
-          
-          // Start heartbeat
-          this.startHeartbeat()
-          
-          resolve()
+    this.state.heartbeatTimer = setInterval(() => {
+      if (this.state.isConnected && this.state.connection) {
+        try {
+          this.send({ type: 'ping', timestamp: new Date() })
+        } catch (error) {
+          console.error('Failed to send heartbeat:', error)
         }
-
-        this.ws.onmessage = (event) => {
-          try {
-            const message: WebSocketMessage = JSON.parse(event.data)
-            this.handleMessage(message)
-          } catch (error) {
-            this.log('Failed to parse WebSocket message:', error)
-          }
-        }
-
-        this.ws.onclose = (event) => {
-          this.state.isConnected = false
-          this.state.isConnecting = false
-          this.state.connectionState = 'disconnected'
-          
-          this.log('WebSocket connection closed:', event.code, event.reason)
-          
-          this.stopHeartbeat()
-          
-          // Attempt reconnection if not a clean close
-          if (event.code !== 1000 && this.state.reconnectAttempts < this.config.maxReconnectAttempts) {
-            this.scheduleReconnect()
-          }
-        }
-
-        this.ws.onerror = (error) => {
-          this.state.isConnecting = false
-          this.state.error = 'WebSocket connection error'
-          this.log('WebSocket error:', error)
-          reject(error)
-        }
-
-      } catch (error) {
-        this.state.isConnecting = false
-        this.state.error = 'Failed to create WebSocket connection'
-        this.log('Failed to create WebSocket:', error)
-        reject(error)
       }
-    })
+    }, this.state.heartbeatInterval)
   }
 
   /**
-   * Disconnect from WebSocket server
+   * Attempt to reconnect
    */
-  public disconnect(): void {
-    this.state.connectionState = 'disconnected'
-    this.stopHeartbeat()
-    this.clearReconnectTimer()
-    
-    if (this.ws) {
-      this.ws.close(1000, 'Client disconnect')
-      this.ws = null
-    }
-    
-    this.state.isConnected = false
-    this.state.isConnecting = false
-    this.log('Disconnected from WebSocket server')
-  }
-
-  /**
-   * Send a message to the server
-   */
-  public send(type: WebSocketEventType, data: any): void {
-    const message: WebSocketMessage = {
-      type,
-      data,
-      timestamp: new Date(),
+  private attemptReconnect(): void {
+    if (this.state.reconnectAttempts >= this.state.maxReconnectAttempts) {
+      console.error('Max reconnection attempts reached')
+      this.notifyListeners('reconnect_failed', { attempts: this.state.reconnectAttempts })
+      return
     }
 
-    if (this.state.isConnected && this.ws?.readyState === WebSocket.OPEN) {
-      try {
-        this.ws.send(JSON.stringify(message))
-        this.log('Sent message:', type, data)
-      } catch (error) {
-        this.log('Failed to send message:', error)
-        this.queueMessage(message)
-      }
-    } else {
-      this.queueMessage(message)
+    this.state.reconnectAttempts++
+    const delay = this.state.reconnectDelay * Math.pow(2, this.state.reconnectAttempts - 1)
+
+    console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.state.reconnectAttempts}/${this.state.maxReconnectAttempts})`)
+
+    setTimeout(() => {
+      this.connect()
+    }, delay)
+  }
+
+  /**
+   * Notify listeners
+   */
+  private notifyListeners(event: string, data: any): void {
+    const listeners = this.listeners.get(event)
+    if (listeners) {
+      listeners.forEach(callback => {
+        try {
+          callback(data)
+        } catch (error) {
+          console.error('Error in WebSocket listener:', error)
+        }
+      })
     }
-  }
-
-  /**
-   * Subscribe to a specific event type
-   */
-  public on(eventType: WebSocketEventType, callback: (data: any) => void): () => void {
-    if (!this.listeners.has(eventType)) {
-      this.listeners.set(eventType, new Set())
-    }
-    
-    this.listeners.get(eventType)!.add(callback)
-    
-    // Return unsubscribe function
-    return () => {
-      this.listeners.get(eventType)?.delete(callback)
-    }
-  }
-
-  /**
-   * Subscribe to typing indicators
-   */
-  public onTyping(callback: (indicator: TypingIndicator) => void): () => void {
-    return this.on('typing.start', callback)
-  }
-
-  /**
-   * Subscribe to presence updates
-   */
-  public onPresenceUpdate(callback: (update: PresenceUpdate) => void): () => void {
-    return this.on('user.status.changed', callback)
-  }
-
-  /**
-   * Subscribe to new messages
-   */
-  public onMessage(callback: (message: Message) => void): () => void {
-    return this.on('message.created', callback)
-  }
-
-  /**
-   * Subscribe to message updates
-   */
-  public onMessageUpdate(callback: (message: Message) => void): () => void {
-    return this.on('message.updated', callback)
-  }
-
-  /**
-   * Subscribe to message deletions
-   */
-  public onMessageDelete(callback: (messageId: string) => void): () => void {
-    return this.on('message.deleted', callback)
-  }
-
-  /**
-   * Subscribe to channel updates
-   */
-  public onChannelUpdate(callback: (channel: Channel) => void): () => void {
-    return this.on('channel.member.added', callback)
-  }
-
-  /**
-   * Subscribe to event updates
-   */
-  public onEventUpdate(callback: (event: Event) => void): () => void {
-    return this.on('event.created', callback)
-  }
-
-  /**
-   * Send typing indicator
-   */
-  public sendTyping(channelId: string, isTyping: boolean): void {
-    this.send('typing.start', {
-      channelId,
-      isTyping,
-    })
-  }
-
-  /**
-   * Send presence update
-   */
-  public sendPresenceUpdate(status: 'online' | 'away' | 'busy' | 'offline', channelId?: string): void {
-    this.send('user.status.changed', {
-      status,
-      channelId,
-    })
-  }
-
-  /**
-   * Send a message
-   */
-  public sendMessage(message: Omit<Message, 'id' | 'createdAt' | 'updatedAt'>): void {
-    this.send('message.created', message)
-  }
-
-  /**
-   * Update a message
-   */
-  public updateMessage(messageId: string, updates: Partial<Message>): void {
-    this.send('message.updated', {
-      messageId,
-      updates,
-    })
-  }
-
-  /**
-   * Delete a message
-   */
-  public deleteMessage(messageId: string): void {
-    this.send('message.deleted', { messageId })
   }
 
   /**
    * Get connection status
    */
-  public get isConnected(): boolean {
-    return this.state.isConnected
-  }
-
-  /**
-   * Get connection state
-   */
-  public get connectionState(): string {
-    return this.state.connectionState
-  }
-
-  /**
-   * Get error message
-   */
-  public get error(): string | undefined {
-    return this.state.error
-  }
-
-  /**
-   * Handle incoming WebSocket messages
-   */
-  private handleMessage(message: WebSocketMessage): void {
-    this.log('Received message:', message.type, message.data)
-    
-    const listeners = this.listeners.get(message.type)
-    if (listeners) {
-      listeners.forEach(callback => {
-        try {
-          callback(message.data)
-        } catch (error) {
-          this.log('Error in message handler:', error)
-        }
-      })
+  getConnectionStatus(): {
+    isConnected: boolean
+    isConnecting: boolean
+    reconnectAttempts: number
+    maxReconnectAttempts: number
+  } {
+    return {
+      isConnected: this.state.isConnected,
+      isConnecting: this.state.isConnecting,
+      reconnectAttempts: this.state.reconnectAttempts,
+      maxReconnectAttempts: this.state.maxReconnectAttempts
     }
   }
 
   /**
-   * Queue message for later sending
+   * Set max reconnection attempts
    */
-  private queueMessage(message: WebSocketMessage): void {
-    this.messageQueue.push(message)
-    this.log('Queued message:', message.type)
+  setMaxReconnectAttempts(max: number): void {
+    this.state.maxReconnectAttempts = max
   }
 
   /**
-   * Process queued messages
+   * Set reconnection delay
    */
-  private processMessageQueue(): void {
-    while (this.messageQueue.length > 0 && this.state.isConnected) {
-      const message = this.messageQueue.shift()
-      if (message) {
-        this.ws?.send(JSON.stringify(message))
-        this.log('Sent queued message:', message.type)
-      }
-    }
+  setReconnectDelay(delay: number): void {
+    this.state.reconnectDelay = delay
   }
 
   /**
-   * Schedule reconnection attempt
+   * Set heartbeat interval
    */
-  private scheduleReconnect(): void {
-    this.state.connectionState = 'reconnecting'
-    this.state.reconnectAttempts++
-    
-    this.log(`Scheduling reconnect attempt ${this.state.reconnectAttempts}/${this.config.maxReconnectAttempts}`)
-    
-    this.reconnectTimer = setTimeout(() => {
-      this.connect().catch(() => {
-        // Reconnection failed, will be handled by onclose
-      })
-    }, this.config.reconnectInterval)
+  setHeartbeatInterval(interval: number): void {
+    this.state.heartbeatInterval = interval
   }
 
   /**
-   * Clear reconnect timer
+   * Reset reconnection attempts
    */
-  private clearReconnectTimer(): void {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer)
-      this.reconnectTimer = undefined
-    }
-  }
-
-  /**
-   * Start heartbeat to keep connection alive
-   */
-  private startHeartbeat(): void {
-    this.heartbeatTimer = setInterval(() => {
-      if (this.state.isConnected) {
-        this.send('ping', { timestamp: new Date() })
-      }
-    }, this.config.heartbeatInterval)
-  }
-
-  /**
-   * Stop heartbeat
-   */
-  private stopHeartbeat(): void {
-    if (this.heartbeatTimer) {
-      clearInterval(this.heartbeatTimer)
-      this.heartbeatTimer = undefined
-    }
-  }
-
-  /**
-   * Log message if debug is enabled
-   */
-  private log(...args: any[]): void {
-    if (this.config.debug) {
-      console.log('[WebSocket]', ...args)
-    }
-  }
-
-  /**
-   * Cleanup resources
-   */
-  public destroy(): void {
-    this.disconnect()
-    this.listeners.clear()
-    this.messageQueue = []
+  resetReconnectionAttempts(): void {
+    this.state.reconnectAttempts = 0
   }
 }
 
-/**
- * Create a reactive WebSocket service instance
- */
-export function createWebSocketService(config: WebSocketConfig): WebSocketService {
-  return new WebSocketService(config)
-}
-
-/**
- * Composable for using WebSocket service
- */
-export function useWebSocket(config: WebSocketConfig) {
-  const service = createWebSocketService(config)
-  
-  // Auto-cleanup on unmount
-  onUnmounted(() => {
-    service.destroy()
-  })
-
-  return {
-    service,
-    state: service.state,
-    connect: service.connect.bind(service),
-    disconnect: service.disconnect.bind(service),
-    send: service.send.bind(service),
-    on: service.on.bind(service),
-    onTyping: service.onTyping.bind(service),
-    onPresenceUpdate: service.onPresenceUpdate.bind(service),
-    onMessage: service.onMessage.bind(service),
-    onMessageUpdate: service.onMessageUpdate.bind(service),
-    onMessageDelete: service.onMessageDelete.bind(service),
-    onChannelUpdate: service.onChannelUpdate.bind(service),
-    onEventUpdate: service.onEventUpdate.bind(service),
-    sendTyping: service.sendTyping.bind(service),
-    sendPresenceUpdate: service.sendPresenceUpdate.bind(service),
-    sendMessage: service.sendMessage.bind(service),
-    updateMessage: service.updateMessage.bind(service),
-    deleteMessage: service.deleteMessage.bind(service),
-    isConnected: computed(() => service.isConnected),
-    connectionState: computed(() => service.connectionState),
-    error: computed(() => service.error),
-  }
-}
+// Export singleton instance
+export const websocketService = new WebSocketService()
+export default websocketService

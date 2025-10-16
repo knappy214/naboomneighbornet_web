@@ -1,97 +1,75 @@
 /**
- * Communication Hub Store
- * Manages all communication-related state including channels, messages, users, and events
+ * Communication Store
+ * Pinia store for managing communication hub state
+ * Part of User Story 1: Real-Time Discussion Channels
  */
 
 import { defineStore } from 'pinia'
 import { ref, computed, reactive } from 'vue'
-import { useWebSocket } from '@/lib/websocket'
-import communicationApi from '@/services/communication'
+import { channelService } from '@/services/channelService'
+import { messageService } from '@/services/messageService'
+import { typingService } from '@/services/typingService'
+import { notificationService } from '@/services/notificationService'
+import { realTimeService } from '@/services/realTimeService'
 import type {
   Channel,
   Message,
-  UserProfile,
-  Event,
-  SearchResult,
   CreateChannelForm,
-  CreateEventForm,
   SendMessageForm,
-  SearchQuery,
-  CommunicationState,
-  WebSocketConfig,
-  TypingIndicator,
-  PresenceUpdate,
-  MessageReaction,
-  MessageReply,
-  ChannelMember,
-  EventAttendee,
-  UserPreferences,
-  NotificationSettings,
-  ApiError,
+  TypingUser,
+  Notification,
+  ConnectionStatus,
 } from '@/types/communication'
 
-export const useCommunicationStore = defineStore('communication', () => {
-  // ============================================================================
-  // State
-  // ============================================================================
+interface CommunicationState {
+  // Channels
+  channels: Channel[]
+  currentChannel: string | null
+  isLoading: boolean
+  error: string | null
 
+  // Messages
+  messages: Record<string, Message[]> // channelId -> messages
+
+  // Typing
+  typingUsers: Record<string, TypingUser[]> // channelId -> typing users
+
+  // Connection
+  isOnline: boolean
+  connectionStatus: ConnectionStatus
+
+  // Current user
+  currentUser: {
+    id: string
+    username: string
+    displayName: string
+    avatar?: string
+  } | null
+}
+
+export const useCommunicationStore = defineStore('communication', () => {
+  // State
   const state = reactive<CommunicationState>({
     channels: [],
-    messages: {},
-    users: {},
-    events: [],
-    currentChannel: undefined,
-    currentUser: undefined,
-    isOnline: navigator.onLine,
-    typingUsers: {},
-    offlineQueue: {
-      messages: [],
-      isOnline: navigator.onLine,
-      pendingCount: 0,
-    },
-    searchResults: undefined,
+    currentChannel: null,
     isLoading: false,
-    error: undefined,
+    error: null,
+    messages: {},
+    typingUsers: {},
+    isOnline: false,
+    connectionStatus: 'disconnected',
+    currentUser: null,
   })
 
-  // WebSocket service
-  const wsConfig: WebSocketConfig = {
-    url: import.meta.env.VITE_WS_URL || 'wss://naboomneighbornet.net.za/ws/communication/',
-    reconnectInterval: 3000,
-    maxReconnectAttempts: 5,
-    heartbeatInterval: 30000,
-    debug: import.meta.env.DEV,
-  }
-
-  const ws = useWebSocket(wsConfig)
-
-  // ============================================================================
   // Getters
-  // ============================================================================
+  const currentChannelData = computed(() => {
+    if (!state.currentChannel) return null
+    return state.channels.find((c) => c.id === state.currentChannel) || null
+  })
 
   const currentChannelMessages = computed(() => {
     if (!state.currentChannel) return []
     return state.messages[state.currentChannel] || []
-  })
-
-  const currentChannelData = computed(() => {
-    if (!state.currentChannel) return undefined
-    return state.channels.find(c => c.id === state.currentChannel)
-  })
-
-  const unreadCount = computed(() => {
-    return state.channels.reduce((total, channel) => {
-      const messages = state.messages[channel.id] || []
-      const unread = messages.filter(msg => 
-        msg.userId !== state.currentUser?.id && 
-        !msg.readBy?.includes(state.currentUser?.id || '')
-      ).length
-      return total + unread
-    }, 0)
-  })
-
-  const onlineUsers = computed(() => {
-    return Object.values(state.users).filter(user => user.status === 'online')
   })
 
   const typingUsersInCurrentChannel = computed(() => {
@@ -99,464 +77,294 @@ export const useCommunicationStore = defineStore('communication', () => {
     return state.typingUsers[state.currentChannel] || []
   })
 
-  const pendingMessages = computed(() => {
-    return state.offlineQueue.messages.filter(msg => msg.priority === 'high').length
+  const unreadCounts = computed(() => {
+    const counts: Record<string, number> = {}
+    Object.keys(state.messages).forEach((channelId) => {
+      counts[channelId] = messageService.getUnreadCount(channelId)
+    })
+    return counts
   })
 
-  // ============================================================================
   // Actions
-  // ============================================================================
-
-  /**
-   * Initialize the communication store
-   */
-  async function initialize() {
-    state.isLoading = true
-    state.error = undefined
-
+  const initialize = async () => {
     try {
-      // Connect to WebSocket
-      await ws.connect()
+      state.isLoading = true
+      state.error = null
 
-      // Load initial data
-      await Promise.all([
-        loadChannels(),
-        loadCurrentUser(),
-        loadEvents(),
-      ])
+      // Load channels
+      await loadChannels()
 
-      // Setup WebSocket listeners
-      setupWebSocketListeners()
+      // Initialize real-time service
+      await realTimeService.connect()
 
-      // Setup online/offline listeners
-      setupNetworkListeners()
+      // Subscribe to real-time events
+      realTimeService.subscribe('message_received', handleMessageReceived)
+      realTimeService.subscribe('typing_received', handleTypingReceived)
+      realTimeService.subscribe('channel_updated', handleChannelUpdated)
+      realTimeService.subscribe('connection_status_changed', handleConnectionStatusChanged)
 
-    } catch (error) {
-      state.error = {
-        code: 'INITIALIZATION_FAILED',
-        message: 'Failed to initialize communication store',
-        details: error,
-      }
+      // Subscribe to typing updates
+      typingService.subscribe('typing_users_changed', handleTypingUsersChanged)
+
+      // Request notification permission
+      await notificationService.requestPermission()
+
+      state.isOnline = true
+    } catch (error: any) {
+      state.error = error.message || 'Failed to initialize communication store'
       console.error('Failed to initialize communication store:', error)
     } finally {
       state.isLoading = false
     }
   }
 
-  /**
-   * Load all channels
-   */
-  async function loadChannels() {
+  const loadChannels = async () => {
     try {
-      const response = await communicationApi.channels.getChannels()
-      if (response.success && response.data) {
-        state.channels = response.data
-      }
-    } catch (error) {
-      console.error('Failed to load channels:', error)
+      const channels = await channelService.getChannels()
+      state.channels = channels
+    } catch (error: any) {
+      state.error = error.message || 'Failed to load channels'
       throw error
     }
   }
 
-  /**
-   * Load current user profile
-   */
-  async function loadCurrentUser() {
+  const switchToChannel = async (channelId: string) => {
     try {
-      const response = await communicationApi.users.getCurrentUser()
-      if (response.success && response.data) {
-        state.currentUser = response.data
-        state.users[response.data.id] = response.data
+      state.currentChannel = channelId
+
+      // Load messages if not already loaded
+      if (!state.messages[channelId]) {
+        await loadMessages(channelId)
       }
-    } catch (error) {
-      console.error('Failed to load current user:', error)
+
+      // Join channel for real-time updates
+      await realTimeService.joinChannel(channelId)
+
+      // Mark messages as read
+      await messageService.markAsRead(channelId)
+    } catch (error: any) {
+      state.error = error.message || 'Failed to switch to channel'
       throw error
     }
   }
 
-  /**
-   * Load events
-   */
-  async function loadEvents() {
+  const loadMessages = async (channelId: string) => {
     try {
-      const response = await communicationApi.events.getEvents()
-      if (response.success && response.data) {
-        state.events = response.data.data || []
-      }
-    } catch (error) {
-      console.error('Failed to load events:', error)
+      const messages = await messageService.getMessages(channelId)
+      state.messages[channelId] = messages
+    } catch (error: any) {
+      state.error = error.message || 'Failed to load messages'
       throw error
     }
   }
 
-  /**
-   * Load messages for a channel
-   */
-  async function loadMessages(channelId: string, params?: { page?: number; limit?: number }) {
-    try {
-      const response = await communicationApi.messages.getMessages(channelId, params)
-      if (response.success && response.data) {
-        const messages = response.data.data || []
-        if (params?.page && params.page > 1) {
-          // Append to existing messages for pagination
-          state.messages[channelId] = [...(state.messages[channelId] || []), ...messages]
-        } else {
-          // Replace messages for initial load
-          state.messages[channelId] = messages
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load messages:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Switch to a channel
-   */
-  async function switchToChannel(channelId: string) {
-    state.currentChannel = channelId
-    
-    // Load messages if not already loaded
-    if (!state.messages[channelId]) {
-      await loadMessages(channelId)
-    }
-
-    // Mark channel as read
-    await markChannelAsRead(channelId)
-  }
-
-  /**
-   * Send a message
-   */
-  async function sendMessage(data: SendMessageForm) {
+  const sendMessage = async (data: SendMessageForm) => {
     if (!state.currentChannel) {
       throw new Error('No channel selected')
     }
 
     try {
-      const response = await communicationApi.messages.sendMessage(state.currentChannel, data)
-      if (response.success && response.data) {
-        // Add message to local state
-        if (!state.messages[state.currentChannel]) {
-          state.messages[state.currentChannel] = []
-        }
-        state.messages[state.currentChannel].push(response.data)
-        
-        // Send via WebSocket for real-time updates
-        ws.sendMessage(response.data)
+      const message = await messageService.sendMessage(state.currentChannel, data)
+
+      // Add to local state
+      if (!state.messages[state.currentChannel]) {
+        state.messages[state.currentChannel] = []
       }
-    } catch (error) {
-      console.error('Failed to send message:', error)
+      state.messages[state.currentChannel].push(message)
+
+      // Show notification to other users
+      if (state.currentUser) {
+        await notificationService.showMessageNotification(
+          currentChannelData.value?.name || 'Unknown',
+          state.currentUser.displayName,
+          message.content,
+          state.currentChannel,
+          message.id,
+        )
+      }
+    } catch (error: any) {
+      state.error = error.message || 'Failed to send message'
       throw error
     }
   }
 
-  /**
-   * Create a new channel
-   */
-  async function createChannel(data: CreateChannelForm) {
+  const createChannel = async (data: CreateChannelForm) => {
     try {
-      const response = await communicationApi.channels.createChannel(data)
-      if (response.success && response.data) {
-        state.channels.push(response.data)
-        return response.data
-      }
-    } catch (error) {
-      console.error('Failed to create channel:', error)
+      const channel = await channelService.createChannel(data)
+      state.channels.push(channel)
+      return channel
+    } catch (error: any) {
+      state.error = error.message || 'Failed to create channel'
       throw error
     }
   }
 
-  /**
-   * Create a new event
-   */
-  async function createEvent(data: CreateEventForm) {
+  const updateChannel = async (channelId: string, updates: Partial<Channel>) => {
     try {
-      const response = await communicationApi.events.createEvent(data)
-      if (response.success && response.data) {
-        state.events.push(response.data)
-        return response.data
-      }
-    } catch (error) {
-      console.error('Failed to create event:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Search messages
-   */
-  async function searchMessages(query: SearchQuery) {
-    try {
-      const response = await communicationApi.search.searchMessages(query)
-      if (response.success && response.data) {
-        state.searchResults = response.data
-        return response.data
-      }
-    } catch (error) {
-      console.error('Failed to search messages:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Mark channel as read
-   */
-  async function markChannelAsRead(channelId: string) {
-    try {
-      await communicationApi.messages.markChannelAsRead(channelId)
-    } catch (error) {
-      console.error('Failed to mark channel as read:', error)
-    }
-  }
-
-  /**
-   * Add reaction to message
-   */
-  async function addReaction(channelId: string, messageId: string, emoji: string) {
-    try {
-      const response = await communicationApi.messages.addReaction(channelId, messageId, emoji)
-      if (response.success && response.data) {
-        // Update local message
-        const messages = state.messages[channelId] || []
-        const messageIndex = messages.findIndex(m => m.id === messageId)
-        if (messageIndex !== -1) {
-          const existingReaction = messages[messageIndex].reactions.find(r => r.emoji === emoji)
-          if (existingReaction) {
-            existingReaction.count = response.data.count
-            existingReaction.users = response.data.users
-          } else {
-            messages[messageIndex].reactions.push(response.data)
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Failed to add reaction:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Update user preferences
-   */
-  async function updatePreferences(data: Partial<UserPreferences>) {
-    if (!state.currentUser) return
-
-    try {
-      const response = await communicationApi.users.updatePreferences(data)
-      if (response.success && response.data) {
-        state.currentUser.preferences = { ...state.currentUser.preferences, ...response.data }
-        state.users[state.currentUser.id] = state.currentUser
-      }
-    } catch (error) {
-      console.error('Failed to update preferences:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Update notification settings
-   */
-  async function updateNotificationSettings(data: Partial<NotificationSettings>) {
-    if (!state.currentUser) return
-
-    try {
-      const response = await communicationApi.users.updateNotificationSettings(data)
-      if (response.success && response.data) {
-        state.currentUser.preferences.notifications = { 
-          ...state.currentUser.preferences.notifications, 
-          ...response.data 
-        }
-        state.users[state.currentUser.id] = state.currentUser
-      }
-    } catch (error) {
-      console.error('Failed to update notification settings:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Setup WebSocket listeners
-   */
-  function setupWebSocketListeners() {
-    // Message events
-    ws.onMessage((message: Message) => {
-      if (message.channelId && state.messages[message.channelId]) {
-        state.messages[message.channelId].push(message)
-      }
-    })
-
-    ws.onMessageUpdate((message: Message) => {
-      if (message.channelId && state.messages[message.channelId]) {
-        const index = state.messages[message.channelId].findIndex(m => m.id === message.id)
-        if (index !== -1) {
-          state.messages[message.channelId][index] = message
-        }
-      }
-    })
-
-    ws.onMessageDelete((messageId: string) => {
-      Object.keys(state.messages).forEach(channelId => {
-        const index = state.messages[channelId].findIndex(m => m.id === messageId)
-        if (index !== -1) {
-          state.messages[channelId].splice(index, 1)
-        }
-      })
-    })
-
-    // Typing indicators
-    ws.onTyping((indicator: TypingIndicator) => {
-      if (!state.typingUsers[indicator.channelId]) {
-        state.typingUsers[indicator.channelId] = []
-      }
-      
-      const existingIndex = state.typingUsers[indicator.channelId].findIndex(
-        t => t.userId === indicator.userId
-      )
-
-      if (indicator.isTyping) {
-        if (existingIndex === -1) {
-          state.typingUsers[indicator.channelId].push(indicator)
-        } else {
-          state.typingUsers[indicator.channelId][existingIndex] = indicator
-        }
-      } else {
-        if (existingIndex !== -1) {
-          state.typingUsers[indicator.channelId].splice(existingIndex, 1)
-        }
-      }
-    })
-
-    // Presence updates
-    ws.onPresenceUpdate((update: PresenceUpdate) => {
-      if (state.users[update.userId]) {
-        state.users[update.userId].status = update.status
-        state.users[update.userId].lastSeen = update.lastSeen
-      }
-    })
-
-    // Channel updates
-    ws.onChannelUpdate((channel: Channel) => {
-      const index = state.channels.findIndex(c => c.id === channel.id)
+      const channel = await channelService.updateChannel(channelId, updates)
+      const index = state.channels.findIndex((c) => c.id === channelId)
       if (index !== -1) {
         state.channels[index] = channel
-      } else {
-        state.channels.push(channel)
       }
-    })
-
-    // Event updates
-    ws.onEventUpdate((event: Event) => {
-      const index = state.events.findIndex(e => e.id === event.id)
-      if (index !== -1) {
-        state.events[index] = event
-      } else {
-        state.events.push(event)
-      }
-    })
-  }
-
-  /**
-   * Setup network status listeners
-   */
-  function setupNetworkListeners() {
-    const updateOnlineStatus = () => {
-      state.isOnline = navigator.onLine
-      state.offlineQueue.isOnline = navigator.onLine
-    }
-
-    window.addEventListener('online', updateOnlineStatus)
-    window.addEventListener('offline', updateOnlineStatus)
-
-    // Cleanup on store destruction
-    return () => {
-      window.removeEventListener('online', updateOnlineStatus)
-      window.removeEventListener('offline', updateOnlineStatus)
+      return channel
+    } catch (error: any) {
+      state.error = error.message || 'Failed to update channel'
+      throw error
     }
   }
 
-  /**
-   * Send typing indicator
-   */
-  function sendTyping(isTyping: boolean) {
+  const deleteChannel = async (channelId: string) => {
+    try {
+      await channelService.deleteChannel(channelId)
+      state.channels = state.channels.filter((c) => c.id !== channelId)
+
+      // Clear messages and typing users
+      delete state.messages[channelId]
+      delete state.typingUsers[channelId]
+
+      // Switch to another channel if this was the current one
+      if (state.currentChannel === channelId) {
+        state.currentChannel = state.channels.length > 0 ? state.channels[0].id : null
+      }
+    } catch (error: any) {
+      state.error = error.message || 'Failed to delete channel'
+      throw error
+    }
+  }
+
+  const sendTyping = async (isTyping: boolean) => {
+    if (!state.currentChannel) return
+
+    try {
+      await typingService.sendTyping(state.currentChannel, isTyping)
+    } catch (error: any) {
+      console.error('Failed to send typing indicator:', error)
+    }
+  }
+
+  const setCurrentUser = (user: {
+    id: string
+    username: string
+    displayName: string
+    avatar?: string
+  }) => {
+    state.currentUser = user
+  }
+
+  // Real-time event handlers
+  const handleMessageReceived = (data: any) => {
+    const message: Message = data
+    const channelId = message.channelId
+
+    if (!state.messages[channelId]) {
+      state.messages[channelId] = []
+    }
+    state.messages[channelId].push(message)
+
+    // Show notification if not current channel
+    if (channelId !== state.currentChannel && state.currentUser) {
+      const channel = state.channels.find((c) => c.id === channelId)
+      if (channel) {
+        notificationService.showMessageNotification(
+          channel.name,
+          message.displayName || message.username,
+          message.content,
+          channelId,
+          message.id,
+        )
+      }
+    }
+  }
+
+  const handleTypingReceived = (data: any) => {
+    const { channelId, userId, username, isTyping } = data
+
+    if (!state.typingUsers[channelId]) {
+      state.typingUsers[channelId] = []
+    }
+
+    if (isTyping) {
+      // Add or update typing user
+      const existingIndex = state.typingUsers[channelId].findIndex((u) => u.userId === userId)
+      if (existingIndex !== -1) {
+        state.typingUsers[channelId][existingIndex] = { userId, username, timestamp: new Date() }
+      } else {
+        state.typingUsers[channelId].push({ userId, username, timestamp: new Date() })
+      }
+    } else {
+      // Remove typing user
+      state.typingUsers[channelId] = state.typingUsers[channelId].filter((u) => u.userId !== userId)
+    }
+  }
+
+  const handleChannelUpdated = (data: any) => {
+    const channel: Channel = data
+    const index = state.channels.findIndex((c) => c.id === channel.id)
+    if (index !== -1) {
+      state.channels[index] = channel
+    }
+  }
+
+  const handleConnectionStatusChanged = (data: any) => {
+    state.connectionStatus = data.status
+    state.isOnline = data.status === 'connected'
+  }
+
+  const handleTypingUsersChanged = (users: TypingUser[]) => {
     if (state.currentChannel) {
-      ws.sendTyping(state.currentChannel, isTyping)
+      state.typingUsers[state.currentChannel] = users
     }
   }
 
-  /**
-   * Send presence update
-   */
-  function updatePresence(status: 'online' | 'away' | 'busy' | 'offline') {
-    ws.sendPresenceUpdate(status, state.currentChannel)
+  // Utility methods
+  const clearError = () => {
+    state.error = null
   }
 
-  /**
-   * Clear error
-   */
-  function clearError() {
-    state.error = undefined
+  const clearMessages = (channelId: string) => {
+    delete state.messages[channelId]
   }
 
-  /**
-   * Disconnect and cleanup
-   */
-  function disconnect() {
-    ws.disconnect()
-    state.channels = []
+  const clearAllMessages = () => {
     state.messages = {}
-    state.users = {}
-    state.events = []
-    state.currentChannel = undefined
-    state.currentUser = undefined
-    state.searchResults = undefined
-    state.error = undefined
   }
 
-  // ============================================================================
-  // Return store API
-  // ============================================================================
+  const getChannelById = (channelId: string) => {
+    return state.channels.find((c) => c.id === channelId)
+  }
+
+  const getMessageById = (channelId: string, messageId: string) => {
+    const messages = state.messages[channelId] || []
+    return messages.find((m) => m.id === messageId)
+  }
 
   return {
     // State
     state,
-    
+
     // Getters
-    currentChannelMessages,
     currentChannelData,
-    unreadCount,
-    onlineUsers,
+    currentChannelMessages,
     typingUsersInCurrentChannel,
-    pendingMessages,
-    
+    unreadCounts,
+
     // Actions
     initialize,
     loadChannels,
-    loadCurrentUser,
-    loadEvents,
-    loadMessages,
     switchToChannel,
+    loadMessages,
     sendMessage,
     createChannel,
-    createEvent,
-    searchMessages,
-    markChannelAsRead,
-    addReaction,
-    updatePreferences,
-    updateNotificationSettings,
+    updateChannel,
+    deleteChannel,
     sendTyping,
-    updatePresence,
+    setCurrentUser,
+
+    // Utility methods
     clearError,
-    disconnect,
-    
-    // WebSocket
-    isConnected: ws.isConnected,
-    connectionState: ws.connectionState,
-    error: ws.error,
+    clearMessages,
+    clearAllMessages,
+    getChannelById,
+    getMessageById,
   }
-}, {
-  persist: {
-    paths: ['state.channels', 'state.users', 'state.currentUser', 'state.currentChannel'],
-  },
 })
